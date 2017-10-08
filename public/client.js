@@ -21,13 +21,15 @@ const addUser = (id, { x, y, color }) => {
 socket.on('user_data', _users => {
   users = _users;
 
+  $('.character').remove();
+
   for (let id in users) {
     if (users.hasOwnProperty(id)) {
       addUser(id, users[id]);
     }
   }
 
-  $(`#c--${socket.id}`).css('border', '2px solid blue');
+  $(`#c--${socket.id}`).addClass('me');
 });
 
 socket.on('user_connect', (id, data) => {
