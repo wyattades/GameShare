@@ -1,0 +1,24 @@
+{
+  "name": "gameshare",
+  "version": "0.0.1",
+  "description": "",
+  "engines": {
+    "node": "8.5.0"
+  },
+  "scripts": {
+    "test": "echo \"No test configured\"",
+    "dev": "export NODE_ENV=development && node node_modules/nodemon/bin/nodemon.js --trace-warnings server.js",
+    "start": "export NODE_ENV=production && node server.js",
+    "deploy": "echo \"No deploy configured\""
+  },
+  "dependencies": {
+    "ejs": "^2.5.7",
+    "express": "^4.16.1",
+    "socket.io": "^2.0.3"
+  },
+  "devDependencies": {
+    "eslint": "^4.8.0",
+    "nodemon": "^1.12.1"
+  },
+  "license": "MIT"
+}
