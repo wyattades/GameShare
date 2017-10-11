@@ -1,0 +1,51 @@
+* {
+  margin: 0;
+  padding: 0;
+}
+
+html, body, #root, .ui {
+  height: 100%;  
+}
+
+.ui {
+  display: flex;
+  flex-direction: column;
+
+  &-header {
+    display: flex;
+    background-color: #DDD;
+    padding: 8px;
+  }
+
+  &-body {
+    display: flex;
+    flex: 1;
+    flex-direction: row;
+
+    & > * {
+      display: flex;
+      flex: 1;
+    }
+  }
+
+  &-sidebar {
+    max-width: 250px;
+
+    background-color: #CCC;
+    padding: 8px;
+  }
+}
+
+.grid {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  overflow: hidden;
+  z-index: -1;  
+
+  & > * {
+    position: absolute;
+  }
+}

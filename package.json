@@ -2,23 +2,60 @@
   "name": "gameshare",
   "version": "0.0.1",
   "description": "",
-  "engines": {
-    "node": "8.5.0"
-  },
+  "main": "src/index.js",
   "scripts": {
-    "test": "echo \"No test configured\"",
-    "dev": "export NODE_ENV=development && node node_modules/nodemon/bin/nodemon.js --trace-warnings server.js",
-    "start": "export NODE_ENV=production && node server.js",
-    "deploy": "echo \"No deploy configured\""
+    "lint": "eslint ./src",
+    "dev": "export NODE_ENV=development && node server.js",
+    "build": "export NODE_ENV=production && rm -rf dist && webpack --progress --profile --colors",
+    "start": "export NODE_ENV=production && node server.js"
   },
   "dependencies": {
     "ejs": "^2.5.7",
     "express": "^4.16.1",
-    "socket.io": "^2.0.3"
+    "history": "^4.7.2",
+    "pixi.js": "^4.5.6",
+    "prop-types": "^15.6.0",
+    "react": "^16.0.0",
+    "react-dom": "^16.0.0",
+    "react-hot-loader": "^3.0.0-beta.7",
+    "react-redux": "^5.0.6",
+    "react-router-dom": "^4.2.2",
+    "react-router-redux": "^5.0.0-alpha.6",
+    "redux": "^3.7.2",
+    "socket.io": "^2.0.3",
+    "webpack": "^3.6.0",
+    "webpack-dev-middleware": "^1.12.0",
+    "webpack-hot-middleware": "^2.19.1"
   },
   "devDependencies": {
+    "autoprefixer": "^7.1.2",
+    "babel-cli": "^6.26.0",
+    "babel-core": "^6.26.0",
+    "babel-eslint": "^8.0.1",
+    "babel-loader": "^7.1.2",
+    "babel-preset-env": "^1.6.0",
+    "babel-preset-react": "^6.24.1",
+    "babel-preset-stage-0": "^6.24.1",
+    "css-loader": "^0.28.7",
+    "dotenv": "^4.0.0",
     "eslint": "^4.8.0",
-    "nodemon": "^1.12.1"
+    "eslint-config-airbnb": "^15.1.0",
+    "eslint-plugin-import": "^2.7.0",
+    "eslint-plugin-jsx-a11y": "5.1.1",
+    "eslint-plugin-react": "^7.4.0",
+    "extract-text-webpack-plugin": "^3.0.1",
+    "file-loader": "^1.1.5",
+    "html-webpack-plugin": "^2.30.1",
+    "node-sass": "^4.5.3",
+    "optimize-css-assets-webpack-plugin": "^3.2.0",
+    "prettier-eslint": "^8.2.0",
+    "sass-loader": "^6.0.6",
+    "style-loader": "^0.19.0",
+    "uglifyjs-webpack-plugin": "^1.0.0-beta.2",
+    "url-loader": "^0.6.2"
   },
-  "license": "MIT"
+  "repository": {
+    "type": "git",
+    "url": ""
+  }
 }
