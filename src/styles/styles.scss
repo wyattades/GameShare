@@ -7,6 +7,15 @@ html, body, #root, .ui {
   height: 100%;  
 }
 
+#app {
+  display: flex;
+  flex: 1;
+  & > * {
+    display: flex;
+    flex: 1;
+  }
+}
+
 .ui {
   display: flex;
   flex-direction: column;

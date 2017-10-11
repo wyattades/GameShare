@@ -12,7 +12,11 @@ PATHS.dist = path.resolve(__dirname, 'public');
 PATHS.src = path.resolve(__dirname, 'src');
 PATHS.assets = path.resolve(PATHS.src, 'assets');
 PATHS.assetName = 'assets/[name].[ext]';
-PATHS.index = './src/index';
+PATHS.entry = {
+  index: './src/index',
+  play: './src/play',
+  edit: './src/edit',
+};
 
 const baseConfig = {
 
@@ -72,9 +76,7 @@ if (process.env.NODE_ENV === 'production') {
 
   module.exports = Object.assign({ // PRODUCTION CONFIG
     
-    entry: [
-      PATHS.index,
-    ],
+    entry: PATHS.entry,
 
     output: {
       path: PATHS.dist,
@@ -122,16 +124,14 @@ if (process.env.NODE_ENV === 'production') {
 
   module.exports = Object.assign({ // DEVELOPMENT CONFIG
     devtool: 'cheap-module-source-map',
-    entry: [
-      'react-hot-loader/patch',
-      // 'webpack-dev-server/client?http://localhost:8080',
-      // 'webpack/hot/only-dev-server',
-      'webpack-hot-middleware/client',
-      PATHS.index,
-    ],
+    entry: {
+      index: [ 'webpack-hot-middleware/client', PATHS.entry.index ],
+      play: [ 'webpack-hot-middleware/client', PATHS.entry.play ],
+      edit: [ 'react-hot-loader/patch', 'webpack-hot-middleware/client', PATHS.entry.edit ],
+    },
     output: {
       path: PATHS.dist,
-      filename: 'bundle.js',
+      filename: '[name].js',
       publicPath: '/public/',
     },
     plugins: [

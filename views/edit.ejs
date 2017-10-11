@@ -9,17 +9,13 @@
     <% } %>
   </head>
   <body>
-    <div className="ui">
-      <div className="ui-header">
-        <h1>Header</h1>
-      </div>
-      <div className="ui-body">
-        <div className="ui-sidebar">
+    <div class="ui">
+      <% include header %>        
+      <div class="ui-body">
+        <div class="ui-sidebar">
           <p>Sidebar</p>
         </div>
-        <div id="<%= rootId %>">              
-          <%= rootContent %>
-        </div>            
+        <div id="<%= rootId %>"></div>            
       </div>
     </div>  
     <script src="<%= script %>"></script>

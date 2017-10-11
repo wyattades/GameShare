@@ -28,26 +28,26 @@ const users = {};
 
 // app.use(express.static('public'));
 
-const options = {
-  title: 'GameShare',
+const options = page => ({
+  title: `GameShare: ${page}`,
   css: [],
   rootContent: '',
-  script: '/public/bundle.js',
+  script: `/public/${page}.js`,
   rootId: 'root',
-};
+});
 
 app.set('view engine', 'ejs');
 
-app.get('/', (req, res) => res.render('index', options));
-app.get('/play', (req, res) => res.render('play', options));
-app.get('/edit', (req, res) => res.render('edit', options));
+app.get('/', (req, res) => res.render('index', options('index')));
+app.get('/play', (req, res) => res.render('play', options('play')));
+app.get('/edit', (req, res) => res.render('edit', options('edit')));
 
 io.on('connection', socket => {
 
   users[socket.id] = {
     x: Math.random() * 400,
     y: Math.random() * 400,
-    color: `#${(Math.random() * 0xFFFFFF << 0).toString(16)}`,
+    color: Math.random() * 0xFFFFFF << 0,
   };
 
   socket.emit('user_data', users);
@@ -72,6 +72,7 @@ io.on('connection', socket => {
   socket.on('move_y', (id, delta) => {
     io.emit('move_y', id, delta);
   });
+  
 
 });
 

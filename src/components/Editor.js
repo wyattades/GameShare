@@ -1,16 +1,13 @@
 import React, { Component } from 'react';
 
-import Engine, { createRect } from '../Engine';
+import Engine, { createRect } from '../utils//Engine';
 import Grid from './Grid';
 
 export default class extends Component {
 
   componentDidMount() {
 
-    this.width = this._parent.offsetWidth;
-    this.height = this._parent.offsetHeight;
-
-    this.app = new Engine(this._parent, this.width, this.height);
+    this.app = new Engine(this._parent);
     this.setup();
     this.app.start();
   }
@@ -21,7 +18,7 @@ export default class extends Component {
 
   setup = () => {
     this.app.addObject(createRect({
-      x: 200, y: 300, w: 80, h: 100, draggable: true, fill: 0xFFAABB, stroke: 0x000000,
+      x: 100, y: 100, w: 80, h: 100, draggable: true, fill: 0xFFAABB, stroke: 0x000000,
     }));
   }
 

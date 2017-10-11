@@ -2,20 +2,20 @@ import * as Pixi from 'pixi.js';
 
 class Engine {
 
-  constructor(parent, width, height) {
+  constructor(parent, options = {}) {
 
-    this.width = width;
-    this.height = height;
+    this.animated = !!options.animated;
+
+    this.width = parent.clientWidth;
+    this.height = parent.clientHeight;
 
     this.app = new Pixi.Application({
-      width,
-      height,
-      transparent: true,
+      width: this.width,
+      height: this.height,
+      transparent: !options.background,
     });
     
     parent.appendChild(this.app.view);
-
-    // this.app.ticker.add(this.update);
   }
 
   addObject = (...objs) => {
@@ -24,13 +24,29 @@ class Engine {
     }
   }
 
+  removeObject = obj => {
+    if (obj) {
+      this.app.stage.removeChild(obj);
+    } else {
+      this.app.stage.removeChildren();
+    }
+  }
+
   start = () => {
+    if (this.animated) this.app.ticker.add(this.update);
     this.app.start();
   }
 
   stop = () => {
-    // this.app.ticker.remove(this.update);
+    if (this.animated) this.app.ticker.remove(this.update);
     this.app.stop();
+  }
+
+  update = delta => {
+    for (let obj of this.app.stage.children) {
+      if (obj.vx) obj.x += obj.vx * delta;
+      if (obj.vy) obj.y += obj.vy * delta;
+    }
   }
 
   translate = (x, y, z) => {
@@ -60,12 +76,14 @@ function onDragMove() {
   }
 }
 
-export const createRect = ({ x = 0, y = 0, w = 1, h = 1, draggable }) => {
+export const createRect = ({
+  x = 0, y = 0, w = 1, h = 1, draggable, fill = 0xDDDDDD, stroke = 0x000000,
+}) => {
 
   const rectangle = new Pixi.Graphics();
 
-  rectangle.lineStyle(1, 0xFF3300, 1);
-  rectangle.beginFill(0x66CCFF);
+  rectangle.lineStyle(1, stroke, 1);
+  rectangle.beginFill(fill);
   rectangle.drawRect(0, 0, w, h);
   rectangle.endFill();
 
