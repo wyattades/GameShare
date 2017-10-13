@@ -65,8 +65,6 @@ const sharedPlugins = [
   //   inject: 'body',
   // }),
 
-  new CleanWebpackPlugin([ 'public' ]),
-
   new ExtractTextPlugin({
     // filename: '[contenthash].css',
     filename: 'style.css',
@@ -90,7 +88,9 @@ if (process.env.NODE_ENV === 'production') {
 
     plugins: [
       ...sharedPlugins,
-      
+
+      new CleanWebpackPlugin([ 'public' ]),
+            
       new webpack.optimize.OccurrenceOrderPlugin(),
 
       new UglifyJsPlugin({

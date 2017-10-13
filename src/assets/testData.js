@@ -5,7 +5,7 @@ export default {
     // example options:
     snap: 8,
     bulletSpeed: 2,
-    backgroundColor: null,
+    backgroundColor: 0xDDEEDD,
   },
   groups: [
     {

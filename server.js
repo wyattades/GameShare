@@ -3,6 +3,7 @@ const DEV = process.env.NODE_ENV === 'development';
 
 const webpack = require('webpack');
 const express = require('express');
+const UUID = require('node-uuid');
 
 const app = express();
 const http = require('http').Server(app);
@@ -49,25 +50,27 @@ const users = {};
 
 io.on('connection', socket => {
 
-  users[socket.id] = {
+  const userId = UUID();
+
+  users[userId] = {
     x: Math.random() * 400,
     y: Math.random() * 400,
     color: Math.random() * 0xFFFFFF << 0,
   };
 
-  socket.emit('user_data', users);
+  socket.emit('onconnected', { users, id: userId });
 
   // const address = socket.request.connection.remoteAddress; 
   // const address = socket.handshake.address;
 
-  console.log(`User connected: ${socket.id}`);
-  socket.broadcast.emit('user_connect', socket.id, users[socket.id]);
+  console.log(`User connected: ${userId}`);
+  socket.broadcast.emit('user_connect', userId, users[userId]);
 
   socket.on('disconnect', () => {
-    console.log(`User disconnected: ${socket.id}`);
-    socket.broadcast.emit('user_disconnect', socket.id);
+    console.log(`User disconnected: ${userId}`);
+    socket.broadcast.emit('user_disconnect', userId);
 
-    delete users[socket.id];
+    delete users[userId];
   });
 
   socket.on('move_x', (id, delta) => {

@@ -4,7 +4,8 @@ import './styles/styles.scss';
 import Engine, { createRect } from './utils/Engine';
 import testData from './assets/testData';
 
-let users = {}; // Stores user data
+let userId; // Store user id
+let users = {}; // Stores all user data
 const SPEED = 8; // Player speed
 const parent = document.getElementById('root'); // Empty element that Pixi will render game in
 
@@ -26,7 +27,9 @@ const addUser = (id, { x, y, color }) => {
 };
 
 // Server sends initial data to client
-socket.on('user_data', newUsers => {
+socket.on('onconnected', ({ users: newUsers, id }) => {
+
+  userId = id;
 
   // Reset users
   users = {};
@@ -40,9 +43,9 @@ socket.on('user_data', newUsers => {
   }
 
   // Load players
-  for (let id in newUsers) {
-    if (newUsers.hasOwnProperty(id)) {
-      addUser(id, newUsers[id]);
+  for (let newUserId in newUsers) {
+    if (newUsers.hasOwnProperty(newUserId)) {
+      addUser(newUserId, newUsers[newUserId]);
     }
   }
 });
@@ -70,20 +73,20 @@ socket.on('move_y', (id, velocity) => {
 // Send keyup and keydown events to server
 document.addEventListener('keydown', e => {
   switch (e.key) {
-    case 'a': socket.emit('move_x', socket.id, -SPEED); break; // left
-    case 'w': socket.emit('move_y', socket.id, -SPEED); break; // up
-    case 'd': socket.emit('move_x', socket.id, SPEED); break; // right
-    case 's': socket.emit('move_y', socket.id, SPEED); break; // down
+    case 'a': socket.emit('move_x', userId, -SPEED); break; // left
+    case 'w': socket.emit('move_y', userId, -SPEED); break; // up
+    case 'd': socket.emit('move_x', userId, SPEED); break; // right
+    case 's': socket.emit('move_y', userId, SPEED); break; // down
     default:
   }
 }, false);
 
 document.addEventListener('keyup', e => {
   switch (e.key) {
-    case 'a': socket.emit('move_x', socket.id, 0); break; // left
-    case 'w': socket.emit('move_y', socket.id, 0); break; // up
-    case 'd': socket.emit('move_x', socket.id, 0); break; // right
-    case 's': socket.emit('move_y', socket.id, 0); break; // down
+    case 'a': socket.emit('move_x', userId, 0); break; // left
+    case 'w': socket.emit('move_y', userId, 0); break; // up
+    case 'd': socket.emit('move_x', userId, 0); break; // right
+    case 's': socket.emit('move_y', userId, 0); break; // down
     default:
   }
 }, false);
