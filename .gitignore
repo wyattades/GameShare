@@ -1,4 +1,6 @@
+# Custom
 dist/
+public/
 package-lock.json
 
 # Logs
@@ -47,6 +49,7 @@ typings/
 
 # Optional eslint cache
 .eslintcache
+.eslint/
 
 # Optional REPL history
 .node_repl_history
