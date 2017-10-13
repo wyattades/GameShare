@@ -76,25 +76,21 @@ function onDragMove() {
   }
 }
 
-export const createRect = ({
-  x = 0, y = 0, w = 1, h = 1, draggable, fill = 0xDDDDDD, stroke = 0x000000,
-}) => {
+export const createGraphic = ({ x = 0, y = 0, w = 1, h = 1, draggable }) => {
 
-  const rectangle = new Pixi.Graphics();
-
-  rectangle.lineStyle(1, stroke, 1);
-  rectangle.beginFill(fill);
-  rectangle.drawRect(0, 0, w, h);
-  rectangle.endFill();
-
-  rectangle.x = x;
-  rectangle.y = y;
+  const obj = new Pixi.Graphics();
+  
+  obj.x = x;
+  obj.y = y;
 
   if (draggable) {
-    rectangle.interactive = true;
-    rectangle.buttonMode = true;
 
-    rectangle
+    obj.hitArea = new Pixi.Rectangle(0, 0, w, h);
+
+    obj.interactive = true;
+    obj.buttonMode = true;
+
+    obj
     // events for drag start
     .on('mousedown', onDragStart)
     .on('touchstart', onDragStart)
@@ -108,7 +104,19 @@ export const createRect = ({
     .on('touchmove', onDragMove);
   }
 
-  return rectangle;
+  return obj;
+};
+
+export const createRect = ({ w = 1, h = 1, fill, stroke, ...rest }) => {
+  
+  const rect = createGraphic({ w, h, ...rest });
+
+  if (typeof stroke === 'number') rect.lineStyle(1, stroke, 1);
+  if (typeof fill === 'number') rect.beginFill(fill);
+  rect.drawRect(0, 0, w, h);
+  rect.endFill();
+
+  return rect;
 };
 
 export default Engine;

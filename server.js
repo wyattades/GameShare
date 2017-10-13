@@ -1,17 +1,17 @@
 const PORT = 3000;
+const DEV = process.env.NODE_ENV === 'development';
 
 const webpack = require('webpack');
 const express = require('express');
-const path = require('path');
+
 const app = express();
 const http = require('http').Server(app);
-const io = require('socket.io')(http);
-// const middleware = require('./src/middleware');
 
-const config = require('./webpack.config');
-const compiler = webpack(config);
+// Live reload server when developing
+if (DEV) {
 
-if (process.env.NODE_ENV === 'development') {
+  const config = require('./webpack.config');
+  const compiler = webpack(config);
 
   app.use(require('webpack-dev-middleware')(compiler, {
     noInfo: true,
@@ -22,17 +22,16 @@ if (process.env.NODE_ENV === 'development') {
   app.use(require('webpack-hot-middleware')(compiler));
 }
 
+// Setup express to send files
+
 app.use(express.static('public'));
 
-const users = {};
-
-// app.use(express.static('public'));
-
+// TODO: generate file paths automatically
 const options = page => ({
   title: `GameShare: ${page}`,
-  css: [],
+  css: DEV ? [] : ['/style.css'],
   rootContent: '',
-  script: `/public/${page}.js`,
+  script: DEV ? `/public/${page}.js` : `/${page}.js`,
   rootId: 'root',
 });
 
@@ -41,6 +40,12 @@ app.set('view engine', 'ejs');
 app.get('/', (req, res) => res.render('index', options('index')));
 app.get('/play', (req, res) => res.render('play', options('play')));
 app.get('/edit', (req, res) => res.render('edit', options('edit')));
+
+// Setup socket.io as game server
+
+const io = require('socket.io')(http);
+
+const users = {};
 
 io.on('connection', socket => {
 
@@ -73,9 +78,8 @@ io.on('connection', socket => {
     io.emit('move_y', id, delta);
   });
   
-
 });
 
-http.listen(PORT, (...args) => {
+http.listen(PORT, () => {
   console.log(`Listening on *:${PORT}`);
 });

@@ -20,12 +20,6 @@ html, body, #root, .ui {
   display: flex;
   flex-direction: column;
 
-  &-header {
-    display: flex;
-    background-color: #DDD;
-    padding: 8px;
-  }
-
   &-body {
     display: flex;
     flex: 1;
@@ -56,5 +50,45 @@ html, body, #root, .ui {
 
   & > * {
     position: absolute;
+  }
+}
+
+
+// Header
+
+.ui-header {
+  color: #AAAAAA;
+  h1 {
+    margin: 8px;
+  }
+  background-color: #3D3B3B;
+
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: stretch;
+    // margin-left: 20px;
+}
+
+nav {
+  display: flex;
+  flex-direction: row;
+
+  & > * {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    margin-right: 16px;
+    padding: 0 16px;
+    
+    &:hover {
+      background-color: #5C5A5A;
+    }
+  }
+
+  a {    
+    color: white;
+    text-decoration: none;
   }
 }

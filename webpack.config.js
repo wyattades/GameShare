@@ -6,6 +6,7 @@ const path = require('path');
 const UglifyJsPlugin = require('uglifyjs-webpack-plugin');
 const ExtractTextPlugin = require('extract-text-webpack-plugin');
 const OptimizeCssAssetsPlugin = require('optimize-css-assets-webpack-plugin');
+const CleanWebpackPlugin = require('clean-webpack-plugin');
 
 const PATHS = {};
 PATHS.dist = path.resolve(__dirname, 'public');
@@ -64,10 +65,13 @@ const sharedPlugins = [
   //   inject: 'body',
   // }),
 
+  new CleanWebpackPlugin([ 'public' ]),
+
   new ExtractTextPlugin({
-    filename: '[contenthash].css',
+    // filename: '[contenthash].css',
+    filename: 'style.css',
     allChunks: true,
-    disable: process.env.NODE_ENV !== 'production',
+    disable: process.env.NODE_ENV === 'development',
   }),
 
 ];
@@ -80,7 +84,7 @@ if (process.env.NODE_ENV === 'production') {
 
     output: {
       path: PATHS.dist,
-      filename: '[name].[chunkhash].js',
+      filename: '[name].js',
       publicPath: '/',
     },
 
@@ -94,14 +98,14 @@ if (process.env.NODE_ENV === 'production') {
       }),
 
       // CommonsChunkPlugin: vendor must come before runtime
-      new webpack.optimize.CommonsChunkPlugin({
-        name: 'vendor',
-        minChunks: ({ resource }) => /node_modules/.test(resource),
-      }),
+      // new webpack.optimize.CommonsChunkPlugin({
+      //   name: 'vendor',
+      //   minChunks: ({ resource }) => /node_modules/.test(resource),
+      // }),
       
-      new webpack.optimize.CommonsChunkPlugin({
-        name: 'runtime',
-      }),
+      // new webpack.optimize.CommonsChunkPlugin({
+      //   name: 'runtime',
+      // }),
 
       new OptimizeCssAssetsPlugin({
         cssProcessorOptions: { discardComments: { removeAll: true } },
@@ -117,7 +121,7 @@ if (process.env.NODE_ENV === 'production') {
     ],
   }, baseConfig);
 
-} else {
+} else if (process.env.NODE_ENV === 'development') {
 
   // Add react-hot-loader to development
   baseConfig.module.rules[0].use.unshift({ loader: 'react-hot-loader/webpack' });
@@ -153,4 +157,6 @@ if (process.env.NODE_ENV === 'production') {
     ],
   }, baseConfig);
 
+} else {
+  throw new Error('Please provide NODE_ENV environment variable');
 }
