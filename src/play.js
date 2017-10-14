@@ -3,6 +3,7 @@ import io from 'socket.io-client';
 import './styles/styles.scss';
 import Engine, { createRect } from './utils/Engine';
 import testData from './assets/testData';
+import NetworkManager from './utils/NetworkManager';
 
 let userId; // Store user id
 let users = {}; // Stores all user data
@@ -14,6 +15,23 @@ const socket = io();
 
 // Start game engine
 const app = new Engine(parent, { animated: true });
+
+// ========================
+/*
+const UPDATE_CHANNEL = 'u';
+let user_updates = { altered: true, dvx: 0, dvy: 0 };
+
+// Add the update logic to the game loop.
+// This should probably be wrapped in the Engine somewhere.
+app.app.ticker.add(() => {
+  if (user_updates.altered) { // Only send updates if we have something to say
+    socket.emit(UPDATE_CHANNEL, makeUpdatePacket(user_updates));
+  }
+});
+*/
+const networkManager = new NetworkManager(socket, app);
+// ========================
+
 app.start();
 
 

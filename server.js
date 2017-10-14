@@ -45,12 +45,13 @@ app.get('/edit', (req, res) => res.render('edit', options('edit')));
 // Setup socket.io as game server
 
 const io = require('socket.io')(http);
-
+const updateHandler = require('./updatehandler');
 const users = {};
 
 io.on('connection', socket => {
 
   const userId = UUID();
+  updateHandler.handleSocket(socket);
 
   users[userId] = {
     x: Math.random() * 400,
@@ -60,7 +61,7 @@ io.on('connection', socket => {
 
   socket.emit('onconnected', { users, id: userId });
 
-  // const address = socket.request.connection.remoteAddress; 
+  // const address = socket.request.connection.remoteAddress;
   // const address = socket.handshake.address;
 
   console.log(`User connected: ${userId}`);
@@ -80,7 +81,7 @@ io.on('connection', socket => {
   socket.on('move_y', (id, delta) => {
     io.emit('move_y', id, delta);
   });
-  
+
 });
 
 http.listen(PORT, () => {
