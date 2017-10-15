@@ -145,6 +145,13 @@ class Engine {
     }
   }
 
+  setUserVelocity_X = (id, vx) => {
+    this.users[id].vx = vx;
+  }
+  setUserVelocity_Y = (id, vy) => {
+    this.users[id].vy = vy;
+  }
+
   start = () => {
     if (this.animated) this.app.ticker.add(this.update);
     this.app.start();

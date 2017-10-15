@@ -2,6 +2,7 @@ const SIZE_MIN_PACKET = 6; // 3 semi-colons, at least 3 numbers.
 const MALFORMED_PACKET_ERR = new Error('Malformed packet.');
 const UPDATE_CHANNEL = 'u';
 
+// Ignore me, I'm just spamming server logs atm.
 
 function parseUpdateMsg(userId, data) {
   console.log('UPDATE CHANNEL: ');
