@@ -45,30 +45,6 @@ class NetworkManager {
       this.engine.setUserVelocity_Y(id, velocity);
     });
 
-    // TODO: move to input handler.
-    // Send keyup and keydown events to server
-    /*
-    document.addEventListener('keydown', e => {
-      let SPEED = 8; // TODO: move to engine.
-      switch (e.key) {
-        case 'a': this.socket.emit('move_x', this.userId, -SPEED); break; // left
-        case 'w': this.socket.emit('move_y', this.userId, -SPEED); break; // up
-        case 'd': this.socket.emit('move_x', this.userId, SPEED); break; // right
-        case 's': this.socket.emit('move_y', this.userId, SPEED); break; // down
-        default:
-      }
-    }, false);
-
-    document.addEventListener('keyup', e => {
-      switch (e.key) {
-        case 'a': this.socket.emit('move_x', this.userId, 0); break; // left
-        case 'w': this.socket.emit('move_y', this.userId, 0); break; // up
-        case 'd': this.socket.emit('move_x', this.userId, 0); break; // right
-        case 's': this.socket.emit('move_y', this.userId, 0); break; // down
-        default:
-      }
-    }, false);
-    */
   }
 
 

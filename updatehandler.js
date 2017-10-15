@@ -60,7 +60,7 @@ function parseUpdatePacket(data) {
   data = data.substring(data.indexOf(';'), data.length);
   let desired_vy = data.substring(0, data.indexOf(';', ));
   */
-  /*
+/*
   let phase = 0;
   let obj = {};
   for (let i = 0, l = data.length; i < l; i++) {
