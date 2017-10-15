@@ -130,17 +130,6 @@ class Engine {
     delete this.users[id];
   }
 
-  /*
-  // Helper function for adding a new user
-  const addUser = (id, { x, y, color }) => {
-    const user = createRect({ x, y, w: 50, h: 50, fill: color, stroke: 0x000000 });
-
-    app.addObject(user);
-
-    users[id] = user;
-  };
-  */
-
 
   addObject = (...objs) => {
     for (let obj of objs) {
