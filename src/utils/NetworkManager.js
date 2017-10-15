@@ -4,23 +4,24 @@ class NetworkManager {
   constructor(socket, engine) {
     this.socket = socket;
     engine.app.ticker.add(this.update);
-    console.log("setup complete");
 
     this.user_updates = {
-      altered: true,
-      dvx: 0,
-      dvy: 0,
+      altered: true, // Do we even need to update?
+      x: 0, // Absolute X position.
+      y: 0, // Absolute Y position.
     };
   }
 
-  // makePacket takes the current user_updates object and turns it into
+  // bool to stringified int.
+  alteredString = () => this.altered ? '1' : '0';
+
+  // Takes the current user_updates object and turns it into
   // a network-friendly string. This could be made more efficient with
   // static-length packets, but that sounds like a lot of work.
-  makePacket = () => `1;${this.user_updates.dvx};${this.user_updates.dvy};`;
+  makeUpdateMsg = () => `${this.alteredString()};${this.user_updates.x};${this.user_updates.y};`;
 
   update = () => {
-    console.log("tick");
-    this.socket.emit(UPDATE_CHANNEL, this.makePacket());
+    this.socket.emit(UPDATE_CHANNEL, this.makeUpdateMsg());
   }
 }
 
