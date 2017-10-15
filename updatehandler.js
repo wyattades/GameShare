@@ -5,9 +5,9 @@ const UPDATE_CHANNEL = 'u';
 // Ignore me, I'm just spamming server logs atm.
 
 function parseUpdateMsg(userId, data) {
-  console.log('UPDATE CHANNEL: ');
-  console.log(`USER ${userId}`);
-  console.log(data);
+  // console.log('UPDATE CHANNEL: ');
+  // console.log(`USER ${userId}`);
+  // console.log(data);
 }
 
 function handleSocket(socket) {

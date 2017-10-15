@@ -47,6 +47,7 @@ class NetworkManager {
 
     // TODO: move to input handler.
     // Send keyup and keydown events to server
+    /*
     document.addEventListener('keydown', e => {
       let SPEED = 8; // TODO: move to engine.
       switch (e.key) {
@@ -67,6 +68,7 @@ class NetworkManager {
         default:
       }
     }, false);
+    */
   }
 
 
