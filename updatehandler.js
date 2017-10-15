@@ -3,14 +3,14 @@ const MALFORMED_PACKET_ERR = new Error('Malformed packet.');
 const UPDATE_CHANNEL = 'u';
 
 
-function parsePacket(data) {
+function parseUpdateMsg(userId, data) {
   console.log('UPDATE CHANNEL: ');
-  console.log(`USER ${data.id}`);
+  console.log(`USER ${userId}`);
   console.log(data);
 }
 
 function handleSocket(socket) {
-  socket.on(UPDATE_CHANNEL, parsePacket);
+  socket.on(UPDATE_CHANNEL, parseUpdateMsg);
 }
 
 exports.handleSocket = handleSocket;
