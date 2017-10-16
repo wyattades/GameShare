@@ -14,9 +14,9 @@ PATHS.src = path.resolve(__dirname, 'src');
 PATHS.assets = path.resolve(PATHS.src, 'assets');
 PATHS.assetName = 'assets/[name].[ext]';
 PATHS.entry = {
-  index: './src/index',
-  play: './src/play',
-  edit: './src/edit',
+  index: path.resolve(__dirname, 'src/index'),
+  play: path.resolve(__dirname, 'src/play'),
+  edit: path.resolve(__dirname, 'src/edit'),
 };
 
 const baseConfig = {
