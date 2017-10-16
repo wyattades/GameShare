@@ -33,4 +33,26 @@ const keyboard = keyCode => {
   return key;
 };
 
-export default keyboard;
+// Convenience wrapper for user inputs
+class InputManager {
+  
+  constructor(renderer, keyBindings = {}) {
+    this.renderer = renderer;
+
+    for (let label in keyBindings) {
+      if (keyBindings.hasOwnProperty(label)) {
+        this[label] = keyboard(keyBindings[label].charCodeAt(0));
+      }
+    }
+  }
+
+  get mouseX() {
+    return this.renderer.plugins.interaction.mouse.getLocalPosition().x;
+  }
+
+  get mouseY() {
+    return this.renderer.plugins.interaction.mouse.getLocalPosition().y;
+  }
+}
+
+export default InputManager;
