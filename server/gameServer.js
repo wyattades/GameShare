@@ -114,7 +114,7 @@ class Game {
       delete this.users[userId];
     });
   
-    socket.on('vel_change', (id, { x, y, vx, vy }) => {
+    socket.on('update', (id, { x, y, vx, vy }) => {
       const user = this.users[id];
 
       if (!user) {

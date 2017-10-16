@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 
 import Engine, { createRect, createObject } from '../utils/Engine';
-import keyboard from '../utils/keyboard';
+// import InputManager from '../utils/InputManager';
 
 const SNAP = 10;
 const GRID_SIZE = 10000;

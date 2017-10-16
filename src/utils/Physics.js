@@ -5,25 +5,34 @@ const boxCollide = (b1, b2) => (
   b1.y < b2.y + b2.h && b1.y + b1.h > b2.y
 );
 
-const MAX_SPEED = 8,
-      FRICTION = 0.1; // TEMP
+const MAX_SPEED = 4,
+      FRICTION = 0.4; // TEMP
 
 class Physics {
 
-  constructor(users, level, userId) {
+  constructor(users, level) {
     this.users = users;
     this.level = level;
-    this.user = users[userId];
+  }
+
+  setUser = user => {
+    this.user = user;
   }
 
   applyForce = (fx, fy) => { // TODO: use vectors
     const u = this.user;
 
-    u.vx = Math.min(MAX_SPEED, u.vx + fx);
-    u.vy = Math.min(MAX_SPEED, u.vy + fy);
+    u.vx += fx;
+    u.vy += fy;
+
+    if (u.vx > MAX_SPEED) u.vx = MAX_SPEED;
+    else if (u.vx < -MAX_SPEED) u.vx = -MAX_SPEED;
+
+    if (u.vy > MAX_SPEED) u.vy = MAX_SPEED;
+    else if (u.vy < -MAX_SPEED) u.vy = -MAX_SPEED;
   }
 
-  // TODO: return distance that would be intersected so player can press against wall
+  // TODO: return distance that would be intersected so player can adjust to press against wall
   wallsCollide = obj => {
     let collide = false;
     for (let i = 0, walls = this.level.getChildren(); i < walls.length; i++) {
@@ -50,8 +59,9 @@ class Physics {
         obj.x = newBounds.x;
       }
 
-      // TEMP
-      obj.vx = Math.max(0, obj.vx - FRICTION);
+      // TEMP: apply friction
+      if (obj.vx > 0) obj.vx = Math.max(0, obj.vx - FRICTION);
+      if (obj.vx < 0) obj.vx = Math.min(0, obj.vx + FRICTION);
     }
 
     if (obj.vy) {
@@ -64,8 +74,9 @@ class Physics {
         obj.y = newBounds.y;
       }
 
-      // TEMP
-      obj.vy = Math.max(0, obj.vy - FRICTION);
+      // TEMP: apply friction
+      if (obj.vy > 0) obj.vy = Math.max(0, obj.vy - FRICTION);
+      if (obj.vy < 0) obj.vy = Math.min(0, obj.vy + FRICTION);
     }
   }
 }
