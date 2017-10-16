@@ -214,10 +214,3 @@ bindKeyVelocity(left, right, 'vx', -1);
 bindKeyVelocity(right, left, 'vx', 1);
 bindKeyVelocity(up, down, 'vy', -1);
 bindKeyVelocity(down, up, 'vy', 1);
-
-// TEMP: collision handler
-// app.app.ticker.add(delta => {
-//   for (let solid of solids) {
-
-//   }
-// });
