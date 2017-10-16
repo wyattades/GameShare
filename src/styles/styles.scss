@@ -36,6 +36,11 @@ html, body, #root, .ui {
 
     background-color: #CCC;
     padding: 8px;
+    display: flex;
+    flex-direction: column;
+    & > * {
+      margin-top: 16px;
+    }
   }
 }
 
