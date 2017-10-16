@@ -3,7 +3,7 @@ import io from 'socket.io-client';
 import './styles/styles.scss';
 import Engine, { createRect, createObject } from './utils/Engine';
 import testData from './assets/testData';
-import keyboard from './utils/keyboard';
+import InputManager from './utils/InputManager';
 
 const SPEED = 4; // Player speed
 const GAME_ID = 'my_test_game'; // TEMP
@@ -21,6 +21,15 @@ const socket = io(`/${GAME_ID}`);
 
 // Start game engine
 const app = new Engine(document.getElementById('root'));
+
+// Create input manager
+// We must pass the app to handle input events in the canvas
+const input = new InputManager(app, {
+  up: 'w',
+  left: 'a',
+  down: 's',
+  right: 'd',
+});
 
 // Create level container
 level = createObject({ container: true });
@@ -129,11 +138,6 @@ const addUser = (id, { x, y, color }, update = updateUser) => {
   users[id] = newUser;
 };
 
-const up = keyboard(87), // w
-      left = keyboard(65), // a
-      down = keyboard(83), // s
-      right = keyboard(68); // d
-
 // Server sends initial data to client
 socket.on('onconnected', ({ users: newUsers, id }) => {
 
@@ -210,7 +214,7 @@ const bindKeyVelocity = (key, oppositeKey, dimension, dir) => {
   };
 };
 
-bindKeyVelocity(left, right, 'vx', -1);
-bindKeyVelocity(right, left, 'vx', 1);
-bindKeyVelocity(up, down, 'vy', -1);
-bindKeyVelocity(down, up, 'vy', 1);
+bindKeyVelocity(input.left, input.right, 'vx', -1);
+bindKeyVelocity(input.right, input.left, 'vx', 1);
+bindKeyVelocity(input.up, input.down, 'vy', -1);
+bindKeyVelocity(input.down, input.up, 'vy', 1);
