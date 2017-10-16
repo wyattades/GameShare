@@ -38,8 +38,9 @@ const keyboard = keyValue => {
 // Convenience wrapper for user inputs
 class InputManager {
   
-  constructor(renderer, keyBindings = {}) {
-    this.renderer = renderer;
+  constructor(engine, keyBindings = {}) {
+    this.globalMouse = engine.app.renderer.plugins.interaction.mouse;
+    this.stage = engine.app.stage;
 
     for (let label in keyBindings) {
       if (keyBindings.hasOwnProperty(label)) {
@@ -48,12 +49,8 @@ class InputManager {
     }
   }
 
-  get mouseX() {
-    return this.renderer.plugins.interaction.mouse.getLocalPosition().x;
-  }
-
-  get mouseY() {
-    return this.renderer.plugins.interaction.mouse.getLocalPosition().y;
+  get mouse() {
+    return this.globalMouse.getLocalPosition(this.stage);
   }
 }
 
