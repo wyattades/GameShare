@@ -1,6 +1,8 @@
-const keyboard = keyCode => {
+const keyboard = keyValue => {
+
   const key = {};
-  key.code = keyCode;
+  key.value = keyValue;
+  key.code = keyValue.charCodeAt(0);
   key.isDown = false;
   key.isUp = true;
   key.press = undefined;
@@ -8,7 +10,7 @@ const keyboard = keyCode => {
 
   // The `downHandler`
   key.downHandler = e => {
-    if (e.keyCode === key.code) {
+    if (e.key === key.value) {
       if (key.isUp && key.press) key.press();
       key.isDown = true;
       key.isUp = false;
@@ -18,7 +20,7 @@ const keyboard = keyCode => {
 
   // The `upHandler`
   key.upHandler = e => {
-    if (e.keyCode === key.code) {
+    if (e.key === key.value) {
       if (key.isDown && key.release) key.release();
       key.isDown = false;
       key.isUp = true;
@@ -33,4 +35,23 @@ const keyboard = keyCode => {
   return key;
 };
 
-export default keyboard;
+// Convenience wrapper for user inputs
+class InputManager {
+  
+  constructor(engine, keyBindings = {}) {
+    this.globalMouse = engine.app.renderer.plugins.interaction.mouse;
+    this.stage = engine.app.stage;
+
+    for (let label in keyBindings) {
+      if (keyBindings.hasOwnProperty(label)) {
+        this[label] = keyboard(keyBindings[label]);
+      }
+    }
+  }
+
+  get mouse() {
+    return this.globalMouse.getLocalPosition(this.stage);
+  }
+}
+
+export default InputManager;

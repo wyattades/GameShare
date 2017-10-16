@@ -3,9 +3,10 @@ import io from 'socket.io-client';
 import './styles/styles.scss';
 import Engine, { createRect, createObject } from './utils/Engine';
 import testData from './assets/testData';
-import keyboard from './utils/keyboard';
+import InputManager from './utils/InputManager';
+import Physics from './utils/Physics';
 
-const SPEED = 4; // Player speed
+const SPEED = 1; // Player speed
 const GAME_ID = 'my_test_game'; // TEMP
 
 // Containers
@@ -22,6 +23,15 @@ const socket = io(`/${GAME_ID}`);
 // Start game engine
 const app = new Engine(document.getElementById('root'));
 
+// Create input manager
+// We must pass the app to handle input events in the canvas
+const input = new InputManager(app, {
+  up: 'w',
+  left: 'a',
+  down: 's',
+  right: 'd',
+});
+
 // Create level container
 level = createObject({ container: true });
 app.container.addObject(level);
@@ -36,103 +46,44 @@ for (let obj of testData.objects) {
 players = createObject({ container: true });
 app.container.addObject(players);
 
+// Create physics handler
+const physics = new Physics(players, level);
+
 app.start();
-
-const velChange = () => socket.emit('vel_change', userId, {
-  x: Math.round(thisUser.x),
-  y: Math.round(thisUser.y),
-  vx: thisUser.vx,
-  vy: thisUser.vy,
-});
-
-let lastCollideX = false,
-    lastCollideY = false;
-
-// Not the best way because there can be gaps between player and obstacles
-const updateThisUser = obj => delta => {
-
-  if (obj.vx) {
-    let collide = false;
-
-    const newX = obj.x + (obj.vx * delta);
-    for (let i = 0, walls = level.getChildren(); i < walls.length; i++) {
-      const wall = walls[i];
-      if (newX < wall.x + wall.w && newX + obj.w > wall.x &&
-          obj.y < wall.y + wall.h && obj.y + obj.h > wall.y) {
-        collide = true;
-        break;
-      }
-    }
-
-    if (lastCollideX === false && collide === true) {
-      const lastVx = obj.vx;
-      obj.vx = 0;
-      velChange();
-      obj.vx = lastVx;
-    } else if (collide === false) {
-      obj.x = newX;
-      if (lastCollideX === true) {
-        velChange();
-      }
-    }
-
-    lastCollideX = collide;
-  }
-
-  if (obj.vy) {
-    let collide = false;
-    
-    const newY = obj.y + (obj.vy * delta);
-    for (let i = 0, walls = level.getChildren(); i < walls.length; i++) {
-      const wall = walls[i];
-      if (obj.x < wall.x + wall.w && obj.x + obj.w > wall.x &&
-          newY < wall.y + wall.h && newY + obj.h > wall.y) {
-        collide = true;
-        break;
-      }
-    }
-
-    if (lastCollideY === false && collide === true) {
-      const lastVy = obj.vy;
-      obj.vx = 0;
-      velChange();
-      obj.vy = lastVy;
-    } else if (collide === false) {
-      obj.y = newY;
-      if (lastCollideY === true) {
-        velChange();
-      }
-    }
-
-    lastCollideY = collide;
-  }
-
-};
-
-const updateUser = obj => delta => {
-  if (obj.vx) obj.x += obj.vx * delta;
-  if (obj.vy) obj.y += obj.vy * delta;
-};
   
 // Helper function for adding a new user
-const addUser = (id, { x, y, color }, update = updateUser) => {
+const addUser = (id, { x, y, color }) => {
   const newUser = createRect({ x, y, w: 50, h: 50, fill: color, stroke: 0x000000 });
   newUser.vx = 0;
   newUser.vy = 0;
 
   players.addObject(newUser);
 
-  // Update user every frame
-  app.addUpdate(update(newUser));
-
   // Store user reference in 'users' object
   users[id] = newUser;
 };
 
-const up = keyboard(87), // w
-      left = keyboard(65), // a
-      down = keyboard(83), // s
-      right = keyboard(68); // d
+
+const createGameLoop = (fn, fps) => {
+  
+  let delta,
+      lastUpdate = Date.now(),
+      now;
+
+  const intervalId = setInterval(() => {
+    now = Date.now();
+    delta = now - lastUpdate;
+    lastUpdate = now;
+
+    fn(delta / 16.66); // 16.66 is the deltaTime of client i.e. 60fps
+  }, 1000 / fps);
+
+  return {
+    stop: () => {
+      clearInterval(intervalId);
+    },
+  };
+};
 
 // Server sends initial data to client
 socket.on('onconnected', ({ users: newUsers, id }) => {
@@ -147,11 +98,49 @@ socket.on('onconnected', ({ users: newUsers, id }) => {
   // Load players
   for (let newUserId in newUsers) {
     if (newUsers.hasOwnProperty(newUserId)) {
-      addUser(newUserId, newUsers[newUserId], updateThisUser);
+      addUser(newUserId, newUsers[newUserId]);
     }
   }
 
   thisUser = users[id];
+
+  physics.setUser(thisUser);
+
+  createGameLoop(delta => {
+
+    if (input.left.isDown) {
+      physics.applyForce(-SPEED, 0);
+    }
+    if (input.right.isDown) {
+      physics.applyForce(SPEED, 0);
+    }
+    if (input.up.isDown) {
+      physics.applyForce(0, -SPEED);
+    }
+    if (input.down.isDown) {
+      physics.applyForce(0, SPEED);
+    }
+
+    physics.update(delta);
+  
+    for (let obj of players.getChildren()) {
+      if (obj !== thisUser) {
+        if (obj.vx) obj.x += obj.vx * delta;
+        if (obj.vy) obj.y += obj.vy * delta;
+      }
+    }
+
+    const updated = {
+      x: thisUser.x,
+      y: thisUser.y,
+      vx: thisUser.vx,
+      vy: thisUser.vy,
+    };
+
+    // TODO: don't update if nothing happens
+    socket.emit('update', userId, updated);
+
+  }, 30);
 });
 
 socket.on('lobby_full', () => {
@@ -184,40 +173,3 @@ socket.on('update', updatedUsers => {
     }
   }
 });
-
-const bindKeyVelocity = (key, oppositeKey, dimension, dir) => {
-
-  const vel = SPEED * dir;
-
-  key.press = () => {
-    if (oppositeKey.isDown) {
-      thisUser[dimension] = 0;
-    } else {
-      thisUser[dimension] = vel;
-    }
-
-    velChange();
-  };
-
-  key.release = () => {
-    if (oppositeKey.isDown) {
-      thisUser[dimension] = -vel;
-    } else {
-      thisUser[dimension] = 0;
-    }
-    
-    velChange();
-  };
-};
-
-bindKeyVelocity(left, right, 'vx', -1);
-bindKeyVelocity(right, left, 'vx', 1);
-bindKeyVelocity(up, down, 'vy', -1);
-bindKeyVelocity(down, up, 'vy', 1);
-
-// TEMP: collision handler
-// app.app.ticker.add(delta => {
-//   for (let solid of solids) {
-
-//   }
-// });
