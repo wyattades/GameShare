@@ -21,6 +21,14 @@ for (let y = 0; y < GRID_SIZE; y += SNAP) {
   grid.lineTo(GRID_SIZE, y);
 }
 
+grid.lineStyle(2, 0xFF0000, 1);
+grid.moveTo(GRID_SIZE/2, 0);
+grid.lineTo(GRID_SIZE/2, GRID_SIZE);
+
+grid.lineStyle(2, 0x0000FF, 1);
+grid.moveTo(0, GRID_SIZE/2);
+grid.lineTo(GRID_SIZE, GRID_SIZE/2);
+
 document.getElementById('obj-create').addEventListener('click', () => {
   grid.addObject(createRect({
     x: 80, y: 80, w: 80, h: 80, draggable: true, fill: 0xFFAABB, stroke: 0x000000,
