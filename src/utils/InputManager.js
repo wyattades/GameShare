@@ -49,6 +49,13 @@ class InputManager {
     }
   }
 
+  onScroll = (fn) => {
+    document.addEventListener('mousewheel', e => {
+      fn(e.deltaY);
+    });
+  }
+
+  // You can access these 'get' functions by simply calling, for example: input.mouse.x
   get mouse() {
     return this.globalMouse.getLocalPosition(this.stage);
   }
