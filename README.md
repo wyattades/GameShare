@@ -13,17 +13,20 @@ Start developing by running ```$ npm run dev``` and opening ```localhost:3000```
 - Use the ```babel``` language instead of ```javascript``` if syntax highlighting doesn't work right
 
 ### File Structure
-  
-src/ - source of page assets (js, css, images, etc.)  
-+-- assets/ - images, fonts, etc.   
-+-- components/ - React components  
-+-- styles/ - css/scss files   
-+-- utils/ - other js files  
-+-- [page].js - these js files will run on their corresponding page: index, play, edit  
-views/ ejs files aka HTML templates  
-+-- templates/ - smaller templates that can be shared between pages  
-+-- [page].ejs - template for each page  
-server.js - creates a node & express server  
+
+.  
+|-- src/ - source of page assets (js, css, images, etc.)  
+|-- +-- assets/ - images, fonts, etc.   
+|-- +-- components/ - React components  
+|-- +-- styles/ - css/scss files   
+|-- +-- utils/ - other js files  
+|-- +-- [page].js - these js files will run on their corresponding page: index, play, edit  
+|-- views/ ejs files aka HTML templates  
+|-- +-- templates/ - smaller templates that can be shared between pages  
+|-- +-- [page].ejs - template for each page  
+|-- server/ - source of server js
+|-- +-- index.js - starts node/express server
+|-- +-- [other files]  
 
 ### Technologies
 There are a few technolgies you will need to learn to start developing:
