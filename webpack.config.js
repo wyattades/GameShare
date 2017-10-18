@@ -18,26 +18,13 @@ PATHS.entry = {
   play: path.resolve(__dirname, 'src/play'),
   edit: path.resolve(__dirname, 'src/edit'),
 };
-PATHS.phaserModule = path.join(__dirname, '/node_modules/phaser-ce/build/custom');
 
 const baseConfig = {
 
   context: __dirname,
-
-  resolve: {
-    alias: {
-      pixi: path.join(PATHS.phaserModule, 'pixi.js'),
-      p2: path.join(PATHS.phaserModule, 'p2.js'),
-      phaser: path.join(PATHS.phaserModule, 'phaser-split.js'),
-    },
-  },
   
   module: {
     rules: [
-      // Phase v2 isn't meant for webpack
-      { test: /pixi\.js$/, use: [ 'expose-loader?PIXI' ] },
-      { test: /p2\.js$/, use: [ 'expose-loader?p2' ] },
-      { test: /phaser-split\.js$/, use: [ 'expose-loader?Phaser' ] },
       {
         test: /\.js$/,
         use: [{

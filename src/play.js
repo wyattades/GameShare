@@ -1,9 +1,9 @@
 import io from 'socket.io-client';
 // The following 6 lines are necessary to use Phaser
 /* eslint-disable */
-import 'pixi';
-import 'p2';
-import 'phaser';
+import 'expose-loader?PIXI!phaser-ce/build/custom/pixi.js';
+import 'expose-loader?p2!phaser-ce/build/custom/p2.js';
+import 'expose-loader?Phaser!phaser-ce/build/custom/phaser-split.js';
 /* global Phaser */
 /* eslint-enable */
 
