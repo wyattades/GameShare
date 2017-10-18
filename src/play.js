@@ -1,11 +1,15 @@
 import io from 'socket.io-client';
-// import { Game, Physics, KeyCode, Graphics, ScaleManager } from 'phaser-ce';
-
-import PIXI from 'expose-loader?PIXI!phaser-ce/build/custom/pixi.js';
-import p2 from 'expose-loader?p2!phaser-ce/build/custom/p2.js';
-import { Game, Physics, KeyCode, Graphics, ScaleManager } from 'expose-loader?Phaser!phaser-ce/build/custom/phaser-split.js';
+// The following 6 lines are necessary to use Phaser
+/* eslint-disable */
+import 'pixi';
+import 'p2';
+import 'phaser';
+/* global Phaser */
+/* eslint-enable */
 
 import './styles/styles.scss';
+
+const { Game, Physics, KeyCode } = Phaser;
 
 const SPEED = 600; // Player speed
 const GAME_ID = 'my_test_game'; // TEMP
