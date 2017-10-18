@@ -5,7 +5,7 @@ let io,
     connections,
     games;
 
-const MAX_CONNECTIONS = 2;
+const MAX_CONNECTIONS = 5;
 
 const createGameLoop = (fn, fps) => {
   

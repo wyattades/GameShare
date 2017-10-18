@@ -37,8 +37,6 @@ const game = new Game({
 });
 
 const createStaticRect = ({ x, y, w = 1, h = 1, fill, stroke }) => {
-  if (fill === undefined) fill = 0xDDDDDD;
-
   // I do this because I can't figure out how to set the anchor (rotation) point at the center
   x += w / 2;
   y += h / 2;
@@ -60,7 +58,15 @@ const createStaticRect = ({ x, y, w = 1, h = 1, fill, stroke }) => {
 
 // Helper function for adding a new user
 const addUser = (id, { x, y, color }) => {
-  const newUser = createStaticRect({ x, y, w: 50, h: 50, fill: color, stroke: 0x000000 });
+  const newUser = createStaticRect({ x, y, w: 50, h: 60, fill: color, stroke: 0x000000 });
+
+  const turret = game.make.graphics(0, 0);
+  turret.beginFill(0x444444);
+  turret.drawRect(0, -4, 50, 8);
+  turret.drawEllipse(0, 0, 18, 18);
+  turret.endFill();
+  
+  newUser.addChild(turret);
    
   // Add user to players group
   players.add(newUser);
@@ -98,6 +104,7 @@ const initPlayer = ({ users: newUsers, id: newId, gameData }) => {
   // TEMP: Load game objects
   for (let obj of gameData.objects) {
     obj.stroke = 0x333333;
+    if (obj.fill === undefined) obj.fill = 0xDDDDDD;
     
     const wall = createStaticRect(obj);
     level.add(wall);
@@ -184,6 +191,10 @@ const update = () => {
 
   if (!player) return;
 
+  const turret = player.getChildAt(0);
+
+  turret.rotation = game.physics.arcade.angleToPointer(player) - player.rotation;
+
   if (input.left.isDown) {
     player.body.rotateLeft(50);
   } else if (input.right.isDown) {
@@ -197,21 +208,6 @@ const update = () => {
   } else if (input.down.isDown) {
     player.body.reverse(SPEED);
   }
-
-  // player.body.setZeroVelocity();
-
-  // if (input.right.isDown) {
-  //   player.body.moveRight(SPEED);
-  // }
-  // if (input.left.isDown) {
-  //   player.body.moveLeft(SPEED);
-  // }
-  // if (input.up.isDown) {
-  //   player.body.moveUp(SPEED);
-  // }
-  // if (input.down.isDown) {
-  //   player.body.moveDown(SPEED);
-  // }
 
   const updated = {
     x: player.x,
