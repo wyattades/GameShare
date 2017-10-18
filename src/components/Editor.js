@@ -5,37 +5,56 @@ import Engine, { createRect, createObject } from '../utils/Engine';
 
 
 const SNAP = 10;
-// const GRID_SIZE = 10000;
-const GRID_SIZE = 10000;
+let GRID_X = 7000;
+let GRID_Y = 7000;
 
 // Create a draggable grid
 const grid = createObject({
-  x: 0, y: 0, w: GRID_SIZE, h: GRID_SIZE, draggable: true, container: true
+  x: 0, y: 0, w: GRID_X + 400, h: GRID_Y + 400, draggable: true, container: true
 });
 
-grid.lineStyle(1, 0xAAAAAA, 1);
-for (let x = 0; x < GRID_SIZE; x += SNAP) {
-  grid.moveTo(x, 0);
-  grid.lineTo(x, GRID_SIZE);
+// Create a rectangle for the boundary of the game
+const boundary = grid.addObject(createRect({
+  x: 400, y: 400, w: GRID_X, h: GRID_Y, draggable: false, stroke: 0xFF0000, weight: 3
+}));
+
+function drawGrid() {
+  grid.w = GRID_X;
+  grid.h = GRID_Y;
+  console.log(grid.w, grid.h);
+
+  for (let x = 0; x < grid.w + 800; x += SNAP) {
+    if (x % 100 === 0) { grid.lineStyle(2, 0xAAAAAA, 1); }
+    else { grid.lineStyle(1, 0xAAAAAA, 1); }
+    grid.moveTo(x, 0);
+    grid.lineTo(x, grid.w + 800);
+  }
+  for (let y = 0; y < grid.h + 800; y += SNAP) {
+    if (y % 100 === 0) { grid.lineStyle(2, 0xAAAAAA, 1); }
+    else { grid.lineStyle(1, 0xAAAAAA, 1); }
+    grid.moveTo(0, y);
+    grid.lineTo(grid.h + 800, y);
+  }
+
+
 }
-for (let y = 0; y < GRID_SIZE; y += SNAP) {
-  grid.moveTo(0, y);
-  grid.lineTo(GRID_SIZE, y);
-}
 
-grid.lineStyle(2, 0xFF0000, 1);
-grid.moveTo(GRID_SIZE/2, 0);
-grid.lineTo(GRID_SIZE/2, GRID_SIZE);
-
-grid.lineStyle(2, 0x0000FF, 1);
-grid.moveTo(0, GRID_SIZE/2);
-grid.lineTo(GRID_SIZE, GRID_SIZE/2);
-
+drawGrid();
 
 document.getElementById('obj-create').addEventListener('click', () => {
   grid.addObject(createRect({
     x: 80, y: 80, w: 80, h: 80, draggable: true, fill: 0xFFAABB, stroke: 0x000000,
   }));
+});
+
+document.getElementById('boundary-x').addEventListener('change', () => {
+  GRID_X = document.getElementById('boundary-x').value;
+  drawGrid();
+});
+
+document.getElementById('boundary-y').addEventListener('change', () => {
+  GRID_Y = document.getElementById('boundary-y').value;
+  drawGrid();
 });
 
 export default class extends Component {
@@ -47,9 +66,6 @@ export default class extends Component {
     });
     this.init();
     this.app.start();
-
-    grid.position.x = this.app.width/2 - GRID_SIZE/2;
-    grid.position.y = this.app.height/2 - GRID_SIZE/2;
   }
 
   componentWillUnmount() {
@@ -58,9 +74,9 @@ export default class extends Component {
 
   init = () => {
     // Add example object
-    grid.addObject(createRect({
-      x: 400, y: 250, w: 80, h: 100, draggable: true, fill: 0xFFAABB, stroke: 0x000000,
-    }));
+    // grid.addObject(createRect({
+    //   x: 400, y: 250, w: 80, h: 100, draggable: true, fill: 0xFFAABB, stroke: 0x000000,
+    // }));
   }
 
   render() {
