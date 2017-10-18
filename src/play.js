@@ -126,8 +126,9 @@ const initPlayer = ({ users: newUsers, id: newId, gameData }) => {
         user.body.x = updatedUser.x;
         user.body.y = updatedUser.y;
         user.body.angle = updatedUser.angle;
-        // user.vx = updatedUser.vx;
-        // user.vy = updatedUser.vy;
+        user.body.velocity.x = updatedUser.vx;
+        user.body.velocity.y = updatedUser.vy;
+        user.body.angularVelocity = updatedUser.vangle;
       }
     }
   });
@@ -210,9 +211,10 @@ const update = () => {
   const updated = {
     x: player.x,
     y: player.y,
-    vx: player.vx,
-    vy: player.vy,
+    vx: player.body.velocity.x,
+    vy: player.body.velocity.y,
     angle: player.angle,
+    vangle: player.body.angularVelocity,
   };
 
   // TODO: don't update if nothing happens

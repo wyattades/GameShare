@@ -76,6 +76,7 @@ class Game {
         vx: user.vx,
         vy: user.vy,
         angle: user.angle,
+        vangle: user.vangle,
       };
     }
 
@@ -98,6 +99,7 @@ class Game {
     const newUser = {
       vx: 0,
       vy: 0,
+      vangle: 0,
       color: Math.random() * 0xFFFFFF << 0,
     };
 
