@@ -1,8 +1,8 @@
 // This file is used by the client and server so it can't use 'export default' nor 'export'
 
-const boxCollide = (b1, b2) => (
-  b1.x < b2.x + b2.w && b1.x + b1.w > b2.x &&
-  b1.y < b2.y + b2.h && b1.y + b1.h > b2.y
+const boxCollide = (b1, b2) => !(
+  b1.x > b2.x + b2.w || b1.x + b1.w < b2.x ||
+  b1.y > b2.y + b2.h || b1.y + b1.h < b2.y
 );
 
 const MAX_SPEED = 4,

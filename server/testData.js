@@ -1,6 +1,6 @@
 // Test game data
 
-export default {
+module.exports = {
   options: {
     // example options:
     snap: 8,
