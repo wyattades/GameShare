@@ -143,6 +143,8 @@ socket.on('onconnected', ({ users: newUsers, id, gameData }) => {
 });
 
 socket.on('lobby_full', () => {
+  socket.close();
+
   alert('Sorry, lobby is full! Refresh page to try again.');
 });
 
