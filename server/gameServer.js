@@ -100,6 +100,7 @@ class Game {
       vx: 0,
       vy: 0,
       vangle: 0,
+      angle: 0,
       color: Math.random() * 0xFFFFFF << 0,
     };
 

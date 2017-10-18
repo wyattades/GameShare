@@ -13,6 +13,8 @@ const { Game, Physics, KeyCode } = Phaser;
 
 const SPEED = 600; // Player speed
 const GAME_ID = 'my_test_game'; // TEMP
+const parent = document.getElementById('root');
+const grandParent = parent.parentElement;
 
 let socket;
 
@@ -28,9 +30,9 @@ let userId, // This user's id
 
 // Create game engine
 const game = new Game({
-  width: 800,
-  height: 600,
-  parent: 'root', // document.getElementById('root'),
+  width: parent.clientWidth,
+  height: parent.clientHeight,
+  parent,
   // transparent: true,
 });
 
@@ -150,6 +152,9 @@ const create = () => {
 
   game.stage.disableVisibilityChange = true;
   game.paused = true;
+  window.addEventListener('resize', () => {
+    game.scale.setGameSize(grandParent.clientWidth, grandParent.clientHeight);
+  });
 
   // Enable p2 physics
   game.physics.startSystem(Physics.P2JS);
