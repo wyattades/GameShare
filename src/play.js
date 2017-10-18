@@ -1,92 +1,74 @@
 import io from 'socket.io-client';
+// import { Game, Physics, KeyCode, Graphics } from 'phaser-ce';
+
+import PIXI from 'expose-loader?PIXI!phaser-ce/build/custom/pixi.js';
+import p2 from 'expose-loader?p2!phaser-ce/build/custom/p2.js';
+import Phaser from 'expose-loader?Phaser!phaser-ce/build/custom/phaser-split.js';
 
 import './styles/styles.scss';
-import Engine, { createRect, createObject } from './utils/Engine';
-import InputManager from './utils/InputManager';
-import Physics from './utils/Physics';
 
-const SPEED = 1; // Player speed
+const SPEED = 100; // Player speed
 const GAME_ID = 'my_test_game'; // TEMP
 
-// Containers
+let input; // phaser keyboard inputs
+
+// phaser objects
 let players,
-    level;
+    level,
+    player;
 
 let userId, // This user's id
-    thisUser, // This user's data
     users; // All user data
 
 // Connect to specified server via socket.io
 const socket = io(`/${GAME_ID}`);
 
-// Start game engine
-const app = new Engine(document.getElementById('root'));
-
-// Create input manager
-// We must pass the app to handle input events in the canvas
-const input = new InputManager(app, {
-  up: 'w',
-  left: 'a',
-  down: 's',
-  right: 'd',
+// Create game engine
+const game = new Phaser.Game({
+  width: '100',
+  height: '100',
+  parent: 'root', // document.getElementById('root'),
+  transparent: true,
 });
 
-// Create level container
-level = createObject({ container: true });
-app.container.addObject(level);
+const createStaticRect = ({ x, y, w = 1, h = 1, fill, stroke }) => {
+  if (fill === undefined) fill = 0xDDDDDD;
 
-// Create players container
-players = createObject({ container: true });
-app.container.addObject(players);
+  // Draw simple rectangle graphic
+  const graphic = game.add.graphics(x, y);
+  graphic.beginFill(fill);
+  if (stroke !== undefined) graphic.lineStyle(1, stroke, 1);
+  graphic.drawRect(-w / 2, -h / 2, w, h);
+  graphic.endFill();
 
-// Create physics handler
-const physics = new Physics(players, level);
+  // Add a static physics body
+  game.physics.p2.enable(graphic);
+  graphic.body.setRectangle(w, h, 0, 0);
+  graphic.body.static = true;
 
-app.start();
-  
+  return graphic;
+};
+
 // Helper function for adding a new user
 const addUser = (id, { x, y, color }) => {
-  const newUser = createRect({ x, y, w: 50, h: 50, fill: color, stroke: 0x000000 });
-  newUser.vx = 0;
-  newUser.vy = 0;
-
-  players.addObject(newUser);
+  const newUser = createStaticRect({ x, y, w: 50, h: 50, fill: color, stroke: 0x000000 });
+   
+  // Add user to players group
+  players.add(newUser);
 
   // Store user reference in 'users' object
   users[id] = newUser;
 };
 
-
-const createGameLoop = (fn, fps) => {
-  
-  let delta,
-      lastUpdate = Date.now(),
-      now;
-
-  const intervalId = setInterval(() => {
-    now = Date.now();
-    delta = now - lastUpdate;
-    lastUpdate = now;
-
-    fn(delta / 16.66); // 16.66 is the deltaTime of client i.e. 60fps
-  }, 1000 / fps);
-
-  return {
-    stop: () => {
-      clearInterval(intervalId);
-    },
-  };
-};
-
 // Server sends initial data to client
-socket.on('onconnected', ({ users: newUsers, id, gameData }) => {
-
-  userId = id;
+const initUser = ({ users: newUsers, id: newId, gameData }) => {
+  
+  userId = newId;
 
   // Reset users
   users = {};
   // Remove all players from scene
-  players.removeObject();
+  players.removeAll();
 
   // Load players
   for (let newUserId in newUsers) {
@@ -95,82 +77,140 @@ socket.on('onconnected', ({ users: newUsers, id, gameData }) => {
     }
   }
 
+  // Make player a rectangle with physics!
+  player = users[userId];
+  player.body.static = false;
+
   // TEMP: Load game objects
   for (let obj of gameData.objects) {
     obj.stroke = 0xDD0000;
-    level.addObject(createRect(obj));
+    
+    const wall = createStaticRect(obj);
+    level.add(wall);
   }
 
-  thisUser = users[id];
+  // Add user to app
+  socket.on('user_connect', (id, data) => {
+    addUser(id, data);
+  });
 
-  physics.setUser(thisUser);
+  // Remove user from app
+  socket.on('user_disconnect', id => {
+    players.remove(users[id], true);
 
-  createGameLoop(delta => {
+    delete users[id];
+  });
 
-    if (input.left.isDown) {
-      physics.applyForce(-SPEED, 0);
-    }
-    if (input.right.isDown) {
-      physics.applyForce(SPEED, 0);
-    }
-    if (input.up.isDown) {
-      physics.applyForce(0, -SPEED);
-    }
-    if (input.down.isDown) {
-      physics.applyForce(0, SPEED);
-    }
+  socket.on('update', updatedUsers => {
+    const ids = Object.keys(updatedUsers);
+    for (let i = 0; i < ids.length; i++) {
+      const id = ids[i];
+      if (id !== userId) {
+        const updatedUser = updatedUsers[id];
+        const user = users[id];
 
-    physics.update(delta);
-  
-    for (let obj of players.getChildren()) {
-      if (obj !== thisUser) {
-        if (obj.vx) obj.x += obj.vx * delta;
-        if (obj.vy) obj.y += obj.vy * delta;
+        user.x = updatedUser.x;
+        user.y = updatedUser.y;
+        user.vx = updatedUser.vx;
+        user.vy = updatedUser.vy;
       }
     }
+  });
+};
 
-    const updated = {
-      x: thisUser.x,
-      y: thisUser.y,
-      vx: thisUser.vx,
-      vy: thisUser.vy,
-    };
+const preload = () => {
 
-    // TODO: don't update if nothing happens
-    socket.emit('update', userId, updated);
+};
 
-  }, 30);
+const create = () => {
+
+  const KeyCode = Phaser.KeyCode;
+
+  // Handle WASD keyboard inputs
+  input = game.input.keyboard.addKeys({
+    up: KeyCode.W,
+    left: KeyCode.A,
+    down: KeyCode.S,
+    right: KeyCode.D,
+  });
+
+  game.camera.x = 200;
+  game.camera.y = 200;
+
+  // Enable p2 physics
+  game.physics.startSystem(Phaser.Physics.P2JS);
+
+  // Create groups
+  level = game.add.group();
+  players = game.add.group();
+
+  socket.on('onconnected', initUser);
+
+};
+
+const render = () => {
+  // game.debug.cameraInfo(game.camera, 32, 32);
+};
+
+const update = () => {
+
+  if (!player) return;
+
+  // if (input.left.isDown) {
+  //   player.body.rotateLeft(80);
+  // } else if (input.right.isDown) {
+  //   player.body.rotateRight(80);
+  // } else {
+  //   player.body.setZeroRotation();
+  // }
+
+  // if (input.up.isDown) {
+  //   player.body.thrust(400);
+  // } else if (input.down.isDown) {
+  //   player.body.reverse(400);
+  // }
+
+  player.body.setZeroVelocity();
+
+  if (input.right.isDown) {
+    player.body.moveRight(SPEED);
+    // player.body.applyForce([ SPEED, 0 ], player.x, player.y);
+  }
+  if (input.left.isDown) {
+    player.body.moveLeft(SPEED);
+    // player.body.applyForce([ -SPEED, 0 ], player.x, player.y);
+  }
+  if (input.up.isDown) {
+    player.body.moveUp(SPEED);
+    // player.body.applyForce([ 0, -SPEED ], player.x, player.y);
+  }
+  if (input.down.isDown) {
+    player.body.moveDown(SPEED);
+    // player.body.applyForce([ 0, SPEED ], player.x, player.y);
+  }
+
+  const updated = {
+    x: player.x,
+    y: player.y,
+    vx: player.vx,
+    vy: player.vy,
+  };
+
+  // TODO: don't update if nothing happens
+  socket.emit('update', userId, updated);
+};
+
+// Start play state
+game.state.add('Play', {
+  preload,
+  create,
+  render,
+  update,
 });
+game.state.start('Play');
 
 socket.on('lobby_full', () => {
   socket.close();
 
   alert('Sorry, lobby is full! Refresh page to try again.');
-});
-
-// Add user to app
-socket.on('user_connect', (id, data) => {
-  addUser(id, data);
-});
-
-// Remove user from app
-socket.on('user_disconnect', id => {
-  players.removeObject(users[id]);
-
-  delete users[id];
-});
-
-socket.on('update', updatedUsers => {
-  const ids = Object.keys(updatedUsers);
-  for (let i = 0; i < ids.length; i++) {
-    const id = ids[i];
-    if (id !== userId) {
-      const updatedUser = updatedUsers[id];
-      const user = users[id];
-      user.x = updatedUser.x;
-      user.y = updatedUser.y;
-      user.vx = updatedUser.vx;
-      user.vy = updatedUser.vy;
-    }
-  }
 });

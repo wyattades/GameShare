@@ -18,10 +18,19 @@ PATHS.entry = {
   play: path.resolve(__dirname, 'src/play'),
   edit: path.resolve(__dirname, 'src/edit'),
 };
+PATHS.phaserModule = path.join(__dirname, '/node_modules/phaser-ce');
 
 const baseConfig = {
 
   context: __dirname,
+
+  // resolve: {
+  //   alias: {
+  //     phaser: path.join(PATHS.phaserModule, 'build/custom/phaser-split.js'),
+  //     pixi: path.join(PATHS.phaserModule, 'build/custom/pixi.js'),
+  //     p2: path.join(PATHS.phaserModule, 'build/custom/p2.js'),
+  //   },
+  // },
   
   module: {
     rules: [
@@ -52,6 +61,10 @@ const baseConfig = {
         },
         include: PATHS.assets,
       },
+      // Phase v2 isn't meant for webpack
+      // { test: /pixi\.js/, use: ['expose-loader?PIXI'] },
+      // { test: /phaser-split\.js$/, use: ['expose-loader?Phaser'] },
+      // { test: /p2\.js/, use: ['expose-loader?p2'] },
     ],
   },
 };
