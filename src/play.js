@@ -1,14 +1,16 @@
 import io from 'socket.io-client';
-// import { Game, Physics, KeyCode, Graphics } from 'phaser-ce';
+// import { Game, Physics, KeyCode, Graphics, ScaleManager } from 'phaser-ce';
 
 import PIXI from 'expose-loader?PIXI!phaser-ce/build/custom/pixi.js';
 import p2 from 'expose-loader?p2!phaser-ce/build/custom/p2.js';
-import Phaser from 'expose-loader?Phaser!phaser-ce/build/custom/phaser-split.js';
+import { Game, Physics, KeyCode, Graphics, ScaleManager } from 'expose-loader?Phaser!phaser-ce/build/custom/phaser-split.js';
 
 import './styles/styles.scss';
 
-const SPEED = 100; // Player speed
+const SPEED = 600; // Player speed
 const GAME_ID = 'my_test_game'; // TEMP
+
+let socket;
 
 let input; // phaser keyboard inputs
 
@@ -20,19 +22,20 @@ let players,
 let userId, // This user's id
     users; // All user data
 
-// Connect to specified server via socket.io
-const socket = io(`/${GAME_ID}`);
-
 // Create game engine
-const game = new Phaser.Game({
-  width: '100',
-  height: '100',
+const game = new Game({
+  width: 800,
+  height: 600,
   parent: 'root', // document.getElementById('root'),
-  transparent: true,
+  // transparent: true,
 });
 
 const createStaticRect = ({ x, y, w = 1, h = 1, fill, stroke }) => {
   if (fill === undefined) fill = 0xDDDDDD;
+
+  // I do this because I can't figure out how to set the anchor (rotation) point at the center
+  x += w / 2;
+  y += h / 2;
 
   // Draw simple rectangle graphic
   const graphic = game.add.graphics(x, y);
@@ -61,7 +64,9 @@ const addUser = (id, { x, y, color }) => {
 };
 
 // Server sends initial data to client
-const initUser = ({ users: newUsers, id: newId, gameData }) => {
+const initPlayer = ({ users: newUsers, id: newId, gameData }) => {
+
+  game.world.setBounds(0, 0, gameData.options.width, gameData.options.height);
   
   userId = newId;
 
@@ -80,14 +85,19 @@ const initUser = ({ users: newUsers, id: newId, gameData }) => {
   // Make player a rectangle with physics!
   player = users[userId];
   player.body.static = false;
+  player.body.damping = 0.98;
+
+  game.camera.follow(player);
 
   // TEMP: Load game objects
   for (let obj of gameData.objects) {
-    obj.stroke = 0xDD0000;
+    obj.stroke = 0x333333;
     
     const wall = createStaticRect(obj);
     level.add(wall);
   }
+
+  game.paused = false;
 
   // Add user to app
   socket.on('user_connect', (id, data) => {
@@ -109,22 +119,21 @@ const initUser = ({ users: newUsers, id: newId, gameData }) => {
         const updatedUser = updatedUsers[id];
         const user = users[id];
 
-        user.x = updatedUser.x;
-        user.y = updatedUser.y;
-        user.vx = updatedUser.vx;
-        user.vy = updatedUser.vy;
+        user.body.x = updatedUser.x;
+        user.body.y = updatedUser.y;
+        user.body.angle = updatedUser.angle;
+        // user.vx = updatedUser.vx;
+        // user.vy = updatedUser.vy;
       }
     }
   });
 };
 
 const preload = () => {
-
+  // game.load.image('background', 'http:')
 };
 
 const create = () => {
-
-  const KeyCode = Phaser.KeyCode;
 
   // Handle WASD keyboard inputs
   input = game.input.keyboard.addKeys({
@@ -134,17 +143,26 @@ const create = () => {
     right: KeyCode.D,
   });
 
-  game.camera.x = 200;
-  game.camera.y = 200;
+  game.stage.disableVisibilityChange = true;
+  game.paused = true;
 
   // Enable p2 physics
-  game.physics.startSystem(Phaser.Physics.P2JS);
+  game.physics.startSystem(Physics.P2JS);
 
   // Create groups
   level = game.add.group();
   players = game.add.group();
+  
+  // Connect to specified server via socket.io
+  socket = io(`/${GAME_ID}`);
 
-  socket.on('onconnected', initUser);
+  socket.on('onconnected', initPlayer);
+
+  socket.on('lobby_full', () => {
+    socket.close();
+  
+    alert('Sorry, lobby is full! Refresh page to try again.');
+  });
 
 };
 
@@ -156,44 +174,41 @@ const update = () => {
 
   if (!player) return;
 
-  // if (input.left.isDown) {
-  //   player.body.rotateLeft(80);
-  // } else if (input.right.isDown) {
-  //   player.body.rotateRight(80);
-  // } else {
-  //   player.body.setZeroRotation();
-  // }
-
-  // if (input.up.isDown) {
-  //   player.body.thrust(400);
-  // } else if (input.down.isDown) {
-  //   player.body.reverse(400);
-  // }
-
-  player.body.setZeroVelocity();
-
-  if (input.right.isDown) {
-    player.body.moveRight(SPEED);
-    // player.body.applyForce([ SPEED, 0 ], player.x, player.y);
-  }
   if (input.left.isDown) {
-    player.body.moveLeft(SPEED);
-    // player.body.applyForce([ -SPEED, 0 ], player.x, player.y);
+    player.body.rotateLeft(50);
+  } else if (input.right.isDown) {
+    player.body.rotateRight(50);
+  } else {
+    player.body.setZeroRotation();
   }
+
   if (input.up.isDown) {
-    player.body.moveUp(SPEED);
-    // player.body.applyForce([ 0, -SPEED ], player.x, player.y);
+    player.body.thrust(SPEED);
+  } else if (input.down.isDown) {
+    player.body.reverse(SPEED);
   }
-  if (input.down.isDown) {
-    player.body.moveDown(SPEED);
-    // player.body.applyForce([ 0, SPEED ], player.x, player.y);
-  }
+
+  // player.body.setZeroVelocity();
+
+  // if (input.right.isDown) {
+  //   player.body.moveRight(SPEED);
+  // }
+  // if (input.left.isDown) {
+  //   player.body.moveLeft(SPEED);
+  // }
+  // if (input.up.isDown) {
+  //   player.body.moveUp(SPEED);
+  // }
+  // if (input.down.isDown) {
+  //   player.body.moveDown(SPEED);
+  // }
 
   const updated = {
     x: player.x,
     y: player.y,
     vx: player.vx,
     vy: player.vy,
+    angle: player.angle,
   };
 
   // TODO: don't update if nothing happens
@@ -208,9 +223,3 @@ game.state.add('Play', {
   update,
 });
 game.state.start('Play');
-
-socket.on('lobby_full', () => {
-  socket.close();
-
-  alert('Sorry, lobby is full! Refresh page to try again.');
-});

@@ -75,6 +75,7 @@ class Game {
         y: user.y,
         vx: user.vx,
         vy: user.vy,
+        angle: user.angle,
       };
     }
 
@@ -136,7 +137,7 @@ class Game {
       delete this.users[userId];
     });
   
-    socket.on('update', (id, { x, y, vx, vy }) => {
+    socket.on('update', (id, data) => {
       const user = this.users[id];
 
       if (!user) {
@@ -144,10 +145,7 @@ class Game {
         return;
       }
 
-      user.x = x;
-      user.y = y;
-      user.vx = vx;
-      user.vy = vy;
+      Object.assign(user, data);
     });
     
   }

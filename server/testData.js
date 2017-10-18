@@ -6,6 +6,8 @@ module.exports = {
     snap: 8,
     bulletSpeed: 2,
     backgroundColor: 0xDDEEDD,
+    width: 1000,
+    height: 1000,
   },
   groups: [
     {
