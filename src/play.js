@@ -2,7 +2,6 @@ import io from 'socket.io-client';
 
 import './styles/styles.scss';
 import Engine, { createRect, createObject } from './utils/Engine';
-import testData from './assets/testData';
 import InputManager from './utils/InputManager';
 import Physics from './utils/Physics';
 
@@ -35,12 +34,6 @@ const input = new InputManager(app, {
 // Create level container
 level = createObject({ container: true });
 app.container.addObject(level);
-
-// TEMP: Load game objects
-for (let obj of testData.objects) {
-  obj.stroke = 0xDD0000;
-  level.addObject(createRect(obj));
-}
 
 // Create players container
 players = createObject({ container: true });
@@ -86,7 +79,7 @@ const createGameLoop = (fn, fps) => {
 };
 
 // Server sends initial data to client
-socket.on('onconnected', ({ users: newUsers, id }) => {
+socket.on('onconnected', ({ users: newUsers, id, gameData }) => {
 
   userId = id;
 
@@ -100,6 +93,12 @@ socket.on('onconnected', ({ users: newUsers, id }) => {
     if (newUsers.hasOwnProperty(newUserId)) {
       addUser(newUserId, newUsers[newUserId]);
     }
+  }
+
+  // TEMP: Load game objects
+  for (let obj of gameData.objects) {
+    obj.stroke = 0xDD0000;
+    level.addObject(createRect(obj));
   }
 
   thisUser = users[id];
@@ -144,6 +143,8 @@ socket.on('onconnected', ({ users: newUsers, id }) => {
 });
 
 socket.on('lobby_full', () => {
+  socket.close();
+
   alert('Sorry, lobby is full! Refresh page to try again.');
 });
 

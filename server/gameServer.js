@@ -5,7 +5,7 @@ let io,
     connections,
     games;
 
-const MAX_CONNECTIONS = 10;
+const MAX_CONNECTIONS = 2;
 
 const createGameLoop = (fn, fps) => {
   
@@ -28,10 +28,16 @@ const createGameLoop = (fn, fps) => {
   };
 };
 
+const boxCollide = (b1, b2) => !(
+  b1.x > b2.x + b2.w || b1.x + b1.w < b2.x ||
+  b1.y > b2.y + b2.h || b1.y + b1.h < b2.y
+);
+
 class Game {
 
-  constructor(id) {
+  constructor(id, gameData) {
     this.id = id;
+    this.gameData = gameData;
     this.users = {};
     this.connections = 0;
 
@@ -61,8 +67,8 @@ class Game {
     for (let i = 0, ids = Object.keys(this.users); i < ids.length; i++) {
       const user = this.users[ids[i]];
 
-      if (user.vx) user.x += user.vx * delta;
-      if (user.vy) user.y += user.vy * delta;
+      // if (user.vx) user.x += user.vx * delta;
+      // if (user.vy) user.y += user.vy * delta;
 
       update[ids[i]] = {
         x: user.x,
@@ -79,7 +85,7 @@ class Game {
 
     if (this.connections >= MAX_CONNECTIONS) {
       socket.emit('lobby_full');
-      socket.disconnect(true);
+      socket.disconnect();
       return;
     }
 
@@ -88,15 +94,31 @@ class Game {
     
     const userId = UUID();
   
-    this.users[userId] = {
-      x: Math.random() * 400,
-      y: Math.random() * 400,
+    const newUser = {
       vx: 0,
       vy: 0,
       color: Math.random() * 0xFFFFFF << 0,
     };
+
+    // TEMP: add player to random position on map
+    let collide = true;
+    while (collide) {
+      newUser.x = Math.random() * 600;
+      newUser.y = Math.random() * 600;
+
+      collide = false;
+      for (let obj of this.gameData.objects) {
+        if (boxCollide(obj, newUser)) {
+          collide = true;
+          break;
+        }
+      }
+    }
+
+    this.users[userId] = newUser;
   
-    socket.emit('onconnected', { users: this.users, id: userId });
+    // Send initial data to connected client
+    socket.emit('onconnected', { users: this.users, id: userId, gameData: this.gameData });
   
     // const address = socket.request.connection.remoteAddress; 
     // const address = socket.handshake.address;
@@ -147,11 +169,11 @@ module.exports = server => {
 
   app.getConnections = () => connections;
 
-  app.create = id => {
+  app.create = (id, gameData) => {
     if (games.hasOwnProperty(id)) {
       throw new Error(`A game with id ${id} already exists`);
     } else {
-      games[id] = new Game(id);
+      games[id] = new Game(id, gameData);
       games[id].start();
     }
   };

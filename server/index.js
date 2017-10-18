@@ -58,5 +58,6 @@ server.listen(PORT, () => {
 const games = gameServer(server);
 
 // TEMP: Start new game
-games.create('my_test_game');
+const testData = require('./testData');
+games.create('my_test_game', testData);
 
