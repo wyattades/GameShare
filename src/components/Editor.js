@@ -3,12 +3,14 @@ import React, { Component } from 'react';
 import Engine, { createRect, createObject } from '../utils/Engine';
 // import InputManager from '../utils/InputManager';
 
+
 const SNAP = 10;
+// const GRID_SIZE = 10000;
 const GRID_SIZE = 10000;
 
 // Create a draggable grid
 const grid = createObject({
-  x: 0, y: 0, w: GRID_SIZE, h: GRID_SIZE, draggable: true, container: true,
+  x: 0, y: 0, w: GRID_SIZE, h: GRID_SIZE, draggable: true, container: true
 });
 
 grid.lineStyle(1, 0xAAAAAA, 1);
@@ -29,6 +31,7 @@ grid.lineStyle(2, 0x0000FF, 1);
 grid.moveTo(0, GRID_SIZE/2);
 grid.lineTo(GRID_SIZE, GRID_SIZE/2);
 
+
 document.getElementById('obj-create').addEventListener('click', () => {
   grid.addObject(createRect({
     x: 80, y: 80, w: 80, h: 80, draggable: true, fill: 0xFFAABB, stroke: 0x000000,
@@ -44,6 +47,9 @@ export default class extends Component {
     });
     this.init();
     this.app.start();
+
+    grid.position.x = this.app.width/2 - GRID_SIZE/2;
+    grid.position.y = this.app.height/2 - GRID_SIZE/2;
   }
 
   componentWillUnmount() {
@@ -53,7 +59,7 @@ export default class extends Component {
   init = () => {
     // Add example object
     grid.addObject(createRect({
-      x: 100, y: 100, w: 80, h: 100, draggable: true, fill: 0xFFAABB, stroke: 0x000000,
+      x: 400, y: 250, w: 80, h: 100, draggable: true, fill: 0xFFAABB, stroke: 0x000000,
     }));
   }
 
