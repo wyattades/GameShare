@@ -97,6 +97,7 @@ export const connect = id => new Promise((resolve, reject) => {
 });
 
 export const disconnect = () => {
-  console.dir(socket);
-  if (socket && socket.open !== false) socket.close();
+  if (socket) {
+    socket.close();
+  }
 };
