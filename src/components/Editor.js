@@ -9,12 +9,12 @@ let GRID_X = 7000;
 let GRID_Y = 7000;
 
 // Create a draggable grid
-const grid = createObject({
-  x: 0, y: 0, w: GRID_X + 400, h: GRID_Y + 400, draggable: true, container: true
+let grid = createObject({
+  x: 0, y: 0, w: GRID_X + 800, h: GRID_Y + 800, draggable: true, container: true
 });
 
 // Create a rectangle for the boundary of the game
-const boundary = grid.addObject(createRect({
+let boundary = grid.addObject(createRect({
   x: 400, y: 400, w: GRID_X, h: GRID_Y, draggable: false, stroke: 0xFF0000, weight: 3
 }));
 
@@ -47,15 +47,15 @@ document.getElementById('obj-create').addEventListener('click', () => {
   }));
 });
 
-document.getElementById('boundary-x').addEventListener('change', () => {
-  GRID_X = document.getElementById('boundary-x').value;
-  drawGrid();
-});
+// document.getElementById('boundary-x').addEventListener('change', () => {
+//   GRID_X = document.getElementById('boundary-x').value;
+//   drawGrid();
+// });
 
-document.getElementById('boundary-y').addEventListener('change', () => {
-  GRID_Y = document.getElementById('boundary-y').value;
-  drawGrid();
-});
+// document.getElementById('boundary-y').addEventListener('change', () => {
+//   GRID_Y = document.getElementById('boundary-y').value;
+//   drawGrid();
+// });
 
 export default class extends Component {
 
@@ -66,6 +66,9 @@ export default class extends Component {
     });
     this.init();
     this.app.start();
+
+    grid.position.x = -400;
+    grid.position.y = -400;
   }
 
   componentWillUnmount() {
@@ -74,9 +77,9 @@ export default class extends Component {
 
   init = () => {
     // Add example object
-    // grid.addObject(createRect({
-    //   x: 400, y: 250, w: 80, h: 100, draggable: true, fill: 0xFFAABB, stroke: 0x000000,
-    // }));
+    grid.addObject(createRect({
+      x: 450, y: 450, w: 80, h: 100, draggable: true, fill: 0xFFAABB, stroke: 0x000000,
+    }));
   }
 
   render() {

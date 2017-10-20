@@ -1,3 +1,13 @@
+@import '../../node_modules/bulma/sass/utilities/initial-variables';
+
+$primary: #EA3D4E;
+$dark: #202436;
+$light: #F2F5EF;
+$info: #D29B8F;
+
+
+@import '../../node_modules/bulma/bulma.sass';
+
 * {
   margin: 0;
   padding: 0;
@@ -14,6 +24,11 @@ html, body, #root, .ui {
     display: flex;
     flex: 1;
   }
+}
+
+.temp {
+  display: flex;
+  flex: 1;
 }
 
 .ui {
@@ -58,42 +73,8 @@ html, body, #root, .ui {
   }
 }
 
-
-// Header
-
-.ui-header {
-  color: #AAAAAA;
-  h1 {
-    margin: 8px;
-  }
-  background-color: #3D3B3B;
-
-    display: flex;
-    flex-direction: row;
-    justify-content: space-between;
-    align-items: stretch;
-    // margin-left: 20px;
-}
-
-nav {
-  display: flex;
-  flex-direction: row;
-
-  & > * {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    justify-content: center;
-    margin-right: 16px;
-    padding: 0 16px;
-    
-    &:hover {
-      background-color: #5C5A5A;
-    }
-  }
-
-  a {    
-    color: white;
-    text-decoration: none;
-  }
+.site-name {
+  margin: $content-pre-padding;
+  margin-bottom: 0!important;
+  color: $dark;
 }
