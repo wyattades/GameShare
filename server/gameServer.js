@@ -109,8 +109,8 @@ class Game {
     // TEMP: add player to random position on map
     let collide = true;
     while (collide) {
-      newUser.x = bounds.x + Math.random() * bounds.w;
-      newUser.y = bounds.y + Math.random() * bounds.h;
+      newUser.x = bounds.x + (Math.random() * bounds.w);
+      newUser.y = bounds.y + (Math.random() * bounds.h);
 
       collide = false;
       // for (let obj of this.gameData.objects) {

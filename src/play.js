@@ -6,3 +6,8 @@ client.connect('my_test_game')
   alert(err);
   console.log('Init Error:', err);
 });
+
+// Enable hot reloading
+if (process.env.NODE_ENV === 'development' && module.hot) {
+  module.hot.accept();
+}
