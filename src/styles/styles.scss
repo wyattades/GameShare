@@ -26,10 +26,28 @@ html, body, #root, .ui {
   }
 }
 
-.temp {
-  display: flex;
-  flex: 1;
+.site-name {
+  margin: $content-pre-padding;
+  margin-bottom: 0!important;
+  color: $dark;
 }
+
+.tabs-list { border-bottom: none!important; }
+
+.sidebar {
+  background-color: $info;
+}
+
+.edit-body { padding: 0; }
+
+// .column .is-four-fifths {
+//   .root {
+//     .app {
+//       display: flex;
+//       flex: 1;
+//     }
+//   }
+// }
 
 .ui {
   display: flex;
@@ -45,19 +63,19 @@ html, body, #root, .ui {
       flex: 1;
     }
   }
-
-  &-sidebar {
-    max-width: 250px;
-
-    background-color: #CCC;
-    padding: 8px;
-    display: flex;
-    flex-direction: column;
-    & > * {
-      margin-top: 16px;
-    }
-  }
 }
+//   &-sidebar {
+//     max-width: 250px;
+
+//     background-color: #CCC;
+//     padding: 8px;
+//     display: flex;
+//     flex-direction: column;
+//     & > * {
+//       margin-top: 16px;
+//     }
+//   }
+// }
 
 .grid {
   position: absolute;
@@ -72,35 +90,6 @@ html, body, #root, .ui {
     position: absolute;
   }
 }
-
-.site-name {
-  margin: $content-pre-padding;
-  margin-bottom: 0!important;
-  color: $dark;
-}
-
-// nav {
-//   display: flex;
-//   flex-direction: row;
-
-//   & > * {
-//     display: flex;
-//     flex-direction: row;
-//     align-items: center;
-//     justify-content: center;
-//     margin-right: 16px;
-//     padding: 0 16px;
-    
-//     &:hover {
-//       background-color: #5C5A5A;
-//     }
-//   }
-
-//   a {    
-//     color: white;
-//     text-decoration: none;
-//   }
-// }
 
 #root {
   overflow: hidden;

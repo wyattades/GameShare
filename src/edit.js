@@ -2,6 +2,7 @@ import React from 'react';
 import { render } from 'react-dom';
 import { AppContainer } from 'react-hot-loader';
 
+// import logo from './assets/controller.png';
 import './styles/styles.scss';
 import App from './components/App';
 

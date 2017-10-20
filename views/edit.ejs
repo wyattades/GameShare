@@ -9,20 +9,22 @@
     <% } %>
   </head>
   <body>
-    <div class="ui">
-      <%- include templates/header %>        
-      <div class="ui-body">
-        <div class="ui-sidebar">
-          <p>Sidebar</p>
-          <input id="boundary-x" type="number" value="7000" max="10000">
-          <input id="boundary-y" type="number" value="7000" max="10000">
-          <button id="obj-create">Create</button>
-          <button id="obj-delete">Delete</button>
-          <button id="obj-duplicate">Duplicate</button>
+    <%- include templates/header %>
+    <section class="section edit-body">
+      <div class="container is-widescreen ui">
+        <div class="columns ui-body">
+          <div class="column is-one-fifth sidebar">
+            <p>Sidebar</p>
+            <input id="boundary-x" type="number" value="7000" max="10000">
+            <input id="boundary-y" type="number" value="7000" max="10000">
+            <button id="obj-create">Create</button>
+            <button id="obj-delete">Delete</button>
+            <button id="obj-duplicate">Duplicate</button>
+          </div>
+          <div class="column is-four-fifths" id="<%= rootId %>"></div>            
         </div>
-        <div id="<%= rootId %>"></div>            
       </div>
-    </div>  
+    </section>
     <script src="<%= script %>"></script>
   </body>
 </html>
