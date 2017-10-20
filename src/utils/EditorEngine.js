@@ -1,6 +1,14 @@
 import * as Pixi from 'pixi.js';
 
+// User variables for editor.
+const editorInstance = {
+  lockDragEvent: false, // While true, ignore dragStart events.
+};
+
 function onDragStart(event) {
+  if (editorInstance.lockDragEvent) { return; }
+  editorInstance.lockDragEvent = true;
+
   this.data = event.data;
   this.alpha = 0.8;
   this.dragging = true;
@@ -11,6 +19,8 @@ function onDragEnd() {
   this.alpha = 1.0;
   this.dragging = false;
   this.data = null;
+
+  editorInstance.lockDragEvent = false;
 }
 
 function onDragMove() {
@@ -27,13 +37,13 @@ export const createObject = ({ x = 0, y = 0, w = 1, h = 1, draggable, container 
 
   if (container) {
     obj.getChildren = () => obj.children;
-    
+
     obj.addObject = (...objs) => {
       for (let o of objs) {
         obj.addChild(o);
       }
     };
-  
+
     obj.removeObject = (...objs) => {
       if (objs.length > 0) {
         for (let o of objs) {
@@ -45,7 +55,7 @@ export const createObject = ({ x = 0, y = 0, w = 1, h = 1, draggable, container 
     };
 
   }
-  
+
   obj.x = x;
   obj.y = y;
   obj.w = w; // ? obj.width ?
@@ -77,7 +87,7 @@ export const createObject = ({ x = 0, y = 0, w = 1, h = 1, draggable, container 
 
 // Helper for creating easy rectangle
 export const createRect = ({ w = 1, h = 1, fill, stroke, ...rest }) => {
-  
+
   const rect = createObject({ w, h, ...rest });
 
   if (typeof stroke === 'number') rect.lineStyle(1, stroke, 1);
@@ -100,7 +110,7 @@ class Engine {
       height: this.height,
       transparent: !options.background,
     });
-    
+
     parent.appendChild(this.app.view);
 
     this.container = options.container || createObject({ container: true });
@@ -121,7 +131,7 @@ class Engine {
   }
 
   translate = (x, y, z) => {
-    
+
   }
 
 }
