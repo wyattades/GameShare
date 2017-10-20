@@ -1,4 +1,5 @@
 import * as Pixi from 'pixi.js';
+import Colors from './Colors';
 // User variables for editor.
 
 class EditorInstance {
@@ -68,10 +69,10 @@ export const createObject = ({ x = 0, y = 0, w = 1, h = 1, draggable, container,
   if (selectable) {
     obj.selectable = true;
     obj.onSelectSet = () => {
-      obj.tint = 0x00FF00;
+      obj.tint = Colors.GREEN;
     };
     obj.onSelectClear = () => {
-      obj.tint = 0xFFFFFF;
+      obj.tint = Colors.WHITE;
     };
   }
 
