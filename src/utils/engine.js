@@ -111,8 +111,8 @@ export const setup = options => {
   });
 
   const { x, y, w, h } = options.bounds;
-  game.world.setBounds(x, y, w, h);
-  // game.world.setBounds(0, 0, w, h);
+  game.world.setBounds(0, 0, w, h);
+  // game.world.setBounds(0, 0, w + (x * 2), h + (y * 2));
   // game.camera.bounds.setTo(0, 0, w + x * 2, h + y * 2);
   
   // Reset players

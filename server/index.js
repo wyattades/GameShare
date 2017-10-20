@@ -27,6 +27,7 @@ if (DEV) {
 }
 
 app.use(express.static(path.resolve(__dirname, '../public')));
+app.use(express.static(path.resolve(__dirname, '../assets')));
 
 // TODO: generate file paths automatically
 const options = page => ({
