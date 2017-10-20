@@ -18,9 +18,11 @@ class EditorInstance {
     this.selectedObject = null;
   }
 
-  // Set the current object selection.
+  // Clear the current selection, then select the given object.
   selectObject = (obj) => {
     this.clearSelection();
+    if (!obj.selectable) { return; }
+
     this.selectedObject = obj;
     if (this.selectedObject.onSelectSet) {
       this.selectedObject.onSelectSet();
@@ -32,13 +34,7 @@ let editorInstance = new EditorInstance();
 function onDragStart(event) {
   if (editorInstance.lockDragEvent) { return; }
   editorInstance.lockDragEvent = true;
-
-  if (this.selectable) {
-    editorInstance.selectObject(this);
-  }
-  else {
-    editorInstance.clearSelection();
-  }
+  editorInstance.selectObject(this);
 
   this.data = event.data;
   this.alpha = 0.8;
