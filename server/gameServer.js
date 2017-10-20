@@ -104,19 +104,21 @@ class Game {
       color: Math.random() * 0xFFFFFF << 0,
     };
 
+    const bounds = this.gameData.options.bounds;
+
     // TEMP: add player to random position on map
     let collide = true;
     while (collide) {
-      newUser.x = Math.random() * 600;
-      newUser.y = Math.random() * 600;
+      newUser.x = bounds.x + Math.random() * bounds.w;
+      newUser.y = bounds.y + Math.random() * bounds.h;
 
       collide = false;
-      for (let obj of this.gameData.objects) {
-        if (boxCollide(obj, newUser)) {
-          collide = true;
-          break;
-        }
-      }
+      // for (let obj of this.gameData.objects) {
+      //   if (boxCollide(obj, newUser)) {
+      //     collide = true;
+      //     break;
+      //   }
+      // }
     }
 
     this.users[userId] = newUser;
