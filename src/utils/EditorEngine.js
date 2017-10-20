@@ -155,16 +155,16 @@ class Engine {
       // Set event hooks.
       obj
       // Mouse down
-      .on('mousedown', () => { engine.objectMouseDown(obj); })
-      .on('touchstart', () => { engine.objectMouseDown(obj); })
+      .on('mousedown', (e) => { engine.objectMouseDown(obj, e); })
+      .on('touchstart', (e) => { engine.objectMouseDown(obj, e); })
       // Mouse up
-      .on('mouseup', () => { engine.objectMouseUp(obj); })
-      .on('mouseupoutside', () => { engine.objectMouseUp(obj); })
-      .on('touchend', () => { engine.objectMouseUp(obj); })
-      .on('touchendoutside', () => { engine.objectMouseUp(obj); })
+      .on('mouseup', (e) => { engine.objectMouseUp(obj, e); })
+      .on('mouseupoutside', (e) => { engine.objectMouseUp(obj, e); })
+      .on('touchend', (e) => { engine.objectMouseUp(obj, e); })
+      .on('touchendoutside', (e) => { engine.objectMouseUp(obj, e); })
       // Mouse move
-      .on('mousemove', () => { engine.objectMouseMove(obj); })
-      .on('touchmove', () => { engine.objectMouseMove(obj); });
+      .on('mousemove', (e) => { engine.objectMouseMove(obj, e); })
+      .on('touchmove', (e) => { engine.objectMouseMove(obj, e); });
     }
 
     return obj;
@@ -197,19 +197,20 @@ class Engine {
     this.selectedObject.tint = Colors.GREEN;
   }
 
-  objectMouseDown = (obj) => {
+  objectMouseDown = (obj, event) => {
     this.selectObject(obj);
+    console.log(event);
 
     //if (obj.draggable) { this.startDrag(obj); }
     console.log("engine.mousedown detected");
     //obj.tint = Colors.BLACK;
   }
-  objectMouseUp = (obj) => {
+  objectMouseUp = (obj, event) => {
     console.log("engine.mouseup detected");
     //obj.tint = Colors.BLACK;
   }
-  objectMouseMove = (obj) => {
-    console.log("engine.mousemove detected");
+  objectMouseMove = (obj, event) => {
+    //console.log("engine.mousemove detected");
     //obj.tint = Colors.BLACK;
   }
 
