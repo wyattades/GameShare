@@ -29,9 +29,18 @@ const game = new Game({
 game.state.add('Play', {
   // preload,
   // create,
+
   render: () => {
-    
+    game.debug.start(20, 20, 'white');
+    game.debug.line('Players:');
+    for (let i = 0, ids = Object.keys(players); i < ids.length; i++) {
+      const id = ids[i],
+            plyr = players[id];
+      game.debug.line(`${i + 1}) id=${id}, x=${Math.round(plyr.x)}, y=${Math.round(plyr.y)}, angle=${plyr.rotation}`);
+    }
+    game.debug.stop();
   },
+
   update: () => {
     
     if (!player) return;
@@ -51,6 +60,9 @@ game.state.add('Play', {
     } else if (input.down.isDown) {
       player.body.reverse(SPEED);
     }
+
+    // TODO: figure out how to use camera.follow()
+    game.camera.focusOn(player);
   
     // TODO: update slower AND/OR don't update if nothing happens?
     sendUpdate({
@@ -63,6 +75,11 @@ game.state.add('Play', {
     });
   },
 });
+game.state.start('Play');
+
+window.addEventListener('resize', () => {
+  game.scale.setGameSize(grandParent.clientWidth, grandParent.clientHeight);
+});
 
 const createStaticRect = ({ x, y, w = 1, h = 1, fill, stroke }) => {
   // I do this because I can't figure out how to set the anchor (rotation) point at the center
@@ -71,10 +88,10 @@ const createStaticRect = ({ x, y, w = 1, h = 1, fill, stroke }) => {
 
   // Draw simple rectangle graphic
   const graphic = game.add.graphics(x, y);
-  graphic.beginFill(fill);
+  if (fill !== undefined) graphic.beginFill(fill);
   if (stroke !== undefined) graphic.lineStyle(1, stroke, 1);
   graphic.drawRect(-w / 2, -h / 2, w, h);
-  graphic.endFill();
+  if (fill !== undefined) graphic.endFill();
 
   // Add a static physics body
   game.physics.p2.enable(graphic);
@@ -87,20 +104,16 @@ const createStaticRect = ({ x, y, w = 1, h = 1, fill, stroke }) => {
 export const setup = options => {
 
   if (!game.isBooted) {
-    console.error('Uh oh!');
-    return Promise.reject('Setup started before game boot');
+    const err = 'Setup started before game boot!';
+    console.error(err);
+    throw err;
   }
 
-  // Start play state
-  game.state.clearCurrentState();
-  game.state.start('Play');
-
-  window.addEventListener('resize', () => {
-    game.scale.setGameSize(grandParent.clientWidth, grandParent.clientHeight);
-  });
-
+  // Setup game properties
   game.paused = true;
   game.stage.disableVisibilityChange = true;
+  game.state.clearCurrentState();
+  game.physics.startSystem(Physics.P2JS);
 
   // Handle WASD keyboard inputs
   input = game.input.keyboard.addKeys({
@@ -109,17 +122,19 @@ export const setup = options => {
     down: KeyCode.S,
     right: KeyCode.D,
   });
-
-  const { x, y, w, h } = options.bounds;
-  game.world.setBounds(0, 0, w, h);
-  // game.world.setBounds(0, 0, w + (x * 2), h + (y * 2));
-  // game.camera.bounds.setTo(0, 0, w + x * 2, h + y * 2);
-  
+    
   // Reset players
   players = {};
 
-  // Enable p2 physics
-  game.physics.startSystem(Physics.P2JS);
+  const { x, y, w, h } = options.bounds;
+  
+  game.world.setBounds(0, 0, w + (x * 2), h + (y * 2));
+
+  const boundary = game.add.group();
+  boundary.add(createStaticRect({ x, y, w, h: 1, fill: 0x00FFFF }));
+  boundary.add(createStaticRect({ x, y, w: 1, h, fill: 0x00FFFF }));
+  boundary.add(createStaticRect({ x: x + w, y, w: 1, h, fill: 0x00FFFF }));
+  boundary.add(createStaticRect({ x, y: y + h, w, h: 1, fill: 0x00FFFF }));
 
   return Promise.resolve();
 };
@@ -147,6 +162,7 @@ export const addPlayer = (id, data) => {
     // Store player reference
     players[id] = newPlayer;
 
+    // TODO: add to player group
     game.add.existing(newPlayer);
   }
 };
@@ -185,7 +201,7 @@ export const initUser = id => {
   player.body.static = false;
   player.body.damping = 0.98;
 
-  game.camera.follow(player);
+  // game.camera.follow(player);
 };
 
 export const addBullet = data => {
@@ -200,11 +216,12 @@ export const createGroup = data => {
 
   return {
     add: obj => {
-      obj.stroke = 0x333333;
-      if (obj.fill === undefined) obj.fill = 0xDDDDDD;
-      
       const wall = createStaticRect(obj);
       group.add(wall);
+    },
+
+    remove: obj => {
+      // TODO
     },
   };
 };
