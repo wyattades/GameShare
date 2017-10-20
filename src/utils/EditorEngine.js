@@ -1,37 +1,6 @@
 import * as Pixi from 'pixi.js';
 import Colors from './Colors';
 
-/*
-
-function onDragStart(event) {
-  if (editorInstance.lockDragEvent) { return; }
-  editorInstance.lockDragEvent = true;
-  editorInstance.selectObject(this);
-
-  this.data = event.data;
-  this.alpha = 0.8;
-  this.dragging = true;
-  this.offset = event.data.getLocalPosition(this);
-}
-
-function onDragEnd() {
-  this.alpha = 1.0;
-  this.dragging = false;
-  this.data = null;
-
-  editorInstance.lockDragEvent = false;
-}
-
-function onDragMove() {
-  if (this.dragging) {
-    let newPosition = this.data.getLocalPosition(this.parent);
-    this.position.x = newPosition.x - this.offset.x;
-    this.position.y = newPosition.y - this.offset.y;
-  }
-}
-
-*/
-
 
 class Engine {
 
@@ -67,8 +36,8 @@ class Engine {
     this.container = grid; // options.container || this.createObject({ container: true });
     this.app.stage.addChild(this.container);
 
-    this.selectedObject = null;
-    this.lockSelect = false;
+    this.selectedObject = null; // The currently selected object.
+    this.lockSelect = false; // When true, objects won't be selected.
 
     // Adding some test data
     this.container.addObject(
@@ -102,22 +71,11 @@ class Engine {
 
   }
 
-  createObject = ({ x = 0, y = 0, w = 1, h = 1, draggable, container,
-    selectable }) => {
+  createObject = ({ x = 0, y = 0, w = 1, h = 1, draggable, container, selectable }) => {
 
     const obj = new Pixi.Graphics();
 
-    if (selectable) {
-      obj.selectable = true;
-      /*
-      obj.onSelectSet = () => {
-        obj.tint = Colors.GREEN;
-      };
-      obj.onSelectClear = () => {
-        obj.tint = Colors.WHITE;
-      };
-      */
-    }
+    if (selectable) { obj.selectable = true; }
 
     if (container) {
       obj.getChildren = () => obj.children;
@@ -148,25 +106,23 @@ class Engine {
     if (draggable) {
       obj.draggable = true;
       obj.hitArea = new Pixi.Rectangle(0, 0, w, h);
-
       obj.interactive = true;
       obj.buttonMode = true;
 
-      let engine = this;
-
       // Set event hooks.
+      let engine = this;
       obj
       // Mouse down
-      .on('mousedown', (e) => { engine.objectMouseDown(obj, e); })
-      .on('touchstart', (e) => { engine.objectMouseDown(obj, e); })
+      .on('mousedown', (e) => { engine.onMouseDown(obj, e); })
+      .on('touchstart', (e) => { engine.onMouseDown(obj, e); })
       // Mouse up
-      .on('mouseup', (e) => { engine.objectMouseUp(obj, e); })
-      .on('mouseupoutside', (e) => { engine.objectMouseUp(obj, e); })
-      .on('touchend', (e) => { engine.objectMouseUp(obj, e); })
-      .on('touchendoutside', (e) => { engine.objectMouseUp(obj, e); })
+      .on('mouseup', (e) => { engine.onMouseUp(obj, e); })
+      .on('mouseupoutside', (e) => { engine.onMouseUp(obj, e); })
+      .on('touchend', (e) => { engine.onMouseUp(obj, e); })
+      .on('touchendoutside', (e) => { engine.onMouseUp(obj, e); })
       // Mouse move
-      .on('mousemove', (e) => { engine.objectMouseMove(obj, e); })
-      .on('touchmove', (e) => { engine.objectMouseMove(obj, e); });
+      .on('mousemove', (e) => { engine.onMouseMove(obj, e); })
+      .on('touchmove', (e) => { engine.onMouseMove(obj, e); });
     }
 
     return obj;
@@ -193,48 +149,46 @@ class Engine {
   // Clear the current selection, then select the given object.
   selectObject = (obj) => {
     this.clearSelection();
-    // console.log("selectobject: object unselectable");
     if (!obj.selectable) { return; }
-    // console.log("selectobject: object selectable");
-    // console.log(obj);
+
     this.selectedObject = obj;
-    // console.log(this.selectedObject);
     this.selectedObject.tint = Colors.GREEN;
   }
 
-  startDrag = (obj, event) => {
-    console.log("start drag");
+  // Object dragging logic.
+  // Called by event handler functions.
+  dragStart = (obj, event) => {
     obj.alpha = 0.8;
     obj.dragging = true;
-    console.log(event.data);
     obj.data = event.data;
     obj.offset = event.data.getLocalPosition(obj);
   }
-  onDrag = (obj, event) => {
+  dragMove = (obj, event) => {
     if (obj.dragging) {
       let newPosition = obj.data.getLocalPosition(obj.parent);
       obj.position.x = newPosition.x - obj.offset.x;
       obj.position.y = newPosition.y - obj.offset.y;
     }
   }
-  endDrag = (obj, event) => {
+  dragEnd = (obj, event) => {
     obj.alpha = 1.0;
     obj.dragging = false;
   }
 
-  objectMouseDown = (obj, event) => {
+  // Event handler functions.
+  onMouseDown = (obj, event) => {
     if (this.lockSelect) { return; }
     this.lockSelect = true;
 
     this.selectObject(obj);
-    if (obj.draggable) { this.startDrag(obj, event); }
+    if (obj.draggable) { this.dragStart(obj, event); }
   }
-  objectMouseUp = (obj, event) => {
-    if (obj.dragging) { this.endDrag(obj, event); }
+  onMouseUp = (obj, event) => {
+    if (obj.dragging) { this.dragEnd(obj, event); }
     this.lockSelect = false;
   }
-  objectMouseMove = (obj, event) => {
-    if (obj.dragging) { this.onDrag(obj, event); }
+  onMouseMove = (obj, event) => {
+    if (obj.dragging) { this.dragMove(obj, event); }
   }
 
 }

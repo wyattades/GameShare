@@ -17,9 +17,7 @@ export default class extends Component {
 
   componentDidMount() {
 
-    this.app = new Engine(this._parent, {
-      // container: grid,
-    });
+    this.app = new Engine(this._parent, {});
     this.init();
     this.app.start();
   }
