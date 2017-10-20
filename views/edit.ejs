@@ -10,19 +10,28 @@
   </head>
   <body>
     <%- include templates/header %>
-    <section class="section edit-body">
-      <div class="container is-widescreen ui">
-        <div class="columns ui-body">
-          <div class="column is-one-fifth sidebar">
-            <p>Sidebar</p>
-            <input id="boundary-x" type="number" value="7000" max="10000">
-            <input id="boundary-y" type="number" value="7000" max="10000">
-            <button id="obj-create">Create</button>
-            <button id="obj-delete">Delete</button>
-            <button id="obj-duplicate">Duplicate</button>
+    <section class="section edit-body ui">
+      <div class="columns ui-body">
+        <div class="column is-one-quarter sidebar">
+          <div class="control">
+            <label for="boundary-x">Width of Playable Area</label>
+            <input class="input" id="boundary-x" type="number" value="7000" max="10000">
           </div>
-          <div class="column is-four-fifths" id="<%= rootId %>"></div>            
+          <div class="control">
+            <label for="boundary-y">Height of Playable Area</label>
+            <input class="input" id="boundary-y" type="number" value="7000" max="10000">
+          </div>
+          <div class="control">
+            <button class="button" id="obj-create">Create</button>
+          </div>
+          <div class="control">
+            <button class="button" id="obj-delete">Delete</button>
+          </div>
+          <div class="control">
+            <button class="button" id="obj-duplicate">Duplicate</button>
+          </div>
         </div>
+        <div class="column root-column" id="<%= rootId %>"></div>
       </div>
     </section>
     <script src="<%= script %>"></script>
