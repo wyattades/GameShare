@@ -1,8 +1,9 @@
 import React, { Component } from 'react';
 
-import Engine, { createRect, createObject } from '../utils/EditorEngine';
+import Engine from '../utils/EditorEngine';
 // import InputManager from '../utils/InputManager';
 
+/*
 const SNAP = 10;
 const GRID_SIZE = 10000;
 
@@ -10,6 +11,7 @@ const GRID_SIZE = 10000;
 const grid = createObject({
   x: 0, y: 0, w: GRID_SIZE, h: GRID_SIZE, draggable: true, container: true,
 });
+
 
 grid.lineStyle(1, 0xAAAAAA, 1);
 for (let x = 0; x < GRID_SIZE; x += SNAP) {
@@ -27,12 +29,14 @@ document.getElementById('obj-create').addEventListener('click', () => {
   }));
 });
 
+*/
+
 export default class extends Component {
 
   componentDidMount() {
 
     this.app = new Engine(this._parent, {
-      container: grid,
+      // container: grid,
     });
     this.init();
     this.app.start();
@@ -43,10 +47,12 @@ export default class extends Component {
   }
 
   init = () => {
+    /*
     // Add example object
     grid.addObject(createRect({
       x: 100, y: 100, w: 80, h: 100, draggable: true, selectable: true, fill: 0xFFAABB, stroke: 0x000000,
     }));
+    */
   }
 
   render() {

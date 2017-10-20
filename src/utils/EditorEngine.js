@@ -1,35 +1,7 @@
 import * as Pixi from 'pixi.js';
 import Colors from './Colors';
 
-// Stores and controls instance variables.
-class EditorInstance {
-  constructor() {
-    this.selectedObject = null;
-    this.lockDragEvent = false;
-  }
-
-  // Clear the current object selection.
-  clearSelection = () => {
-    if (this.selectedObject) {
-      if (this.selectedObject.onSelectClear) {
-        this.selectedObject.onSelectClear();
-      }
-    }
-    this.selectedObject = null;
-  }
-
-  // Clear the current selection, then select the given object.
-  selectObject = (obj) => {
-    this.clearSelection();
-    if (!obj.selectable) { return; }
-
-    this.selectedObject = obj;
-    if (this.selectedObject.onSelectSet) {
-      this.selectedObject.onSelectSet();
-    }
-  }
-}
-let editorInstance = new EditorInstance();
+/*
 
 function onDragStart(event) {
   if (editorInstance.lockDragEvent) { return; }
@@ -58,89 +30,8 @@ function onDragMove() {
   }
 }
 
-export const createObject = ({ x = 0, y = 0, w = 1, h = 1, engine = null,
-  draggable, container, selectable }) => {
+*/
 
-  const obj = new Pixi.Graphics();
-
-  if (selectable) {
-    obj.selectable = true;
-    obj.onSelectSet = () => {
-      obj.tint = Colors.GREEN;
-    };
-    obj.onSelectClear = () => {
-      obj.tint = Colors.WHITE;
-    };
-  }
-
-  if (container) {
-    obj.getChildren = () => obj.children;
-
-    obj.addObject = (...objs) => {
-      for (let o of objs) {
-        obj.addChild(o);
-      }
-    };
-
-    obj.removeObject = (...objs) => {
-      if (objs.length > 0) {
-        for (let o of objs) {
-          obj.removeChild(o);
-        }
-      } else {
-        obj.removeChildren();
-      }
-    };
-
-  }
-
-  obj.x = x;
-  obj.y = y;
-  obj.w = w; // ? obj.width ?
-  obj.h = h;
-
-  if (draggable) {
-
-    obj.hitArea = new Pixi.Rectangle(0, 0, w, h);
-
-    obj.interactive = true;
-    obj.buttonMode = true;
-
-    if (engine) {
-      obj.on('mousedown', () => {
-        engine.objectClicked(obj);
-      });
-    } else {
-      obj
-      // events for drag start
-      .on('mousedown', onDragStart)
-      .on('touchstart', onDragStart)
-      // events for drag end
-      .on('mouseup', onDragEnd)
-      .on('mouseupoutside', onDragEnd)
-      .on('touchend', onDragEnd)
-      .on('touchendoutside', onDragEnd)
-      // events for drag move
-      .on('mousemove', onDragMove)
-      .on('touchmove', onDragMove);
-    }
-  }
-
-  return obj;
-};
-
-// Helper for creating easy rectangle
-export const createRect = ({ w = 1, h = 1, fill, stroke, ...rest }) => {
-
-  const rect = createObject({ w, h, ...rest });
-
-  if (typeof stroke === 'number') rect.lineStyle(1, stroke, 1);
-  if (typeof fill === 'number') rect.beginFill(fill);
-  rect.drawRect(0, 0, w, h);
-  rect.endFill();
-
-  return rect;
-};
 
 class Engine {
 
@@ -157,17 +48,41 @@ class Engine {
 
     parent.appendChild(this.app.view);
 
-    this.container = options.container || createObject({ container: true });
+    // temporary
+    const GRID_SIZE = 10000;
+    const SNAP = 10;
+    let grid = this.createObject({
+      x: 0, y: 0, w: GRID_SIZE, h: GRID_SIZE, draggable: true, container: true,
+    });
+    grid.lineStyle(1, 0xAAAAAA, 1);
+    for (let x = 0; x < GRID_SIZE; x += SNAP) {
+      grid.moveTo(x, 0);
+      grid.lineTo(x, GRID_SIZE);
+    }
+    for (let y = 0; y < GRID_SIZE; y += SNAP) {
+      grid.moveTo(0, y);
+      grid.lineTo(GRID_SIZE, y);
+    }
+
+    this.container = grid; // options.container || this.createObject({ container: true });
     this.app.stage.addChild(this.container);
-/*
-    this.container.addObject(createRect({
-      x: 100, y: 100, w: 20, h: 20, draggable: true, fill: 0xFFAABB, stroke: 0x000000, engine: this,
-    }));
-*/
-    this.container.addObject(this.createRect_engine({ x: 50, y: 50, w: 20, h: 20, draggable: true, fill: 0xFFAABB, stroke: 0x000000 }));
 
     this.selectedObject = null;
     this.lockDragEvent = false;
+
+    // Adding some test data
+    this.container.addObject(
+      this.createRect({
+        x: 50,
+        y: 50,
+        w: 20,
+        h: 20,
+        draggable: true,
+        selectable: true,
+        fill: 0xFFAABB,
+        stroke: 0x000000 }),
+    );
+
   }
 
   addUpdate = fn => {
@@ -187,95 +102,77 @@ class Engine {
 
   }
 
-  // TODO: rename
-  createObject_engine = ({ x = 0, y = 0, w = 1, h = 1, draggable, container,
+  createObject = ({ x = 0, y = 0, w = 1, h = 1, draggable, container,
     selectable }) => {
 
-        const obj = new Pixi.Graphics();
+    const obj = new Pixi.Graphics();
 
-        if (selectable) {
-          obj.selectable = true;
-          obj.onSelectSet = () => {
-            obj.tint = Colors.GREEN;
-          };
-          obj.onSelectClear = () => {
-            obj.tint = Colors.WHITE;
-          };
-        }
-
-        if (container) {
-          obj.getChildren = () => obj.children;
-
-          obj.addObject = (...objs) => {
-            for (let o of objs) {
-              obj.addChild(o);
-            }
-          };
-
-          obj.removeObject = (...objs) => {
-            if (objs.length > 0) {
-              for (let o of objs) {
-                obj.removeChild(o);
-              }
-            } else {
-              obj.removeChildren();
-            }
-          };
-
-        }
-
-        obj.x = x;
-        obj.y = y;
-        obj.w = w;
-        obj.h = h;
-
-        if (draggable) {
-
-          obj.hitArea = new Pixi.Rectangle(0, 0, w, h);
-
-          obj.interactive = true;
-          obj.buttonMode = true;
-
-          let engine = this;
-
-          obj.on('mousedown', () => {
-            engine.objectMouseDown(obj);
-          });
-
-
-/*
-          if (engine) {
-            obj.on('mousedown', () => {
-              engine.objectClicked(obj);
-            });
-          }
-          else {
-            obj
-            // events for drag start
-            .on('mousedown', onDragStart)
-            .on('touchstart', onDragStart)
-            // events for drag end
-            .on('mouseup', onDragEnd)
-            .on('mouseupoutside', onDragEnd)
-            .on('touchend', onDragEnd)
-            .on('touchendoutside', onDragEnd)
-            // events for drag move
-            .on('mousemove', onDragMove)
-            .on('touchmove', onDragMove);
-          }
-          */
-        }
-
-
-
-        return obj;
-        //this.container.addObject(obj);
+    if (selectable) {
+      obj.selectable = true;
+      obj.onSelectSet = () => {
+        obj.tint = Colors.GREEN;
       };
-  //}
+      obj.onSelectClear = () => {
+        obj.tint = Colors.WHITE;
+      };
+    }
 
-  createRect_engine = ({ w = 1, h = 1, fill, stroke, ...rest }) => {
+    if (container) {
+      obj.getChildren = () => obj.children;
 
-    const rect = this.createObject_engine({ w, h, ...rest });
+      obj.addObject = (...objs) => {
+        for (let o of objs) {
+          obj.addChild(o);
+        }
+      };
+
+      obj.removeObject = (...objs) => {
+        if (objs.length > 0) {
+          for (let o of objs) {
+            obj.removeChild(o);
+          }
+        } else {
+          obj.removeChildren();
+        }
+      };
+
+    }
+
+    obj.x = x;
+    obj.y = y;
+    obj.w = w;
+    obj.h = h;
+
+    if (draggable) {
+
+      obj.hitArea = new Pixi.Rectangle(0, 0, w, h);
+
+      obj.interactive = true;
+      obj.buttonMode = true;
+
+      let engine = this;
+
+      // Set event hooks.
+      obj
+      // Mouse down
+      .on('mousedown', () => { engine.objectMouseDown(obj); })
+      .on('touchstart', () => { engine.objectMouseDown(obj); })
+      // Mouse up
+      .on('mouseup', () => { engine.objectMouseUp(obj); })
+      .on('mouseupoutside', () => { engine.objectMouseUp(obj); })
+      .on('touchend', () => { engine.objectMouseUp(obj); })
+      .on('touchendoutside', () => { engine.objectMouseUp(obj); })
+      // Mouse move
+      .on('mousemove', () => { engine.objectMouseMove(obj); })
+      .on('touchmove', () => { engine.objectMouseMove(obj); });
+    }
+
+    return obj;
+  };
+
+  createRect = ({ w = 1, h = 1, fill, stroke, ...rest }) => {
+
+    const rect = this.createObject({ w, h, ...rest });
 
     if (typeof stroke === 'number') rect.lineStyle(1, stroke, 1);
     if (typeof fill === 'number') rect.beginFill(fill);
@@ -287,11 +184,7 @@ class Engine {
 
   // Clear the current object selection.
   clearSelection = () => {
-    if (this.selectedObject) {
-      if (this.selectedObject.onSelectClear) {
-        this.selectedObject.onSelectClear();
-      }
-    }
+    if (this.selectedObject) { this.selectedObject.tint = Colors.WHITE; }
     this.selectedObject = null;
   }
 
@@ -299,24 +192,25 @@ class Engine {
   selectObject = (obj) => {
     this.clearSelection();
     if (!obj.selectable) { return; }
-
+    console.log("selectobject: object selectable");
     this.selectedObject = obj;
-    if (this.selectedObject.onSelectSet) {
-      this.selectedObject.onSelectSet();
-    }
+    this.selectedObject.tint = Colors.GREEN;
   }
 
   objectMouseDown = (obj) => {
+    this.selectObject(obj);
+
+    //if (obj.draggable) { this.startDrag(obj); }
     console.log("engine.mousedown detected");
-    obj.tint = Colors.BLACK;
+    //obj.tint = Colors.BLACK;
   }
   objectMouseUp = (obj) => {
     console.log("engine.mouseup detected");
-    obj.tint = Colors.BLACK;
+    //obj.tint = Colors.BLACK;
   }
   objectMouseMove = (obj) => {
     console.log("engine.mousemove detected");
-    obj.tint = Colors.BLACK;
+    //obj.tint = Colors.BLACK;
   }
 
 }
