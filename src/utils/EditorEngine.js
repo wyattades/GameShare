@@ -68,7 +68,7 @@ class Engine {
     this.app.stage.addChild(this.container);
 
     this.selectedObject = null;
-    this.lockDragEvent = false;
+    this.lockSelect = false;
 
     // Adding some test data
     this.container.addObject(
@@ -109,12 +109,14 @@ class Engine {
 
     if (selectable) {
       obj.selectable = true;
+      /*
       obj.onSelectSet = () => {
         obj.tint = Colors.GREEN;
       };
       obj.onSelectClear = () => {
         obj.tint = Colors.WHITE;
       };
+      */
     }
 
     if (container) {
@@ -144,7 +146,7 @@ class Engine {
     obj.h = h;
 
     if (draggable) {
-
+      obj.draggable = true;
       obj.hitArea = new Pixi.Rectangle(0, 0, w, h);
 
       obj.interactive = true;
@@ -191,27 +193,48 @@ class Engine {
   // Clear the current selection, then select the given object.
   selectObject = (obj) => {
     this.clearSelection();
+    // console.log("selectobject: object unselectable");
     if (!obj.selectable) { return; }
-    console.log("selectobject: object selectable");
+    // console.log("selectobject: object selectable");
+    // console.log(obj);
     this.selectedObject = obj;
+    // console.log(this.selectedObject);
     this.selectedObject.tint = Colors.GREEN;
   }
 
-  objectMouseDown = (obj, event) => {
-    this.selectObject(obj);
-    console.log(event);
+  startDrag = (obj, event) => {
+    console.log("start drag");
+    obj.alpha = 0.8;
+    obj.dragging = true;
+    console.log(event.data);
+    obj.data = event.data;
+    obj.offset = event.data.getLocalPosition(obj);
+  }
+  onDrag = (obj, event) => {
+    if (obj.dragging) {
+      let newPosition = obj.data.getLocalPosition(obj.parent);
+      obj.position.x = newPosition.x - obj.offset.x;
+      obj.position.y = newPosition.y - obj.offset.y;
+    }
+  }
+  endDrag = (obj, event) => {
+    obj.alpha = 1.0;
+    obj.dragging = false;
+  }
 
-    //if (obj.draggable) { this.startDrag(obj); }
-    console.log("engine.mousedown detected");
-    //obj.tint = Colors.BLACK;
+  objectMouseDown = (obj, event) => {
+    if (this.lockSelect) { return; }
+    this.lockSelect = true;
+
+    this.selectObject(obj);
+    if (obj.draggable) { this.startDrag(obj, event); }
   }
   objectMouseUp = (obj, event) => {
-    console.log("engine.mouseup detected");
-    //obj.tint = Colors.BLACK;
+    if (obj.dragging) { this.endDrag(obj, event); }
+    this.lockSelect = false;
   }
   objectMouseMove = (obj, event) => {
-    //console.log("engine.mousemove detected");
-    //obj.tint = Colors.BLACK;
+    if (obj.dragging) { this.onDrag(obj, event); }
   }
 
 }
