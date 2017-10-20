@@ -1,13 +1,43 @@
 import * as Pixi from 'pixi.js';
-
 // User variables for editor.
-const editorInstance = {
-  lockDragEvent: false, // While true, ignore dragStart events.
-};
+
+class EditorInstance {
+  constructor() {
+    this.selectedObject = null;
+    this.lockDragEvent = false;
+  }
+
+  // Clear the current object selection.
+  clearSelection = () => {
+    if (this.selectedObject) {
+      if (this.selectedObject.onSelectClear) {
+        this.selectedObject.onSelectClear();
+      }
+    }
+    this.selectedObject = null;
+  }
+
+  // Set the current object selection.
+  selectObject = (obj) => {
+    this.clearSelection();
+    this.selectedObject = obj;
+    if (this.selectedObject.onSelectSet) {
+      this.selectedObject.onSelectSet();
+    }
+  }
+}
+let editorInstance = new EditorInstance();
 
 function onDragStart(event) {
   if (editorInstance.lockDragEvent) { return; }
   editorInstance.lockDragEvent = true;
+
+  if (this.selectable) {
+    editorInstance.selectObject(this);
+  }
+  else {
+    editorInstance.clearSelection();
+  }
 
   this.data = event.data;
   this.alpha = 0.8;
@@ -31,9 +61,19 @@ function onDragMove() {
   }
 }
 
-export const createObject = ({ x = 0, y = 0, w = 1, h = 1, draggable, container }) => {
+export const createObject = ({ x = 0, y = 0, w = 1, h = 1, draggable, container, selectable }) => {
 
   const obj = new Pixi.Graphics();
+
+  if (selectable) {
+    obj.selectable = true;
+    obj.onSelectSet = () => {
+      obj.tint = 0x00FF00;
+    };
+    obj.onSelectClear = () => {
+      obj.tint = 0xFFFFFF;
+    };
+  }
 
   if (container) {
     obj.getChildren = () => obj.children;

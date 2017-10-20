@@ -45,7 +45,7 @@ export default class extends Component {
   init = () => {
     // Add example object
     grid.addObject(createRect({
-      x: 100, y: 100, w: 80, h: 100, draggable: true, fill: 0xFFAABB, stroke: 0x000000,
+      x: 100, y: 100, w: 80, h: 100, draggable: true, selectable: true, fill: 0xFFAABB, stroke: 0x000000,
     }));
   }
 
