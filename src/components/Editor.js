@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 
-import Engine, { createRect, createObject } from '../utils/Engine';
+import Engine, { createRect, createObject } from '../utils/EditorEngine';
 // import InputManager from '../utils/InputManager';
 
 

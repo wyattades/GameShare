@@ -27,6 +27,7 @@ if (DEV) {
 }
 
 app.use(express.static(path.resolve(__dirname, '../public')));
+app.use(express.static(path.resolve(__dirname, '../assets')));
 
 // TODO: generate file paths automatically
 const options = page => ({
@@ -58,5 +59,6 @@ server.listen(PORT, () => {
 const games = gameServer(server);
 
 // TEMP: Start new game
-games.create('my_test_game');
+const testData = require('./testData');
+games.create('my_test_game', testData);
 

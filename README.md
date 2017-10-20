@@ -24,9 +24,9 @@ Start developing by running ```$ npm run dev``` and opening ```localhost:3000```
 |-- views/ ejs files aka HTML templates  
 |-- +-- templates/ - smaller templates that can be shared between pages  
 |-- +-- [page].ejs - template for each page  
-|-- server/ - source of server js
-|-- +-- index.js - starts node/express server
-|-- +-- [other files]  
+|-- server/ - source of server js  
+|-- +-- index.js - starts node/express server  
+|-- +-- [other server files]  
 
 ### Technologies
 There are a few technolgies you will need to learn to start developing:
