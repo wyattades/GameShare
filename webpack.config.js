@@ -11,7 +11,7 @@ const CleanWebpackPlugin = require('clean-webpack-plugin');
 const PATHS = {};
 PATHS.dist = path.resolve(__dirname, 'public');
 PATHS.src = path.resolve(__dirname, 'src');
-PATHS.assets = path.resolve(PATHS.src, 'assets');
+PATHS.assets = path.resolve(__dirname, 'assets');
 PATHS.assetName = 'assets/[name].[ext]';
 PATHS.entry = {
   index: path.resolve(__dirname, 'src/index'),
