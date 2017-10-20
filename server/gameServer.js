@@ -5,7 +5,7 @@ let io,
     connections,
     games;
 
-const MAX_CONNECTIONS = 2;
+const MAX_CONNECTIONS = 5;
 
 const createGameLoop = (fn, fps) => {
   
@@ -75,6 +75,8 @@ class Game {
         y: user.y,
         vx: user.vx,
         vy: user.vy,
+        angle: user.angle,
+        vangle: user.vangle,
       };
     }
 
@@ -97,22 +99,26 @@ class Game {
     const newUser = {
       vx: 0,
       vy: 0,
+      vangle: 0,
+      angle: 0,
       color: Math.random() * 0xFFFFFF << 0,
     };
+
+    const bounds = this.gameData.options.bounds;
 
     // TEMP: add player to random position on map
     let collide = true;
     while (collide) {
-      newUser.x = Math.random() * 600;
-      newUser.y = Math.random() * 600;
+      newUser.x = bounds.x + Math.random() * bounds.w;
+      newUser.y = bounds.y + Math.random() * bounds.h;
 
       collide = false;
-      for (let obj of this.gameData.objects) {
-        if (boxCollide(obj, newUser)) {
-          collide = true;
-          break;
-        }
-      }
+      // for (let obj of this.gameData.objects) {
+      //   if (boxCollide(obj, newUser)) {
+      //     collide = true;
+      //     break;
+      //   }
+      // }
     }
 
     this.users[userId] = newUser;
@@ -136,7 +142,7 @@ class Game {
       delete this.users[userId];
     });
   
-    socket.on('update', (id, { x, y, vx, vy }) => {
+    socket.on('update', (id, data) => {
       const user = this.users[id];
 
       if (!user) {
@@ -144,10 +150,7 @@ class Game {
         return;
       }
 
-      user.x = x;
-      user.y = y;
-      user.vx = vx;
-      user.vy = vy;
+      Object.assign(user, data);
     });
     
   }
