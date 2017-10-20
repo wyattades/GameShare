@@ -17,23 +17,10 @@ class Engine {
 
     parent.appendChild(this.app.view);
 
-    // temporary
+    // TODO: grid size to initial size params
     const GRID_SIZE = 10000;
     const SNAP = 10;
-    let grid = this.createObject({
-      x: 0, y: 0, w: GRID_SIZE, h: GRID_SIZE, draggable: true, container: true,
-    });
-    grid.lineStyle(1, 0xAAAAAA, 1);
-    for (let x = 0; x < GRID_SIZE; x += SNAP) {
-      grid.moveTo(x, 0);
-      grid.lineTo(x, GRID_SIZE);
-    }
-    for (let y = 0; y < GRID_SIZE; y += SNAP) {
-      grid.moveTo(0, y);
-      grid.lineTo(GRID_SIZE, y);
-    }
-
-    this.container = grid; // options.container || this.createObject({ container: true });
+    this.container = this.generateGrid(GRID_SIZE, GRID_SIZE, SNAP);
     this.app.stage.addChild(this.container);
 
     this.selectedObject = null; // The currently selected object.
@@ -52,6 +39,22 @@ class Engine {
         stroke: 0x000000 }),
     );
 
+  }
+
+  generateGrid = (width, height, snap) => {
+    let grid = this.createObject({
+      x: 0, y: 0, w: width, h: height, draggable: true, container: true,
+    });
+    grid.lineStyle(1, 0xAAAAAA, 1);
+    for (let x = 0; x < width; x += snap) {
+      grid.moveTo(x, 0);
+      grid.lineTo(x, width);
+    }
+    for (let y = 0; y < height; y += snap) {
+      grid.moveTo(0, y);
+      grid.lineTo(height, y);
+    }
+    return grid;
   }
 
   addUpdate = fn => {
