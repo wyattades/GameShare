@@ -43,9 +43,7 @@ $content-pre-padding: 1rem 1rem;
 .root-column { margin-left: -1.25em; }
 
 // Mysterious CSS that makes everything the height of the page(shouldnt be necessary to add)
-html, body, .edit-body, .ui,  {
-  height: 100%;  
-}
+html, body, .edit-body, .ui,  { height: 100%; }
 
 // Mysterious CSS that makes the grid display- doesnt show up otherwise
 #app {
