@@ -10,29 +10,31 @@
   </head>
   <body>
     <%- include templates/header %>
-    <section class="section edit-body ui">
-      <div class="columns ui-body">
-        <div class="column is-one-quarter sidebar">
-          <div class="control">
-            <label for="boundary-x">Width of Playable Area</label>
-            <input class="input" id="boundary-x" type="number" value="7000" max="10000">
+    <section class="container edit-body ui is-fullhd">
+      <!-- <div class="container is-fullhd"> -->
+        <div class="columns ui-body">
+          <div class="column is-one-quarter sidebar">
+            <div class="control">
+              <label for="boundary-x">Width of Playable Area</label>
+              <input class="input" id="boundary-x" type="number" value="7000" max="10000">
+            </div>
+            <div class="control">
+              <label for="boundary-y">Height of Playable Area</label>
+              <input class="input" id="boundary-y" type="number" value="7000" max="10000">
+            </div>
+            <div class="control">
+              <button class="button" id="obj-create">Create</button>
+            </div>
+            <div class="control">
+              <button class="button" id="obj-delete">Delete</button>
+            </div>
+            <div class="control">
+              <button class="button" id="obj-duplicate">Duplicate</button>
+            </div>
           </div>
-          <div class="control">
-            <label for="boundary-y">Height of Playable Area</label>
-            <input class="input" id="boundary-y" type="number" value="7000" max="10000">
-          </div>
-          <div class="control">
-            <button class="button" id="obj-create">Create</button>
-          </div>
-          <div class="control">
-            <button class="button" id="obj-delete">Delete</button>
-          </div>
-          <div class="control">
-            <button class="button" id="obj-duplicate">Duplicate</button>
-          </div>
+          <div class="column root-column" id="<%= rootId %>"></div>
         </div>
-        <div class="column root-column" id="<%= rootId %>"></div>
-      </div>
+      <!-- </div> -->
     </section>
     <script src="<%= script %>"></script>
   </body>

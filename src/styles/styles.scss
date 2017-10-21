@@ -7,6 +7,8 @@ $light: #F2F5EF;
 $info: #FFBAAA;
 $grey: #a3a3a3;
 
+$tabs-link-hover-border-bottom-color: $info;
+
 $section-padding: 1rem 0rem;
 $content-pre-padding: 1rem 1rem; 
 
@@ -14,24 +16,31 @@ $content-pre-padding: 1rem 1rem;
 @import '../../node_modules/bulma/bulma.sass';
 
 .site-header {
-  padding: $content-pre-padding; 
-  background-color: $info;
+  padding: $content-pre-padding;
+  background-color: $dark;
 }
 
 .site-name {
   margin: $content-pre-padding;
   margin-bottom: 0!important;
-  color: $dark;
+  color: $light;
 }
 
-.tabs-list { border-bottom: none!important; }
+.tabs-list {
+  border-bottom: none;
 
-.root-column { padding-top: 0; }
+  li a { color: $light; }
+
+  li a:hover { color: $info; }
+}
 
 .sidebar {
   background-color: $grey; 
   display: block!important;
+  margin: 0.75em;
 }
+
+.root-column { margin-left: -1.25em; }
 
 // Mysterious CSS that makes everything the height of the page(shouldnt be necessary to add)
 html, body, .edit-body, .ui,  {
