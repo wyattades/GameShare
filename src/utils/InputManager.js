@@ -4,16 +4,14 @@ const keyboard = keyValue => {
   key.value = keyValue;
   key.code = keyValue.charCodeAt(0);
   key.isDown = false;
-  key.isUp = true;
   key.press = undefined;
   key.release = undefined;
 
   // The `downHandler`
   key.downHandler = e => {
     if (e.key === key.value) {
-      if (key.isUp && key.press) key.press();
+      if (key.press) key.press();
       key.isDown = true;
-      key.isUp = false;
     }
     // event.preventDefault();
   };
@@ -23,7 +21,6 @@ const keyboard = keyValue => {
     if (e.key === key.value) {
       if (key.isDown && key.release) key.release();
       key.isDown = false;
-      key.isUp = true;
     }
     // event.preventDefault();
   };

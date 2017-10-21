@@ -76,11 +76,12 @@ export const createObject = ({ x = 0, y = 0, w = 1, h = 1, draggable, container 
 };
 
 // Helper for creating easy rectangle
-export const createRect = ({ w = 1, h = 1, fill, stroke, ...rest }) => {
+export const createRect = ({ w = 1, h = 1, fill, stroke, weight, ...rest }) => {
   
   const rect = createObject({ w, h, ...rest });
 
-  if (typeof stroke === 'number') rect.lineStyle(1, stroke, 1);
+  if (typeof stroke === 'number' && typeof weight === 'number') rect.lineStyle(weight, stroke, 1);
+  else if (typeof stroke === 'number') rect.lineStyle(1, stroke, 1);
   if (typeof fill === 'number') rect.beginFill(fill);
   rect.drawRect(0, 0, w, h);
   rect.endFill();

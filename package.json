@@ -10,6 +10,7 @@
     "start": "cross-env NODE_ENV=production node server"
   },
   "dependencies": {
+    "bulma": "^0.6.0",
     "ejs": "^2.5.7",
     "express": "^4.16.1",
     "node-uuid": "^1.4.8",

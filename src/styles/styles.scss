@@ -1,12 +1,53 @@
-* {
-  margin: 0;
-  padding: 0;
+// First import the variables
+@import '../../node_modules/bulma/sass/utilities/initial-variables';
+
+$primary: #EA3D4E;
+$dark: #202436;
+$light: #F2F5EF;
+$info: #FFBAAA;
+$grey: #a3a3a3;
+
+$tabs-link-hover-border-bottom-color: $info;
+
+$section-padding: 1rem 0rem;
+$content-pre-padding: 1rem 1rem; 
+
+// Then import rest of bulma so variable changes propogate
+@import '../../node_modules/bulma/bulma.sass';
+
+.site-header {
+  padding: $content-pre-padding;
+  background-color: $dark;
 }
 
-html, body, #root, .ui {
+.site-name {
+  margin: $content-pre-padding;
+  margin-bottom: 0!important;
+  color: $light;
+}
+
+.tabs-list {
+  border-bottom: none;
+
+  li a { color: $light; }
+
+  li a:hover { color: $info; }
+}
+
+.sidebar {
+  background-color: $grey; 
+  display: block!important;
+  margin: 0.75em;
+}
+
+.root-column { margin-left: -1.25em; }
+
+// Mysterious CSS that makes everything the height of the page(shouldnt be necessary to add)
+html, body, .edit-body, .ui,  {
   height: 100%;  
 }
 
+// Mysterious CSS that makes the grid display- doesnt show up otherwise
 #app {
   display: flex;
   flex: 1;
@@ -23,81 +64,10 @@ html, body, #root, .ui {
   &-body {
     display: flex;
     flex: 1;
-    flex-direction: row;
 
     & > * {
       display: flex;
       flex: 1;
     }
   }
-
-  &-sidebar {
-    max-width: 250px;
-
-    background-color: #CCC;
-    padding: 8px;
-    display: flex;
-    flex-direction: column;
-    & > * {
-      margin-top: 16px;
-    }
-  }
-}
-
-.grid {
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: 0;
-  bottom: 0;
-  overflow: hidden;
-  z-index: -1;  
-
-  & > * {
-    position: absolute;
-  }
-}
-
-
-// Header
-
-.ui-header {
-  color: #AAAAAA;
-  h1 {
-    margin: 8px;
-  }
-  background-color: #3D3B3B;
-
-    display: flex;
-    flex-direction: row;
-    justify-content: space-between;
-    align-items: stretch;
-    // margin-left: 20px;
-}
-
-nav {
-  display: flex;
-  flex-direction: row;
-
-  & > * {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    justify-content: center;
-    margin-right: 16px;
-    padding: 0 16px;
-    
-    &:hover {
-      background-color: #5C5A5A;
-    }
-  }
-
-  a {    
-    color: white;
-    text-decoration: none;
-  }
-}
-
-#root {
-  overflow: hidden;
 }
