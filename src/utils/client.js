@@ -101,3 +101,8 @@ export const disconnect = () => {
     socket.close();
   }
 };
+
+export const destroy = () => {
+  disconnect();
+  engine.destory();
+};

@@ -239,3 +239,7 @@ export const pause = () => {
 export const resume = () => {
   game.paused = false;
 };
+
+export const destory = () => {
+  game.destroy();
+};

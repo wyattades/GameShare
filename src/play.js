@@ -1,5 +1,7 @@
 import './styles/styles.scss';
-import * as client from './utils/client';
+import * as _client from './utils/client';
+
+let client = _client;
 
 const init = () => client.connect('my_test_game')
 .catch(err => {
@@ -7,13 +9,13 @@ const init = () => client.connect('my_test_game')
   console.log('Init Error:', err);
 });
 
-init();
+init(client);
 
 // Enable hot reloading
 if (process.env.NODE_ENV === 'development' && module.hot) {
   module.hot.accept('./utils/client', () => {
-    client.disconnect();
+    client.destroy();
+    client = require('./utils/client');
     init();
-    console.log('hot!');
   });
 }
