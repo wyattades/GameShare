@@ -6,6 +6,8 @@ import 'expose-loader?Phaser!phaser-ce/build/custom/phaser-split.js'; /* global 
 
 import { sendUpdate, sendShoot } from './client';
 
+const DEV = process.env.NODE_ENV === 'development';
+
 const { Game, Physics, KeyCode } = Phaser;
 
 let players = {};
@@ -30,8 +32,10 @@ game.state.add('Play', {
   // preload,
   // create,
 
-  render: () => {
+  render: DEV ? () => {
     game.debug.start(20, 20, 'white');
+    game.debug.line(`FPS: ${game.time.fps}`);
+    game.debug.line();
     game.debug.line('Players:');
     for (let i = 0, ids = Object.keys(players); i < ids.length; i++) {
       const id = ids[i],
@@ -39,7 +43,8 @@ game.state.add('Play', {
       game.debug.line(`${i + 1}) id=${id}, x=${Math.round(plyr.x)}, y=${Math.round(plyr.y)}, angle=${plyr.rotation}`);
     }
     game.debug.stop();
-  },
+    // game.debug.timer(game.time, game.scale.width - 400, 20, 'white');
+  } : undefined,
 
   update: () => {
     
@@ -114,6 +119,7 @@ export const setup = options => {
   game.stage.disableVisibilityChange = true;
   game.state.clearCurrentState();
   game.physics.startSystem(Physics.P2JS);
+  if (DEV) game.time.advancedTiming = true;
 
   // Handle WASD keyboard inputs
   input = game.input.keyboard.addKeys({
