@@ -143,19 +143,49 @@ class Engine {
     return rect;
   };
 
+  createControls = (obj) => {
+    let width = 10;
+    let height = 10;
+    const control = this.createRect({
+      x: -10,
+      y: -10,
+      w: width,
+      h: height,
+      fill: Colors.WHITE,
+      stroke: Colors.BLACK,
+      draggable: true,
+      container: false,
+      selectable: false });
+
+    control.isControl = true;
+    this.selectedObject.addChild(control);
+  };
+
   // Clear the current object selection.
   clearSelection = () => {
-    if (this.selectedObject) { this.selectedObject.tint = Colors.WHITE; }
+    if (this.selectedObject) {
+      this.selectedObject.tint = Colors.WHITE;
+      for (let c of this.selectedObject.children) {
+        if (c.isControl) {
+          this.selectedObject.removeChild(c);
+        }
+      }
+    }
+
     this.selectedObject = null;
   }
 
   // Clear the current selection, then select the given object.
   selectObject = (obj) => {
+    if (obj.isControl) { return; }
     this.clearSelection();
     if (!obj.selectable) { return; }
 
     this.selectedObject = obj;
     this.selectedObject.tint = Colors.GREEN;
+
+    this.createControls(obj);
+    console.log(this.selectedObject.children);
   }
 
   // Object dragging logic.
