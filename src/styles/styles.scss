@@ -5,12 +5,13 @@ $primary: #EA3D4E;
 $dark: #202436;
 $light: #F2F5EF;
 $info: #FFBAAA;
-$grey: #a3a3a3;
 
 $tabs-link-hover-border-bottom-color: $info;
 
 $section-padding: 1rem 0rem;
 $content-pre-padding: 1rem 1rem; 
+
+$panel-heading-size: 1em;
 
 // Then import rest of bulma so variable changes propogate
 @import '../../node_modules/bulma/bulma.sass';
@@ -35,9 +36,12 @@ $content-pre-padding: 1rem 1rem;
 }
 
 .sidebar {
-  background-color: $grey; 
   display: block!important;
   margin: 0.75em;
+}
+
+.label {
+  font-weight: $weight-semibold;
 }
 
 .root-column { margin-left: -1.25em; }

@@ -11,30 +11,46 @@
   <body>
     <%- include templates/header %>
     <section class="container edit-body ui is-fullhd">
-      <!-- <div class="container is-fullhd"> -->
-        <div class="columns ui-body">
-          <div class="column is-one-quarter sidebar">
-            <div class="control">
-              <label for="boundary-x">Width of Playable Area</label>
-              <input class="input" id="boundary-x" type="number" value="7000" max="10000">
+      <div class="columns ui-body">
+        <div class="column is-one-quarter sidebar">
+          <div class="panel">
+            <p class="panel-heading">Grid Settings</p>
+            <div class="panel-block">
+              <div class="field">
+                <label class="label is-small" for="snap-input">Snap</label>
+                <div class="control">
+                  <input class="input is-small" id="snap-input" type="number" value="10" max="100" name="snap">
+                </div>
+              </div>
             </div>
-            <div class="control">
-              <label for="boundary-y">Height of Playable Area</label>
-              <input class="input" id="boundary-y" type="number" value="7000" max="10000">
+            <div class="panel-block">
+              <div class="field">
+                <label class="label is-small" for="boundary-x">Width of Playable Area</label>
+                <div class="control">
+                  <input class="input is-small" id="boundary-x" type="number" value="7000" max="10000" name="boundary-x">
+                </div>
+              </div>
             </div>
-            <div class="control">
-              <button class="button" id="obj-create">Create</button>
-            </div>
-            <div class="control">
-              <button class="button" id="obj-delete">Delete</button>
-            </div>
-            <div class="control">
-              <button class="button" id="obj-duplicate">Duplicate</button>
+            <div class="panel-block">
+              <div class="field">
+                <label class="label is-small" for="boundary-x">Height of Playable Area</label>
+                <div class="control">
+                  <input class="input is-small" id="boundary-y" type="number" value="7000" max="10000" name="boundary-y">
+                </div>
+              </div>
             </div>
           </div>
-          <div class="column root-column" id="<%= rootId %>"></div>
+          <div class="panel">
+            <p class="panel-heading">Objects</p>
+            <div class="panel-block"></div>
+          </div>
+          <div class="panel">
+            <p class="panel-heading">Object Settings</p>
+            <div class="panel-block"></div>
+          </div>
         </div>
-      <!-- </div> -->
+        <div class="column root-column" id="<%= rootId %>"></div>
+      </div>
     </section>
     <script src="<%= script %>"></script>
   </body>
