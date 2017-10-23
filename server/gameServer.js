@@ -152,6 +152,10 @@ class Game {
 
       Object.assign(user, data);
     });
+
+    socket.on('bullet_create', (id, data) => {
+      this.io.emit('bullet_create', data);
+    });
     
   }
 

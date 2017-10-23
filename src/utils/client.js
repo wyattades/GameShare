@@ -62,7 +62,7 @@ export const sendUpdate = data => {
 };
 
 export const sendShoot = data => {
-  socket.emit('bullet_create', data);
+  socket.emit('bullet_create', userId, data);
 };
 
 export const connect = id => new Promise((resolve, reject) => {
