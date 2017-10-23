@@ -221,7 +221,7 @@ export const addBullet = data => {
   // TODO
   const {x, y, mx, my} = data;
 
-  const bullet = createStaticRect({ x + 22.5, y + 22.5, w: 5, h: 6, fill: 0x00FFFF, stroke: 0x000000 });
+  const bullet = createStaticRect({ x: x + 22.5, y: y + 22.5, w: 5, h: 6, fill: 0x00FFFF, stroke: 0x000000 });
   game.physics.arcade.moveToXY(bullet, mx, my, 300);
 };
 
