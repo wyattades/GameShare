@@ -69,6 +69,13 @@ game.state.add('Play', {
     // TODO: figure out how to use camera.follow()
     game.camera.focusOn(player);
   
+    sendShoot({
+      x: player.x,
+      y: player.y,
+      mx: game.input.mousePointer.x,
+      my: game.input.mousePointer.y,
+    });
+
     // TODO: update slower AND/OR don't update if nothing happens?
     sendUpdate({
       x: player.x,
@@ -212,6 +219,10 @@ export const initUser = id => {
 
 export const addBullet = data => {
   // TODO
+  const {x, y, mx, my} = data;
+
+  const bullet = createStaticRect({ x + 22.5, y + 22.5, w: 5, h: 6, fill: 0x00FFFF, stroke: 0x000000 });
+  game.physics.arcade.moveToXY(bullet, mx, my, 300);
 };
 
 export const createGroup = data => {
