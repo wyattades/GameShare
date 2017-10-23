@@ -7,6 +7,7 @@
     <% for (let c of css) { %>
       <link rel="stylesheet" href="<%= c %>">
     <% } %>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
   </head>
   <body>
     <%- include templates/header %>
@@ -42,11 +43,51 @@
           </div>
           <div class="panel">
             <p class="panel-heading">Objects</p>
-            <div class="panel-block"></div>
+            <div class="panel-block">
+              <span class="type-name">default</span>
+              <input type="color" name="type color" id="type-color" value="#FFAABB" style="margin-left: auto;">
+              <div class="field has-addons">
+                <div class="control">
+                  <button class="button is-small" name="rename type">
+                    <i class="fa fa-pencil"></i>
+                  </button>
+                </div>
+                <div class="control">
+                  <button class="button is-small" name="delete type">
+                    <i class="fa fa-trash"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+            <div class="panel-block">
+              <button>
+                <div class="color-box"></div>
+                x: 450, y: 450, w: 80, h: 100
+              </button>
+<!--                   <button
+      onClick={this._pressChild(obj)}
+      className={`child-item menu-item menu-button ${obj === this.props.selected.obj ? 'selected' : ''}`}
+    >
+      <div className="color-box" style={obj.color ? { backgroundColor: obj.color, backgroundImage: 'none' } : {}}/>
+      <span>{`x:${obj.x}, y:${obj.y}, w:${obj.w}, h:${obj.h}`}</span>
+    </button> -->
+            </div>
+            <div class="panel-block">
+              <div class="field is-grouped is-centered">
+                <div class="control">
+                  <button class="button is-small">New Type</button>
+                </div>
+                <div class="control">
+                  <button class="button is-small">New Object</button>
+                </div>
+              </div>
+            </div>
           </div>
           <div class="panel">
             <p class="panel-heading">Object Settings</p>
-            <div class="panel-block"></div>
+            <div class="panel-block">
+
+            </div>
           </div>
         </div>
         <div class="column root-column" id="<%= rootId %>"></div>

@@ -31,25 +31,34 @@ $panel-heading-size: 1em;
   border-bottom: none;
 
   li a { color: $light; }
-
   li a:hover { color: $info; }
 }
 
 .sidebar {
   display: block!important;
   margin: 0.75em;
+  padding-left: 0;
 }
 
-.label {
-  font-weight: $weight-semibold;
+.root-column {
+  margin-top: 0.75em;
+  margin-left: -1.25em;
 }
 
-.root-column { margin-left: -1.25em; }
+.label { font-weight: $weight-medium; }
 
-// Mysterious CSS that makes everything the height of the page(shouldnt be necessary to add)
-html, body, .edit-body, .ui,  { height: 100%; }
+.is-grouped {
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.type-name {
+  padding-right: 0.5em;
+}
 
 // Mysterious CSS that makes the grid display- doesnt show up otherwise
+html, body, .edit-body, .ui  { height: 100%; }
+
 #app {
   display: flex;
   flex: 1;
