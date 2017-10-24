@@ -9,15 +9,12 @@
     <% } %>
   </head>
   <body>
-    <div class="ui">
-      <%- include templates/header %>
+    <%- include templates/header %>
+    <section class="container ui is-fullhd">
       <div class="ui-body">
-        <!-- <div class="ui-sidebar">
-          <p>Sidebar</p>
-        </div> -->
-        <div id="<%= rootId %>"></div>    
+        <div id="<%= rootId %>"></div>
       </div>
-    </div>  
+    </section>
     <script src="<%= script %>"></script>
   </body>
 </html>
