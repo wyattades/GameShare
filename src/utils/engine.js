@@ -11,7 +11,9 @@ const DEV = process.env.NODE_ENV === 'development';
 
 const { Game, KeyCode } = Phaser;
 
+// Object hashmaps
 let players = {};
+const textures = {};
 
 // Phaser objects
 let input,
@@ -22,7 +24,8 @@ let nextFire = 0;
 
 const BULLET_SPEED = 1000;
 const FIRE_RATE = 200;
-const GUN_LENGTH = 50;
+const GUN_LENGTH = 48;
+const GUN_BODY_RATIO = 0.25;
 const SPEED = 600; // Player speed
 const parent = document.getElementById('root');
 const grandParent = parent.parentElement;
@@ -51,11 +54,46 @@ const createRect = ({ x, y, w = 1, h = 1, fill, stroke }) => {
   graphic.drawRect(-w / 2, -h / 2, w, h);
   if (fill !== undefined) graphic.endFill();
 
-  // Add physics body
-  game.physics.p2.enable(graphic);
-  graphic.body.setRectangle(w, h, 0, 0);
-
   return graphic;
+};
+
+const generateTextures = () => {
+  
+  // Create temporary graphics objects
+
+  const w = 50,
+        h = 60;
+  const playerGraphic = game.add.graphics(0, 0);
+  playerGraphic.beginFill(0xFFFFFF);
+  playerGraphic.lineStyle(1, 0x000000, 1);
+  playerGraphic.drawRect(-w / 2, -h / 2, w, h);
+  playerGraphic.endFill();
+
+  const turretGraphic = game.add.graphics(0, 0);
+  turretGraphic.beginFill(0xCCCCCC);
+  turretGraphic.drawRect(0, -4, GUN_LENGTH, 8);
+  const radius = (GUN_LENGTH * GUN_BODY_RATIO) / (1 - GUN_BODY_RATIO);
+  turretGraphic.drawEllipse(0, 0, radius, radius);
+  turretGraphic.endFill();
+  
+  const bulletGraphic = game.add.graphics(0, 0);
+  bulletGraphic.beginFill(0xFFFF00);
+  bulletGraphic.drawTriangle([
+    new Phaser.Point(0, -8),
+    new Phaser.Point(-4, 3),
+    new Phaser.Point(4, 3),
+  ]);
+  bulletGraphic.endFill();
+
+  // Generate static textures from graphics
+  textures.player = playerGraphic.generateTexture();
+  textures.turret = turretGraphic.generateTexture();
+  textures.bullet = bulletGraphic.generateTexture();
+
+  // Destroy graphics
+  playerGraphic.destroy();
+  turretGraphic.destroy();
+  bulletGraphic.destroy();
 };
 
 export const setup = options => {
@@ -65,6 +103,8 @@ export const setup = options => {
     console.error(err);
     throw err;
   }
+
+  generateTextures();
 
   // Setup game properties
   game.paused = true;
@@ -81,31 +121,17 @@ export const setup = options => {
     right: KeyCode.D,
   });
     
-  // Reset players
+  // Reset player hashmap
   players = {};
 
   // Create bullets group
   // bullets = game.add.group();
-  // bulletCollisionGroup = game.physics.p2.createCollisionGroup(bullets);
-
-  // Create boundary group
-  const boundary = game.add.group();
-
-  // Add new wall to boundary
-  const createBound = (x, y, w, h) => {
-    boundary.add(
-      physics.enablePhysics(createRect({ x, y, w, h, fill: 0x00FFFF }), 'wall'),
-    );
-  };
 
   const { x, y, w, h } = options.bounds;
+
+  physics.enablePhysics(createRect({ x, y, w, h, stroke: 0x00FFFF }), 'boundary');
   
   game.world.setBounds(0, 0, w + (x * 2), h + (y * 2));
-
-  createBound(x, y, 1, h);
-  createBound(x, y, w, 1);
-  createBound(x + w, y, 1, h);
-  createBound(x, y + h, w, 1);
 
   return Promise.resolve();
 };
@@ -117,15 +143,13 @@ export const addPlayer = (id, data) => {
 
     const { x, y, color } = data;
 
-    const newPlayer = createRect({ x, y, w: 50, h: 60, fill: color, stroke: 0x000000 });
+    const newPlayer = game.add.sprite(x, y, textures.player);
+    newPlayer.tint = color;
     physics.enablePhysics(newPlayer, 'player');
     
-    const turret = game.make.graphics(0, 0);
-    turret.beginFill(0x444444);
-    turret.drawRect(0, -4, GUN_LENGTH, 8);
-    turret.drawEllipse(0, 0, 18, 18);
-    turret.endFill();
-    
+    const turret = game.add.sprite(0, 0, textures.turret);
+    turret.tint = color;
+    turret.anchor.set(GUN_BODY_RATIO, 0.5);
     newPlayer.addChild(turret);
 
     // Store reference to turret in player
@@ -135,7 +159,7 @@ export const addPlayer = (id, data) => {
     players[id] = newPlayer;
 
     // TODO: add to player group
-    game.add.existing(newPlayer);
+    // game.add.existing(newPlayer);
   }
 };
 
@@ -181,26 +205,19 @@ export const initUser = id => {
 };
 
 export const addBullet = data => {
-  const RADIUS = 4;
   // TODO
   const { x, y, angle, speed } = data;
 
-  // const bullet = createStaticRect({ x, y, w: 5, h: 5, fill: 0x00FFFF, stroke: 0x000000 });
-  const bullet = game.add.graphics(x, y);
-  bullet.beginFill(0xFFFF00);
-  bullet.drawEllipse(0, 0, RADIUS, RADIUS);
-  bullet.endFill();
+  const bullet = game.add.sprite(x, y, textures.bullet);
   
   physics.enablePhysics(bullet, 'bullet');
-  bullet.body.addCircle(RADIUS);
 
   bullet.body.rotation = angle;
   bullet.body.thrust(speed);
 
   bullet.name = 'bullet';
 
-  // bullet.body.setCollisionGroup(bulletCollisionGroup);
-  // bullets.addChild(bullet);
+  // bullets.add(bullet);
 };
 
 export const createGroup = data => {
@@ -211,9 +228,7 @@ export const createGroup = data => {
 
   return {
     add: obj => {
-      const wall = createRect(obj);
-      physics.enablePhysics(wall, 'wall');
-      group.add(wall);
+      group.add(physics.enablePhysics(createRect(obj), 'wall'));
     },
 
     remove: obj => {
@@ -235,7 +250,7 @@ export const destory = () => {
 };
 
 game.state.add('Play', {
-  // preload,
+  // preload, 
   // create,
 
   render: DEV ? () => {
@@ -249,7 +264,6 @@ game.state.add('Play', {
       game.debug.line(`${i + 1}) id=${id}, x=${Math.round(plyr.x)}, y=${Math.round(plyr.y)}, angle=${plyr.rotation}`);
     }
     game.debug.stop();
-    // game.debug.timer(game.time, game.scale.width - 400, 20, 'white');
   } : undefined,
 
   update: () => {
