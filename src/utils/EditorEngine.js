@@ -38,6 +38,17 @@ class Engine {
         fill: 0xFFAABB,
         stroke: 0x000000 }),
     );
+    this.container.addObject(
+      this.createRect({
+        x: 100,
+        y: 100,
+        w: 50,
+        h: 50,
+        draggable: true,
+        selectable: true,
+        fill: Colors.WHITE,
+        stroke: Colors.BLACK }),
+    );
 
   }
 
@@ -74,11 +85,23 @@ class Engine {
 
   }
 
-  createObject = ({ x = 0, y = 0, w = 1, h = 1, draggable, container, selectable }) => {
+
+  createObject = ({ x = 0, y = 0, w = 1, h = 1, draggable, container, selectable, primitive }) => {
 
     const obj = new Pixi.Graphics();
 
     if (selectable) { obj.selectable = true; }
+
+    //
+    if (primitive) {
+      obj.resize = (width, height) => {
+        console.log("resizing");
+        obj.graphicsData[0].shape.height = height;
+        obj.graphicsData[0].shape.width = width;
+        obj.dirty++;
+        obj.clearDirty++;
+      };
+    }
 
     if (container) {
       obj.getChildren = () => obj.children;
@@ -133,7 +156,7 @@ class Engine {
 
   createRect = ({ w = 1, h = 1, fill, stroke, ...rest }) => {
 
-    const rect = this.createObject({ w, h, ...rest });
+    const rect = this.createObject({ w, h, primitive: true, ...rest });
 
     if (typeof stroke === 'number') rect.lineStyle(1, stroke, 1);
     if (typeof fill === 'number') rect.beginFill(fill);
@@ -158,18 +181,26 @@ class Engine {
       selectable: false });
 
     control.isControl = true;
-    this.selectedObject.addChild(control);
+    obj.addChild(control);
+  };
+  removeControls = (obj) => {
+    for (let c of obj.children) {
+      if (c.isControl) {
+        c.destroy();
+        // this.selectedObject.removeChild(c);
+      }
+    }
+  };
+  resetControls = obj => {
+    this.removeControls(obj);
+    this.createControls(obj);
   };
 
   // Clear the current object selection.
   clearSelection = () => {
     if (this.selectedObject) {
       this.selectedObject.tint = Colors.WHITE;
-      for (let c of this.selectedObject.children) {
-        if (c.isControl) {
-          this.selectedObject.removeChild(c);
-        }
-      }
+      this.removeControls(this.selectedObject);
     }
 
     this.selectedObject = null;
@@ -185,7 +216,9 @@ class Engine {
     this.selectedObject.tint = Colors.GREEN;
 
     this.createControls(obj);
-    console.log(this.selectedObject.children);
+    //console.log(this.selectedObject.children);
+    //console.log(this.selectedObject);
+    //console.log(this.selectedObject.graphicsData);
   }
 
   // Object dragging logic.
@@ -195,17 +228,96 @@ class Engine {
     obj.dragging = true;
     obj.data = event.data;
     obj.offset = event.data.getLocalPosition(obj);
+    //console.log(obj.parent.width);
   }
   dragMove = (obj, event) => {
     if (obj.dragging) {
       let newPosition = obj.data.getLocalPosition(obj.parent);
       obj.position.x = newPosition.x - obj.offset.x;
       obj.position.y = newPosition.y - obj.offset.y;
+
+      //console.log("newPosition: ");
+      //console.log(newPosition);
+      //console.log("Offset: ");
+      //console.log(obj.offset);
+
+
+
+      if (obj.isControl) {
+        let newPos = obj.data.getLocalPosition(obj.parent);
+        let newPosX = newPos.x + (obj.width / 2);
+        let newPosY = newPos.y + (obj.height / 2);
+        //obj.parent.drawRect(newPosX, newPosY, obj.parent.width, obj.parent.height);
+
+      }
+
     }
   }
   dragEnd = (obj, event) => {
     obj.alpha = 1.0;
     obj.dragging = false;
+
+
+    if (obj.isControl) {
+      let newPosition = obj.data.getLocalPosition(obj.parent.parent);
+      newPosition.x += obj.width / 2;
+      newPosition.y += obj.height / 2;
+
+      let parent_delta_x = newPosition.x - obj.parent.x;
+      let parent_delta_y = newPosition.y - obj.parent.y;
+      //parent_delta_x -= obj.offset.x;
+      //parent_delta_x += (obj.width / 2);
+      //parent_delta_y -= obj.offset.y;
+      //parent_delta_y += (obj.height / 2);
+      //console.log(parent_delta_x);
+      //console.log(parent_delta_y);
+      //obj.parent.width -= parent_delta_x;
+      //obj.parent.height -= parent_delta_y;
+      //obj.parent.x = newPosition.x;
+      //obj.parent.y = newPosition.y;
+
+      let new_width = parent_delta_x < 0 ? obj.parent.width - obj.width : obj.parent.width - parent_delta_x;
+      let new_height = parent_delta_y < 0 ? obj.parent.height - obj.height : obj.parent.height - parent_delta_y;
+
+      //console.log("SHAPE:");
+      //console.log(obj.parent.graphicsData[0].shape);
+
+      obj.parent.x = newPosition.x;
+      obj.parent.y = newPosition.y;
+      //console.log("old shape.height: "); console.log(obj.parent.graphicsData[0].shape.height);
+
+      /*
+      obj.parent.graphicsData[0].shape.height = new_height;
+      obj.parent.graphicsData[0].shape.width = new_width;
+      obj.parent.dirty++;
+      obj.parent.clearDirty++;
+      */
+
+      //console.log(obj.parent);
+      //console.log(obj.parent.resize);
+
+      obj.parent.resize(new_width, new_height);
+
+      this.resetControls(obj.parent);
+      //console.log("new shape.height: "); console.log(obj.parent.graphicsData[0].shape.height);
+      /*
+      const newObj = this.createRect({
+        x: newPosition.x,// + (obj.width / 2),
+        y: newPosition.y,// + (obj.width / 2),
+        w: new_width,//obj.parent.width,// - parent_delta_x,
+        h: new_height,//obj.parent.height,// - parent_delta_y,
+        draggable: obj.parent.draggable,
+        selectable: obj.parent.selectable,
+        fill: Colors.WHITE, //obj.parent.fill,
+        stroke: Colors.BLACK, //obj.parent.stroke });
+      });
+      this.container.addObject(newObj);
+      console.log("original width: "); console.log(obj.parent.width);
+      console.log("new width: "); console.log(newObj.width);
+      this.container.removeChild(obj.parent);
+      this.selectObject(newObj);
+      */
+    }
   }
 
   // Event handler functions.
