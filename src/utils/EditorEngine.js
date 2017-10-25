@@ -171,8 +171,12 @@ class Engine {
   };
 
   createControls = (obj) => {
+    console.log(`CREATING CONTROLS, LENGTH = ${obj.children.length}`);
     let width = 10;
     let height = 10;
+    let obj_width = obj.width; // Changes when elements are assigned, have to save.
+    let obj_height = obj.height;
+/*
     const control = this.createRect({
       x: -10,
       y: -10,
@@ -185,15 +189,51 @@ class Engine {
       selectable: false });
 
     control.isControl = true;
-    obj.addChild(control);
+*/
+    for (let x = 0; x < 2; x++) {
+      for (let y = 0; y < 2; y++) {
+        let ctl = this.createRect({
+          x: x === 0 ? -width : obj_width,
+          y: y === 0 ? -height : obj_height,
+          w: width,
+          h: height,
+          fill: Colors.WHITE,
+          stroke: Colors.BLACK,
+          draggable: true,
+          container: false,
+          selectable: false });
+        ctl.isControl = true;
+        ctl.controlPosition = { x, y };
+        obj.addChild(ctl);
+      }
+    }
+
+    //obj.addChild(control);
+    console.log(`FINISH CREATING CONTROLS, LENGTH = ${obj.children.length}`);
   };
   removeControls = (obj) => {
+    console.log(`REMOVING CONTROLS, LENGTH = ${obj.children.length}`);
+    console.log(obj.children);
+    let l = obj.children.length;
+    for (let i = 0; i < obj.children.length; i++) {
+      console.log(`CHECKING: children[${i}]`);
+      if (obj.children[i].isControl) {
+        //obj.children[i].destroy();
+        console.log(`children[${i}] is a control.`);
+        obj.removeChildAt(i);
+        i--;
+      }
+    }
+
+    /*
     for (let c of obj.children) {
       if (c.isControl) {
         c.destroy();
         // this.selectedObject.removeChild(c);
       }
     }
+    */
+    console.log(`FINISH REMOVING CONTROLS, LENGTH = ${obj.children.length}`);
   };
   resetControls = obj => {
     this.removeControls(obj);
@@ -252,13 +292,16 @@ class Engine {
 
 
     if (obj.isControl) {
+      // How do we check which control this is, and do we need to?
+      // Set X/Y values for control on creation: obj.control_x = 1/0, obj.control_y = 1/0
+
       // get position of control with respect to the grid ("global coords")
       // the top left corner of the transformed parent will be set near here
       let newPosition = obj.data.getLocalPosition(obj.parent.parent);
 
       // offset the position by the size of the control itself.
-      newPosition.x += obj.width / 2;
-      newPosition.y += obj.height / 2;
+      newPosition.x += obj.width;// / 2;
+      newPosition.y += obj.height;// / 2;
 
       // find the change in position
       let parent_delta_x = newPosition.x - obj.parent.x;
@@ -288,17 +331,17 @@ class Engine {
       // Not fixing because the problem is minor and should go away once snapping in implemented.
       if (Math.abs(parent_delta_x) < obj.width) {
         // The control is over the border of the rectangle it manipulates.
-        new_width = parent_delta_x <= 0 ? obj.parent.width - obj.width : obj.parent.width - eff_control_width - parent_delta_x;
+        new_width = parent_delta_x <= 0 ? obj.parent.width - obj.width*2 : obj.parent.width - eff_control_width - parent_delta_x;
       } else {
-        new_width = parent_delta_x <= 0 ? obj.parent.width - obj.width : obj.parent.width - parent_delta_x - 1;
+        new_width = parent_delta_x <= 0 ? obj.parent.width - obj.width*2 : obj.parent.width - parent_delta_x - 1;
       }
       if (Math.abs(parent_delta_y) < obj.height) {
         /* if (parent_delta_y <= 0) {
           new_height = obj.parent.height - obj.height;
         } else { new_height = obj.parent.height - } */
-        new_height = parent_delta_y <= 0 ? obj.parent.height - obj.height : obj.parent.height - eff_control_height - parent_delta_y;
+        new_height = parent_delta_y <= 0 ? obj.parent.height - obj.height*2 : obj.parent.height - eff_control_height - parent_delta_y;
       } else {
-        new_height = parent_delta_y <= 0 ? obj.parent.height - obj.height : obj.parent.height - parent_delta_y - 1;
+        new_height = parent_delta_y <= 0 ? obj.parent.height - obj.height*2 : obj.parent.height - parent_delta_y - 1;
       }
 
       obj.parent.translate(newPosition.x, newPosition.y);
