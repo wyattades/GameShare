@@ -16,10 +16,8 @@ $panel-heading-size: 1em;
 // Then import rest of bulma so variable changes propogate
 @import '../../node_modules/bulma/bulma.sass';
 
-.site-header {
-  padding: $content-pre-padding;
-  background-color: $dark;
-}
+.header-background, .site-header { background-color: $dark; }
+.site-header { padding: $content-pre-padding; }
 
 .site-name {
   margin: $content-pre-padding;
