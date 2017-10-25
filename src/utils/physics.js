@@ -12,7 +12,9 @@ export const init = game => {
   materials.wall = physics.createMaterial();
   materials.bullet = physics.createMaterial();
 
-  physics.createContactMaterial(materials.wall, materials.bullet, { friction: 0, restitution: 1.0 });
+  physics.setImpactEvents(true);
+
+  physics.createContactMaterial(materials.bullet, materials.wall, { friction: 0, restitution: 1.0 });
 };
 
 export const enablePhysics = (obj, type) => {
@@ -41,4 +43,6 @@ export const enablePhysics = (obj, type) => {
   }
 
   obj.body.setMaterial(materials[type]);
+
+  return obj;
 };

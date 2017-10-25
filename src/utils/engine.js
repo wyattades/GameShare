@@ -16,6 +16,7 @@ let players = {};
 // Phaser objects
 let input,
     player;
+    // bullets;
 
 let nextFire = 0;
 
@@ -38,7 +39,7 @@ window.addEventListener('resize', () => {
   game.scale.setGameSize(grandParent.clientWidth, grandParent.clientHeight);
 });
 
-const createStaticRect = ({ x, y, w = 1, h = 1, fill, stroke }) => {
+const createRect = ({ x, y, w = 1, h = 1, fill, stroke }) => {
   // I do this because I can't figure out how to set the anchor (rotation) point at the center
   x += w / 2;
   y += h / 2;
@@ -50,7 +51,7 @@ const createStaticRect = ({ x, y, w = 1, h = 1, fill, stroke }) => {
   graphic.drawRect(-w / 2, -h / 2, w, h);
   if (fill !== undefined) graphic.endFill();
 
-  // Add a static physics body
+  // Add physics body
   game.physics.p2.enable(graphic);
   graphic.body.setRectangle(w, h, 0, 0);
 
@@ -83,18 +84,28 @@ export const setup = options => {
   // Reset players
   players = {};
 
+  // Create bullets group
+  // bullets = game.add.group();
+  // bulletCollisionGroup = game.physics.p2.createCollisionGroup(bullets);
+
+  // Create boundary group
+  const boundary = game.add.group();
+
+  // Add new wall to boundary
+  const createBound = (x, y, w, h) => {
+    boundary.add(
+      physics.enablePhysics(createRect({ x, y, w, h, fill: 0x00FFFF }), 'wall'),
+    );
+  };
+
   const { x, y, w, h } = options.bounds;
   
   game.world.setBounds(0, 0, w + (x * 2), h + (y * 2));
 
-  const boundary = game.add.group();
-  boundary.add(createStaticRect({ x, y, w, h: 1, fill: 0x00FFFF }));
-  boundary.add(createStaticRect({ x, y, w: 1, h, fill: 0x00FFFF }));
-  boundary.add(createStaticRect({ x: x + w, y, w: 1, h, fill: 0x00FFFF }));
-  boundary.add(createStaticRect({ x, y: y + h, w, h: 1, fill: 0x00FFFF }));
-  for (let wall of boundary.children) {
-    physics.enablePhysics(wall, 'wall');
-  }
+  createBound(x, y, 1, h);
+  createBound(x, y, w, 1);
+  createBound(x + w, y, 1, h);
+  createBound(x, y + h, w, 1);
 
   return Promise.resolve();
 };
@@ -106,7 +117,7 @@ export const addPlayer = (id, data) => {
 
     const { x, y, color } = data;
 
-    const newPlayer = createStaticRect({ x, y, w: 50, h: 60, fill: color, stroke: 0x000000 });
+    const newPlayer = createRect({ x, y, w: 50, h: 60, fill: color, stroke: 0x000000 });
     physics.enablePhysics(newPlayer, 'player');
     
     const turret = game.make.graphics(0, 0);
@@ -158,17 +169,38 @@ export const updatePlayer = (id, data) => {
 
 export const initUser = id => {
   player = players[id];
+
+  player.body.onBeginContact.add(body => {
+    const collider = body.sprite;
+    if (collider.name === 'bullet') {
+      collider.kill();
+    }
+  });
+
   // game.camera.follow(player);
 };
 
 export const addBullet = data => {
+  const RADIUS = 4;
   // TODO
   const { x, y, angle, speed } = data;
 
-  const bullet = createStaticRect({ x, y, w: 5, h: 5, fill: 0x00FFFF, stroke: 0x000000 });
+  // const bullet = createStaticRect({ x, y, w: 5, h: 5, fill: 0x00FFFF, stroke: 0x000000 });
+  const bullet = game.add.graphics(x, y);
+  bullet.beginFill(0xFFFF00);
+  bullet.drawEllipse(0, 0, RADIUS, RADIUS);
+  bullet.endFill();
+  
   physics.enablePhysics(bullet, 'bullet');
+  bullet.body.addCircle(RADIUS);
+
   bullet.body.rotation = angle;
   bullet.body.thrust(speed);
+
+  bullet.name = 'bullet';
+
+  // bullet.body.setCollisionGroup(bulletCollisionGroup);
+  // bullets.addChild(bullet);
 };
 
 export const createGroup = data => {
@@ -179,7 +211,7 @@ export const createGroup = data => {
 
   return {
     add: obj => {
-      const wall = createStaticRect(obj);
+      const wall = createRect(obj);
       physics.enablePhysics(wall, 'wall');
       group.add(wall);
     },
