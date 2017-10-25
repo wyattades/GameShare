@@ -279,12 +279,20 @@ class Engine {
       console.log(`eff_control_width: ${eff_control_width}`);
 
 // Works for dragging in/out WITHOUT control landing on border:
-// let new_width = parent_delta_x <= 0 ? obj.parent.width - obj.width : obj.parent.width - parent_delta_x;
-// let new_height = parent_delta_y <= 0 ? obj.parent.height - obj.height : obj.parent.height - parent_delta_y;
 
-// Works for dragging out, and in when control lands ON border:
-       let new_width = parent_delta_x <= 0 ? obj.parent.width - obj.width : obj.parent.width - eff_control_width - parent_delta_x;
-       let new_height = parent_delta_y <= 0 ? obj.parent.height - obj.height : obj.parent.height - eff_control_height - parent_delta_y;
+
+let new_width = 0;
+let new_height = 0;
+// BUG: resizing after dragging can cause width/height to be increased by an additional pixel.
+// Not fixing because the problem is minor and should go away once snapping in implemented.
+if (Math.abs(parent_delta_x) < obj.width) {
+  // The control is over the border of the rectangle it manipulates.
+  new_width = parent_delta_x <= 0 ? obj.parent.width - obj.width : obj.parent.width - eff_control_width - parent_delta_x;
+  new_height = parent_delta_y <= 0 ? obj.parent.height - obj.height : obj.parent.height - eff_control_height - parent_delta_y;
+} else {
+  new_width = parent_delta_x <= 0 ? obj.parent.width - obj.width : obj.parent.width - parent_delta_x - 1;
+  new_height = parent_delta_y <= 0 ? obj.parent.height - obj.height : obj.parent.height - parent_delta_y - 1;
+}
 
 /*
       let new_width = obj.parent.width;
