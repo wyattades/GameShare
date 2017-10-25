@@ -251,15 +251,54 @@ class Engine {
 
 
     if (obj.isControl) {
+      // get position of control with respect to the grid ("global coords")
+      // the top left corner of the transformed parent will be set near here
       let newPosition = obj.data.getLocalPosition(obj.parent.parent);
+
+      // offset the position by the size of the control itself.
       newPosition.x += obj.width / 2;
       newPosition.y += obj.height / 2;
 
+      // find the change in position
       let parent_delta_x = newPosition.x - obj.parent.x;
       let parent_delta_y = newPosition.y - obj.parent.y;
 
-      let new_width = parent_delta_x < 0 ? obj.parent.width - obj.width : obj.parent.width - parent_delta_x;
-      let new_height = parent_delta_y < 0 ? obj.parent.height - obj.height : obj.parent.height - parent_delta_y;
+//      let new_width = parent_delta_x < 0 ? obj.parent.width - obj.width : obj.parent.width - parent_delta_x;
+//      let new_height = parent_delta_y < 0 ? obj.parent.height - obj.height : obj.parent.height - parent_delta_y;
+
+      // assuming, at this point, that this control is for the upper left corner
+      // then if change in position is < 0, we're moving left/up
+      // if change in position is > 0, we're going right/down
+      console.log(`parent_delta_x: ${parent_delta_x}`);
+      console.log(`parent_delta_y: ${parent_delta_y}`);
+      //resizing problem occurs when delta is greater than 0 but less than the size of the control
+
+      let eff_control_width = obj.width - parent_delta_x;
+      let eff_control_height = obj.height - parent_delta_y;
+      console.log(`eff_control_height: ${eff_control_height}`);
+      console.log(`eff_control_width: ${eff_control_width}`);
+
+// Works for dragging in/out WITHOUT control landing on border:
+// let new_width = parent_delta_x <= 0 ? obj.parent.width - obj.width : obj.parent.width - parent_delta_x;
+// let new_height = parent_delta_y <= 0 ? obj.parent.height - obj.height : obj.parent.height - parent_delta_y;
+
+// Works for dragging out, and in when control lands ON border:
+       let new_width = parent_delta_x <= 0 ? obj.parent.width - obj.width : obj.parent.width - eff_control_width - parent_delta_x;
+       let new_height = parent_delta_y <= 0 ? obj.parent.height - obj.height : obj.parent.height - eff_control_height - parent_delta_y;
+
+/*
+      let new_width = obj.parent.width;
+      if (parent_delta_x < 0) {
+        new_width -= obj.width;
+      } else {
+        if (parent_delta_x > obj.width) {
+          new_width -= parent_delta_x;
+        } else {
+          new_width -= (parent_delta_x - obj.width);
+        }
+      }
+      */
+
 
       obj.parent.translate(newPosition.x, newPosition.y);
       obj.parent.resize(new_width, new_height);
