@@ -96,6 +96,7 @@ class Engine {
       obj.resize = (width, height) => {
         obj.graphicsData[0].shape.height = height;
         obj.graphicsData[0].shape.width = width;
+        obj.hitArea = new Pixi.Rectangle(0, 0, width, height);
         obj.dirty++;
         obj.clearDirty++;
       };
@@ -263,15 +264,15 @@ class Engine {
       let parent_delta_x = newPosition.x - obj.parent.x;
       let parent_delta_y = newPosition.y - obj.parent.y;
 
-//      let new_width = parent_delta_x < 0 ? obj.parent.width - obj.width : obj.parent.width - parent_delta_x;
-//      let new_height = parent_delta_y < 0 ? obj.parent.height - obj.height : obj.parent.height - parent_delta_y;
+//  let new_width = parent_delta_x < 0 ? obj.parent.width - obj.width : obj.parent.width - parent_delta_x;
+//  let new_height = parent_delta_y < 0 ? obj.parent.height - obj.height : obj.parent.height - parent_delta_y;
 
       // assuming, at this point, that this control is for the upper left corner
       // then if change in position is < 0, we're moving left/up
       // if change in position is > 0, we're going right/down
       console.log(`parent_delta_x: ${parent_delta_x}`);
       console.log(`parent_delta_y: ${parent_delta_y}`);
-      //resizing problem occurs when delta is greater than 0 but less than the size of the control
+      // resizing problem occurs when delta is greater than 0 but less than the size of the control
 
       let eff_control_width = obj.width - parent_delta_x;
       let eff_control_height = obj.height - parent_delta_y;
@@ -281,32 +282,24 @@ class Engine {
 // Works for dragging in/out WITHOUT control landing on border:
 
 
-let new_width = 0;
-let new_height = 0;
-// BUG: resizing after dragging can cause width/height to be increased by an additional pixel.
-// Not fixing because the problem is minor and should go away once snapping in implemented.
-if (Math.abs(parent_delta_x) < obj.width) {
-  // The control is over the border of the rectangle it manipulates.
-  new_width = parent_delta_x <= 0 ? obj.parent.width - obj.width : obj.parent.width - eff_control_width - parent_delta_x;
-  new_height = parent_delta_y <= 0 ? obj.parent.height - obj.height : obj.parent.height - eff_control_height - parent_delta_y;
-} else {
-  new_width = parent_delta_x <= 0 ? obj.parent.width - obj.width : obj.parent.width - parent_delta_x - 1;
-  new_height = parent_delta_y <= 0 ? obj.parent.height - obj.height : obj.parent.height - parent_delta_y - 1;
-}
-
-/*
-      let new_width = obj.parent.width;
-      if (parent_delta_x < 0) {
-        new_width -= obj.width;
+      let new_width = 0;
+      let new_height = 0;
+      // BUG: resizing after dragging can cause width/height to be increased by an additional pixel.
+      // Not fixing because the problem is minor and should go away once snapping in implemented.
+      if (Math.abs(parent_delta_x) < obj.width) {
+        // The control is over the border of the rectangle it manipulates.
+        new_width = parent_delta_x <= 0 ? obj.parent.width - obj.width : obj.parent.width - eff_control_width - parent_delta_x;
       } else {
-        if (parent_delta_x > obj.width) {
-          new_width -= parent_delta_x;
-        } else {
-          new_width -= (parent_delta_x - obj.width);
-        }
+        new_width = parent_delta_x <= 0 ? obj.parent.width - obj.width : obj.parent.width - parent_delta_x - 1;
       }
-      */
-
+      if (Math.abs(parent_delta_y) < obj.height) {
+        /* if (parent_delta_y <= 0) {
+          new_height = obj.parent.height - obj.height;
+        } else { new_height = obj.parent.height - } */
+        new_height = parent_delta_y <= 0 ? obj.parent.height - obj.height : obj.parent.height - eff_control_height - parent_delta_y;
+      } else {
+        new_height = parent_delta_y <= 0 ? obj.parent.height - obj.height : obj.parent.height - parent_delta_y - 1;
+      }
 
       obj.parent.translate(newPosition.x, newPosition.y);
       obj.parent.resize(new_width, new_height);
