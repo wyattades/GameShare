@@ -20,13 +20,15 @@ $panel-heading-size: 1em;
 .site-header { padding: $content-pre-padding; }
 
 .site-name {
-  margin: $content-pre-padding;
+  margin: 0rem 1rem;
   margin-bottom: 0!important;
   color: $light;
+  font-size: 1.5rem;
 }
 
 .tabs-list {
   border-bottom: none;
+  font-size: 1rem;
 
   li a { color: $light; }
   li a:hover { color: $info; }
