@@ -17,6 +17,8 @@ const createLevel = (groupsData, objects) => {
 
     groups[groupData.name].add(Object.assign(groupData, objData));
   }
+
+  return Promise.resolve();
 };
 
 const addPlayers = players => {
@@ -27,7 +29,7 @@ const addPlayers = players => {
     engine.addPlayer(id, players[id]);
   }
 
-  engine.initUser(userId);
+  return engine.initUser(userId);
 };
 
 const bindHandlers = () => {
@@ -51,9 +53,15 @@ const bindHandlers = () => {
     engine.removePlayer(id);
   });
 
-  socket.on('bullet_create', data => {
-    engine.addBullet(data);
+  socket.on('bullet_create', (id, data) => {
+    engine.addBullet(id, data);
   });
+
+  socket.on('bullet_hit', (id, data) => {
+    engine.removeBullet(id, data);
+  });
+
+  return Promise.resolve();
 };
 
 // Updates user position, velocity, etc.
@@ -63,6 +71,10 @@ export const sendUpdate = data => {
 
 export const sendShoot = data => {
   socket.emit('bullet_create', userId, data);
+};
+
+export const sendHit = data => {
+  socket.emit('bullet_hit', userId, data);
 };
 
 export const connect = id => new Promise((resolve, reject) => {
@@ -75,11 +87,11 @@ export const connect = id => new Promise((resolve, reject) => {
     .then(() => {
       resolve();
 
-      createLevel(data.gameData.groups, data.gameData.objects);
-      addPlayers(data.users);
-      bindHandlers();
+      createLevel(data.gameData.groups, data.gameData.objects)
+      .then(() => addPlayers(data.users))
+      .then(() => bindHandlers());
+      // .then(() => engine.resume());
 
-      engine.resume();
     });
   });
 
@@ -104,5 +116,5 @@ export const disconnect = () => {
 
 export const destroy = () => {
   disconnect();
-  engine.destory();
+  engine.destroy();
 };

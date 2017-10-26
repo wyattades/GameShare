@@ -4,7 +4,7 @@ import 'expose-loader?p2!phaser-ce/build/custom/p2.js';
 import 'expose-loader?Phaser!phaser-ce/build/custom/phaser-split.js'; /* global Phaser */
 /* eslint-enable */
 
-import { sendUpdate, sendShoot } from './client';
+import { sendUpdate, sendShoot, sendHit } from './client';
 import * as physics from './physics';
 
 const DEV = process.env.NODE_ENV === 'development';
@@ -14,19 +14,24 @@ const { Game, KeyCode } = Phaser;
 // Object hashmaps
 let players = {};
 const textures = {};
+let openIndicis = [];
 
 // Phaser objects
 let input,
-    player;
-    // bullets;
+    player,
+    bullets;
 
-let nextFire = 0;
+let options;
+
+let nextFire = 0,
+    bulletsShot = 0;
 
 const BULLET_SPEED = 1000;
 const FIRE_RATE = 200;
 const GUN_LENGTH = 48;
 const GUN_BODY_RATIO = 0.25;
-const SPEED = 600; // Player speed
+const SPEED = 500; // Player speed
+
 const parent = document.getElementById('root');
 const grandParent = parent.parentElement;
 
@@ -39,7 +44,7 @@ const game = new Game({
 });
 
 window.addEventListener('resize', () => {
-  game.scale.setGameSize(grandParent.clientWidth, grandParent.clientHeight);
+  if (game.isBooted) game.scale.setGameSize(grandParent.clientWidth, grandParent.clientHeight);
 });
 
 const createRect = ({ x, y, w = 1, h = 1, fill, stroke }) => {
@@ -60,7 +65,7 @@ const createRect = ({ x, y, w = 1, h = 1, fill, stroke }) => {
 const generateTextures = () => {
   
   // Create temporary graphics objects
-
+  
   const w = 50,
         h = 60;
   const playerGraphic = game.add.graphics(0, 0);
@@ -96,7 +101,9 @@ const generateTextures = () => {
   bulletGraphic.destroy();
 };
 
-export const setup = options => {
+export const setup = gameOptions => {
+
+  options = gameOptions;
 
   if (!game.isBooted) {
     const err = 'Setup started before game boot!';
@@ -107,9 +114,9 @@ export const setup = options => {
   generateTextures();
 
   // Setup game properties
-  game.paused = true;
+  // game.paused = true;
   game.stage.disableVisibilityChange = true;
-  game.state.clearCurrentState();
+  // game.state.clearCurrentState();
   physics.init(game);
   if (DEV) game.time.advancedTiming = true;
 
@@ -121,18 +128,37 @@ export const setup = options => {
     right: KeyCode.D,
   });
     
-  // Reset player hashmap
+  // Reset object maps
   players = {};
 
+  // Creates array of possible player indicis: 0, 1, 2, ..., options.maxPlayers - 1
+  openIndicis = [ ...Array(options.maxPlayers).keys() ];
+
   // Create bullets group
-  // bullets = game.add.group();
+  bullets = game.add.group();
 
+  // Save bullets to cache
+  bullets.createMultiple(options.maxPlayers * options.maxBulletsPerPlayer, textures.bullet);
+  // Enable physics and check for collisions
+  bullets.forEach(bullet => {
+    physics.enablePhysics(bullet, 'bullet');
+
+    physics.collideEnd(bullet, collider => {
+      if (collider.name === 'wall' && bullet.health > 0) {
+        
+        // Point bullet towards velocity
+        const { mx, my } = bullet.body.velocity;
+        bullet.body.rotation = Math.atan2(my, mx) - (Math.PI / 2);
+      }
+    });
+  });
+  
   const { x, y, w, h } = options.bounds;
-
-  physics.enablePhysics(createRect({ x, y, w, h, stroke: 0x00FFFF }), 'boundary');
   
   game.world.setBounds(0, 0, w + (x * 2), h + (y * 2));
-
+  
+  physics.enablePhysics(createRect({ x, y, w, h, stroke: 0x00FFFF }), 'boundary');
+  
   return Promise.resolve();
 };
 
@@ -142,8 +168,9 @@ export const addPlayer = (id, data) => {
   } else {
 
     const { x, y, color } = data;
+    const { width, height } = textures.player;
 
-    const newPlayer = game.add.sprite(x, y, textures.player);
+    const newPlayer = game.add.sprite(x + (width / 2), y + (height / 2), textures.player);
     newPlayer.tint = color;
     physics.enablePhysics(newPlayer, 'player');
     
@@ -154,6 +181,11 @@ export const addPlayer = (id, data) => {
 
     // Store reference to turret in player
     newPlayer.turret = turret;
+
+    // Store player id
+    newPlayer.id = id;
+    // Store player index
+    newPlayer.index = openIndicis.shift();
   
     // Store player reference
     players[id] = newPlayer;
@@ -167,6 +199,7 @@ export const removePlayer = id => {
   const plyr = players[id];
 
   if (plyr) {
+    openIndicis.push(plyr.index);
     plyr.destroy();
     delete players[id];
   } else {
@@ -181,10 +214,11 @@ export const updatePlayer = (id, data) => {
   if (plyr) {
     plyr.body.x = data.x;
     plyr.body.y = data.y;
-    plyr.body.angle = data.angle;
+    plyr.body.rotation = data.angle;
     plyr.body.velocity.x = data.vx;
     plyr.body.velocity.y = data.vy;
     plyr.body.angularVelocity = data.vangle;
+    plyr.turret.rotation = data.turret;
 
   } else {
     console.log(`Invalid updatePlayer: ${id}`);
@@ -194,30 +228,75 @@ export const updatePlayer = (id, data) => {
 export const initUser = id => {
   player = players[id];
 
-  player.body.onBeginContact.add(body => {
-    const collider = body.sprite;
-    if (collider.name === 'bullet') {
-      collider.kill();
-    }
-  });
+  const allowBullet = () => {
+    bulletsShot = Math.max(0, bulletsShot - 1);
+  };
 
-  // game.camera.follow(player);
+  const start = player.index * options.maxBulletsPerPlayer;
+  for (let i = 0; i < options.maxBulletsPerPlayer; i++) {
+
+    const bullet = bullets.getAt(start + i);
+
+    // bullet.indexInPlayer = i;
+
+    physics.collideStart(bullet, collider => {
+      // Kill on bullet or player collision
+      if (collider.name === 'player') {
+        console.log(`Player hit: ${collider.id}`);
+        bullet.kill();
+        sendHit({
+          index: i,
+        });
+      } else if (collider.name === 'bullet') {
+        // bullet.kill();
+        sendHit({
+          index: i,
+        });
+      } else if (collider.name === 'wall') { // Bounce off walls until no health
+        bullet.health--;
+        if (bullet.health <= 0) {
+          bullet.kill();
+          sendHit({
+            index: i,
+          });
+        }
+      }
+    });
+
+    bullet.events.onKilled.add(allowBullet);
+  }
+
+  // game.camera.follow(player); // TODO: sometimes camera doesn't set the player as its target  
+
+  return Promise.resolve();
 };
 
-export const addBullet = data => {
+export const removeBullet = (id, data) => {
+
+  const { index } = data;
+
+  if (!players.hasOwnProperty(id) || typeof index !== 'number' || index >= options.maxBulletsPerPlayer) {
+    throw new Error(`Invalid id (${id}) or index (${index}) in removeBullet()`);
+  }
+
+  const bullet = bullets.getAt((players[id].index * options.maxBulletsPerPlayer) + index);
+
+  if (bullet.exists) bullet.kill();
+};
+
+export const addBullet = (id, data) => {
   // TODO
-  const { x, y, angle, speed } = data;
+  const { x, y, angle, speed, index } = data;
 
-  const bullet = game.add.sprite(x, y, textures.bullet);
+  if (!players.hasOwnProperty(id) || typeof index !== 'number' || index >= options.maxBulletsPerPlayer) {
+    throw new Error(`Invalid id (${id}) or index (${index}) in addBullet()`);
+  }
+
+  const bullet = bullets.getAt((players[id].index * options.maxBulletsPerPlayer) + index);
+  bullet.reset(x, y, 2); // 2 health aka can bounce once before dying
   
-  physics.enablePhysics(bullet, 'bullet');
-
   bullet.body.rotation = angle;
   bullet.body.thrust(speed);
-
-  bullet.name = 'bullet';
-
-  // bullets.add(bullet);
 };
 
 export const createGroup = data => {
@@ -245,13 +324,29 @@ export const resume = () => {
   game.paused = false;
 };
 
-export const destory = () => {
+export const destroy = () => {
   game.destroy();
+};
+
+// Get the index of the first available bullet
+const availableBullet = () => {
+  const start = player.index * options.maxBulletsPerPlayer;
+  for (let i = 0; i < options.maxBulletsPerPlayer; i++) {
+    const bullet = bullets.getAt(start + i);
+    if (!bullet.exists) {
+      return i;
+    }
+  }
+
+  throw new Error('No cached bullets are available');
 };
 
 game.state.add('Play', {
   // preload, 
-  // create,
+  // create: () => {
+  //   game.paused = true;
+  //   // generateTextures();
+  // },
 
   render: DEV ? () => {
     game.debug.start(20, 20, 'white');
@@ -261,16 +356,28 @@ game.state.add('Play', {
     for (let i = 0, ids = Object.keys(players); i < ids.length; i++) {
       const id = ids[i],
             plyr = players[id];
-      game.debug.line(`${i + 1}) id=${id}, x=${Math.round(plyr.x)}, y=${Math.round(plyr.y)}, angle=${plyr.rotation}`);
+      game.debug.line(`${i + 1}) id=${id}, x=${Math.round(plyr.x)}, y=${Math.round(plyr.y)}`);
     }
+    game.debug.line();
+    game.debug.line(`Bullets Shot: ${bulletsShot}`);
     game.debug.stop();
+    // game.debug.cameraInfo(game.camera, 20, 400);
   } : undefined,
 
   update: () => {
     
-    if (!player) return;
+    if (!player) {
+      console.log('Bad update');
+      return;
+    }
+
+    // TEMP
+    game.camera.focusOn(player);
   
-    if (input.left.isDown) {
+    // Rotate left and right
+    if (input.left.isDown && input.right.isDown) {
+      player.body.setZeroRotation();
+    } else if (input.left.isDown) {
       player.body.rotateLeft(50);
     } else if (input.right.isDown) {
       player.body.rotateRight(50);
@@ -278,19 +385,21 @@ game.state.add('Play', {
       player.body.setZeroRotation();
     }
   
+    // Move forward and backward
     if (input.up.isDown) {
       player.body.thrust(SPEED);
     } else if (input.down.isDown) {
       player.body.reverse(SPEED);
     }
 
-    // TODO: figure out how to use camera.follow()
-    game.camera.focusOn(player);
-
+    // Point turret at mouse pointer
     let angle = game.physics.arcade.angleToPointer(player);
     player.turret.rotation = angle - player.rotation;
     
-    if (game.input.activePointer.isDown && game.time.now > nextFire) {
+    if (game.input.activePointer.isDown && // mouse pressed
+      bulletsShot < options.maxBulletsPerPlayer && // there's an available bullet
+      game.time.now > nextFire) { // fire rate has serpassed
+
       nextFire = game.time.now + FIRE_RATE;
       
       const data = {
@@ -298,20 +407,23 @@ game.state.add('Play', {
         y: player.y + (GUN_LENGTH * Math.sin(angle)),
         angle: angle + (Math.PI * 0.5),
         speed: BULLET_SPEED,
+        index: availableBullet(),
       };
 
-      // addBullet(data);
       sendShoot(data);
+
+      bulletsShot++;
     }
 
-    // TODO: update slower AND/OR don't update if nothing happens?
+    // TODO: update slower???
     sendUpdate({
       x: player.x,
       y: player.y,
       vx: player.body.velocity.x,
       vy: player.body.velocity.y,
-      angle: player.angle,
+      angle: player.rotation,
       vangle: player.body.angularVelocity,
+      turret: player.turret.rotation,
     });
   },
 });

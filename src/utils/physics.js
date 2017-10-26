@@ -22,15 +22,15 @@ export const enablePhysics = (obj, type) => {
   
   if (!obj.body) physics.enable(obj);
 
+  obj.name = type;
+
   switch (type) {
 
     case 'player':
-      obj.body.static = false;
       obj.body.damping = 0.98;
       break;
 
     case 'bullet':
-      obj.body.static = false;
       obj.body.mass = 0.1;
       obj.body.damping = 0;
       obj.body.setCircle(obj.width / 2);
@@ -42,6 +42,7 @@ export const enablePhysics = (obj, type) => {
       break;
 
     case 'boundary':
+      obj.name = 'wall';
       obj.body.static = true;
       // obj.body.addRectangle(obj.width, obj.height);
 
@@ -55,10 +56,6 @@ export const enablePhysics = (obj, type) => {
       obj.body.addRectangle(w + (thick * 2), thick, 0, (h / 2) + (thick / 2));
       obj.body.addRectangle(thick, h + (thick * 2), -(w / 2) - (thick / 2), 0);
       obj.body.addRectangle(thick, h + (thick * 2), (w / 2) + (thick / 2), 0);
-      // obj.body.addLine(w, 0, -h / 2, 0);
-      // obj.body.addLine(w, 0, h / 2, 0);
-      // obj.body.addLine(h, -w / 2, 0, otherAngle);
-      // obj.body.addLine(h, w / 2, 0, otherAngle);
       break;
 
     default:
@@ -68,4 +65,16 @@ export const enablePhysics = (obj, type) => {
   obj.body.setMaterial(materials[type]);
 
   return obj;
+};
+
+export const collideStart = (obj, fn) => {
+  obj.body.onBeginContact.add(body => {
+    fn(body.sprite);
+  });
+};
+
+export const collideEnd = (obj, fn) => {
+  obj.body.onEndContact.add(body => {
+    fn(body.sprite);
+  });
 };
