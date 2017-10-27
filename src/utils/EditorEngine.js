@@ -19,8 +19,8 @@ class Engine {
 
     // TODO: grid size to initial size params
     const GRID_SIZE = 10000;
-    const SNAP = 10;
-    this.container = this.generateGrid(GRID_SIZE, GRID_SIZE, SNAP);
+    this.gridSpacing = 20;
+    this.container = this.generateGrid(GRID_SIZE, GRID_SIZE, this.gridSpacing);
     this.app.stage.addChild(this.container);
 
     this.selectedObject = null; // The currently selected object.
@@ -29,15 +29,16 @@ class Engine {
     // Adding some test data
     this.container.addObject(
       this.createRect({
-        x: 50,
-        y: 50,
-        w: 20,
-        h: 20,
+        x: this.gridSpacing*4,
+        y: this.gridSpacing*4,
+        w: this.gridSpacing*2,
+        h: this.gridSpacing*2,
         draggable: true,
         selectable: true,
         fill: 0xFFAABB,
         stroke: 0x000000 }),
     );
+    /*
     this.container.addObject(
       this.createRect({
         x: 100,
@@ -49,6 +50,7 @@ class Engine {
         fill: Colors.WHITE,
         stroke: Colors.BLACK }),
     );
+    */
 
   }
 
@@ -171,25 +173,11 @@ class Engine {
   };
 
   createControls = (obj) => {
-    console.log(`CREATING CONTROLS, LENGTH = ${obj.children.length}`);
     let width = 10;
     let height = 10;
-    let obj_width = obj.width; // Changes when elements are assigned, have to save.
+    let obj_width = obj.width;
     let obj_height = obj.height;
-/*
-    const control = this.createRect({
-      x: -10,
-      y: -10,
-      w: width,
-      h: height,
-      fill: Colors.WHITE,
-      stroke: Colors.BLACK,
-      draggable: true,
-      container: false,
-      selectable: false });
 
-    control.isControl = true;
-*/
     for (let x = 0; x < 2; x++) {
       for (let y = 0; y < 2; y++) {
         let ctl = this.createRect({
@@ -207,33 +195,15 @@ class Engine {
         obj.addChild(ctl);
       }
     }
-
-    //obj.addChild(control);
-    console.log(`FINISH CREATING CONTROLS, LENGTH = ${obj.children.length}`);
   };
   removeControls = (obj) => {
-    console.log(`REMOVING CONTROLS, LENGTH = ${obj.children.length}`);
-    console.log(obj.children);
-    let l = obj.children.length;
     for (let i = 0; i < obj.children.length; i++) {
-      console.log(`CHECKING: children[${i}]`);
       if (obj.children[i].isControl) {
-        //obj.children[i].destroy();
-        console.log(`children[${i}] is a control.`);
         obj.removeChildAt(i);
+        // Need to destroy child object?
         i--;
       }
     }
-
-    /*
-    for (let c of obj.children) {
-      if (c.isControl) {
-        c.destroy();
-        // this.selectedObject.removeChild(c);
-      }
-    }
-    */
-    console.log(`FINISH REMOVING CONTROLS, LENGTH = ${obj.children.length}`);
   };
   resetControls = obj => {
     this.removeControls(obj);
@@ -273,18 +243,51 @@ class Engine {
   dragMove = (obj, event) => {
     if (obj.dragging) {
       let newPosition = obj.data.getLocalPosition(obj.parent);
-      obj.position.x = newPosition.x - obj.offset.x;
-      obj.position.y = newPosition.y - obj.offset.y;
+      //console.log(`real pos: ${newPosition.x}, ${newPosition.y}`);
+
+      // testing snap
+      // ((number + multiple/2) / multiple) * multiple;
+
+      if (obj != this.container) {
+      newPosition.x = Math.floor(newPosition.x / this.gridSpacing) * this.gridSpacing; //(((newPosition.x + (SNAP / 2)) / SNAP) * SNAP);
+      newPosition.y = Math.floor(newPosition.y / this.gridSpacing) * this.gridSpacing;//(((newPosition.y + (SNAP / 2)) / SNAP) * SNAP);
+      //console.log(`snapped to: ${newPosition.x}, ${newPosition.y}`);
+    }
+
+      obj.position.x = newPosition.x;// - obj.offset.x;
+      obj.position.y = newPosition.y;// - obj.offset.y;
+
+      if (obj === this.container) {
+        obj.position.x -= obj.offset.x;
+        obj.position.y -= obj.offset.y;
+      }
 
 
       if (obj.isControl) {
-        let newPos = obj.data.getLocalPosition(obj.parent);
-        let newPosX = newPos.x + (obj.width / 2);
-        let newPosY = newPos.y + (obj.height / 2);
+        // let newPos = obj.data.getLocalPosition(obj.parent);
+        // let newPosX = newPos.x + (obj.width / 2);
+        // let newPosY = newPos.y + (obj.height / 2);
         // obj.parent.drawRect(newPosX, newPosY, obj.parent.width, obj.parent.height);
       }
 
     }
+  }
+  resizeByControl(obj, control, dragPos) {
+    // obj = object being resized
+    // ctrlType = tells type of control (upper left, lower right, etc)
+
+    // These are saved because the control object is deleted before resizing.
+    let ctrlType = { x: control.controlPosition, y: control.controlPosition };
+    let ctrlSize = { width: control.width, height: control.height };
+    let newPosition = { x: dragPos.x + (ctrlSize / 2), y: dragPos.y + (ctrlSize / 2) };
+    this.removeControls(obj);
+
+    let posDelta = { x: newPosition.x - obj.x, y: newPosition.y - obj.y };
+
+    let newWidth = obj.width;
+    let newHeight = obj.height;
+
+
   }
   dragEnd = (obj, event) => {
     obj.alpha = 1.0;
@@ -300,8 +303,8 @@ class Engine {
       let newPosition = obj.data.getLocalPosition(obj.parent.parent);
 
       // offset the position by the size of the control itself.
-      newPosition.x += obj.width;// / 2;
-      newPosition.y += obj.height;// / 2;
+      newPosition.x += obj.width / 2;
+      newPosition.y += obj.height / 2;
 
       // find the change in position
       let parent_delta_x = newPosition.x - obj.parent.x;
@@ -331,17 +334,25 @@ class Engine {
       // Not fixing because the problem is minor and should go away once snapping in implemented.
       if (Math.abs(parent_delta_x) < obj.width) {
         // The control is over the border of the rectangle it manipulates.
-        new_width = parent_delta_x <= 0 ? obj.parent.width - obj.width*2 : obj.parent.width - eff_control_width - parent_delta_x;
+        new_width = parent_delta_x <= 0 ? obj.parent.width - (obj.width * 2)
+          : obj.parent.width - (obj.width * 2) - eff_control_width - parent_delta_x;
+/*
+        if (parent_delta_x <= 0) {
+          new_width = obj.parent.width - (obj.width * 2);
+        } else {
+          new_width = obj.parent.width - (obj.width * 2) - eff_control_width - parent_delta_x;
+        }
+        */
       } else {
-        new_width = parent_delta_x <= 0 ? obj.parent.width - obj.width*2 : obj.parent.width - parent_delta_x - 1;
+        new_width = parent_delta_x <= 0 ? obj.parent.width - obj.width*2 : obj.parent.width - obj.width*2 - parent_delta_x;
       }
       if (Math.abs(parent_delta_y) < obj.height) {
         /* if (parent_delta_y <= 0) {
           new_height = obj.parent.height - obj.height;
         } else { new_height = obj.parent.height - } */
-        new_height = parent_delta_y <= 0 ? obj.parent.height - obj.height*2 : obj.parent.height - eff_control_height - parent_delta_y;
+        new_height = parent_delta_y <= 0 ? obj.parent.height - obj.height*2 : obj.parent.height - obj.height*2 - eff_control_height - parent_delta_y;
       } else {
-        new_height = parent_delta_y <= 0 ? obj.parent.height - obj.height*2 : obj.parent.height - parent_delta_y - 1;
+        new_height = parent_delta_y <= 0 ? obj.parent.height - obj.height*2 : obj.parent.height - obj.height*2 - parent_delta_y;
       }
 
       obj.parent.translate(newPosition.x, newPosition.y);
