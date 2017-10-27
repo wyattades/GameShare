@@ -35,17 +35,8 @@ const GUN_BODY_RATIO = 0.25;
 const parent = document.getElementById('root');
 const grandParent = parent.parentElement;
 
-// Create game engine
-const game = new Game({
-  width: parent.clientWidth,
-  height: parent.clientHeight,
-  parent,
-  // transparent: true,
-});
-
-window.addEventListener('resize', () => {
-  if (game.isBooted) game.scale.setGameSize(grandParent.clientWidth, grandParent.clientHeight);
-});
+// Game instance
+let game;
 
 const createRect = ({ x, y, w = 1, h = 1, fill, stroke }) => {
   // I do this because I can't figure out how to set the anchor (rotation) point at the center
@@ -99,17 +90,14 @@ const generateTextures = () => {
 
 };
 
-export const setup = gameOptions => {
-  if (!game.isBooted) {
-    throw new Error('Setup started before game boot!');
-  }
+const create = (focusX, focusY) => {
 
-  options = gameOptions;
-
-  generateTextures();
+  window.addEventListener('resize', () => {
+    game.scale.setGameSize(grandParent.clientWidth, grandParent.clientHeight);
+  });
 
   // Setup game properties
-  // game.paused = true;
+  game.paused = true;
   game.stage.disableVisibilityChange = true;
   physics.init(game);
 
@@ -144,7 +132,6 @@ export const setup = gameOptions => {
     down: KeyCode.S,
     right: KeyCode.D,
   });
-  game.input.enabled = false;
 
   // Reset player map
   playerMap = {};
@@ -190,6 +177,8 @@ export const setup = gameOptions => {
   game.world.setBounds(0, 0, w + (x * 2), h + (y * 2));
   
   physics.enablePhysics(createRect({ x, y, w, h, stroke: 0x00FFFF }), 'boundary');
+
+  game.camera.focusOnXY(focusX, focusY);
   
   return Promise.resolve();
 };
@@ -292,8 +281,8 @@ export const initUser = id => {
     bullet.events.onKilled.add(allowBullet);
   }
 
-  game.camera.follow(player); // TODO: sometimes camera doesn't set the player as its target  
-  game.input.enabled = true;
+  // TODO: sometimes camera doesn't set the player as its target
+  game.camera.follow(player);
 
   return Promise.resolve();
 };
@@ -368,92 +357,104 @@ const availableBullet = () => {
   throw new Error('No cached bullets are available');
 };
 
-game.state.add('Play', {
-  // preload, 
-  // create: () => {
-  //   game.paused = true;
-  //   // generateTextures();
-  // },
-
-  render: DEV ? () => {
-    if (devToggle) {
-      game.debug.start(20, 50, 'white');
-      game.debug.line(`FPS: ${game.time.fps}`);
-      game.debug.line();
-      game.debug.line('Players:');
-      for (let i = 0, ids = Object.keys(playerMap); i < ids.length; i++) {
-        const id = ids[i],
-              plyr = playerMap[id];
-        game.debug.line(`${i + 1}) id=${id}, x=${Math.round(plyr.x)}, y=${Math.round(plyr.y)}`);
-      }
-      game.debug.line();
-      game.debug.line(`Bullets Shot: ${bulletsShot}`);
-      game.debug.stop();
-      // game.debug.cameraInfo(game.camera, 20, 400);
+const render = DEV ? () => {
+  if (devToggle) {
+    game.debug.start(20, 50, 'white');
+    game.debug.line(`FPS: ${game.time.fps}`);
+    game.debug.line();
+    game.debug.line('Players:');
+    for (let i = 0, ids = Object.keys(playerMap); i < ids.length; i++) {
+      const id = ids[i],
+            plyr = playerMap[id];
+      game.debug.line(`${i + 1}) id=${id}, x=${Math.round(plyr.x)}, y=${Math.round(plyr.y)}`);
     }
-  } : undefined,
+    game.debug.line();
+    game.debug.line(`Bullets Shot: ${bulletsShot}`);
+    game.debug.stop();
+    // game.debug.cameraInfo(game.camera, 20, 400);
+  }
+} : undefined;
 
-  update: () => {
+const update = () => {
     
-    if (!player) {
-      console.log('Bad update');
-      return;
-    }
+  if (!player) {
+    console.log('Bad update');
+    return;
+  }
 
-    // TEMP
-    // game.camera.focusOn(player);
-  
-    // Rotate left and right
-    if (input.left.isDown && input.right.isDown) {
-      player.body.setZeroRotation();
-    } else if (input.left.isDown) {
-      player.body.rotateLeft(50);
-    } else if (input.right.isDown) {
-      player.body.rotateRight(50);
-    } else {
-      player.body.setZeroRotation();
-    }
-  
-    // Move forward and backward
-    if (input.up.isDown) {
-      player.body.thrust(options.playerSpeed);
-    } else if (input.down.isDown) {
-      player.body.reverse(options.playerSpeed);
-    }
+  // TEMP
+  // game.camera.focusOn(player);
 
-    // Point turret at mouse pointer
-    let angle = game.physics.arcade.angleToPointer(player);
-    player.turret.rotation = angle - player.rotation;
+  // Rotate left and right
+  if (input.left.isDown && input.right.isDown) {
+    player.body.setZeroRotation();
+  } else if (input.left.isDown) {
+    player.body.rotateLeft(50);
+  } else if (input.right.isDown) {
+    player.body.rotateRight(50);
+  } else {
+    player.body.setZeroRotation();
+  }
+
+  // Move forward and backward
+  if (input.up.isDown) {
+    player.body.thrust(options.playerSpeed);
+  } else if (input.down.isDown) {
+    player.body.reverse(options.playerSpeed);
+  }
+
+  // Point turret at mouse pointer
+  let angle = game.physics.arcade.angleToPointer(player);
+  player.turret.rotation = angle - player.rotation;
+  
+  if (game.input.activePointer.isDown && // mouse pressed
+    bulletsShot < options.maxBulletsPerPlayer && // there's an available bullet
+    game.time.now > nextFire) { // fire rate has serpassed
+
+    nextFire = game.time.now + options.fireRate;
     
-    if (game.input.activePointer.isDown && // mouse pressed
-      bulletsShot < options.maxBulletsPerPlayer && // there's an available bullet
-      game.time.now > nextFire) { // fire rate has serpassed
+    const data = {
+      x: player.x + (GUN_LENGTH * Math.cos(angle)),
+      y: player.y + (GUN_LENGTH * Math.sin(angle)),
+      angle: angle + (Math.PI * 0.5),
+      speed: options.bulletSpeed,
+      index: availableBullet(),
+    };
 
-      nextFire = game.time.now + options.fireRate;
-      
-      const data = {
-        x: player.x + (GUN_LENGTH * Math.cos(angle)),
-        y: player.y + (GUN_LENGTH * Math.sin(angle)),
-        angle: angle + (Math.PI * 0.5),
-        speed: options.bulletSpeed,
-        index: availableBullet(),
-      };
+    sendShoot(data);
 
-      sendShoot(data);
+    bulletsShot++;
+  }
 
-      bulletsShot++;
-    }
+  // TODO: update slower???
+  sendUpdate({
+    x: player.x,
+    y: player.y,
+    vx: player.body.velocity.x,
+    vy: player.body.velocity.y,
+    angle: player.rotation,
+    vangle: player.body.angularVelocity,
+    turret: player.turret.rotation,
+  });
+};
 
-    // TODO: update slower???
-    sendUpdate({
-      x: player.x,
-      y: player.y,
-      vx: player.body.velocity.x,
-      vy: player.body.velocity.y,
-      angle: player.rotation,
-      vangle: player.body.angularVelocity,
-      turret: player.turret.rotation,
-    });
-  },
+export const setup = (gameOptions, focusX, focusY) => new Promise((resolve, reject) => {
+  
+  game = new Game({
+    width: parent.clientWidth,
+    height: parent.clientHeight,
+    parent,
+    // transparent: true,
+  });
+
+  game.state.add('Play', {
+    preload: generateTextures,
+    create: () => create(focusX, focusY).then(resolve),
+    update,
+    render,
+  });
+  game.state.start('Play');
+
+  options = gameOptions;
+
 });
-game.state.start('Play');
