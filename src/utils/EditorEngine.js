@@ -210,6 +210,15 @@ class Engine {
     this.removeControls(obj);
     this.createControls(obj);
   };
+  resetControlPositions = obj => {
+    for (let c of obj.children) {
+      if (c.isControl) {
+        // TODO: Better interface to graphicsData[0].shape
+        c.x = c.controlPosition.x === 0 ? -c.width : obj.graphicsData[0].shape.width;
+        c.y = c.controlPosition.y === 0 ? -c.height : obj.graphicsData[0].shape.height;
+      }
+    }
+  };
 
   // Clear the current object selection.
   clearSelection = () => {
@@ -259,8 +268,12 @@ class Engine {
     }
   }
   resizeByControl(control, dragPos) {
+    this.generateGrid(); // SQUELCH
     // obj = object being resized
+
+    // obj.graphicsData[0].shape.height
     let obj = control.parent;
+    let shape = obj.graphicsData[0].shape;
     // Have to save these values because the control object is deleted before resizing.
 
     // ctrlType is really the position of the control relative the target object.
@@ -272,17 +285,19 @@ class Engine {
     let newPosition = { x: dragPos.x + (ctrlSize.width / 2), y: dragPos.y + (ctrlSize.height / 2) };
     console.log(newPosition);
 
-    this.removeControls(obj);
+    //this.removeControls(obj);
 
     let posDelta = { x: newPosition.x - obj.x, y: newPosition.y - obj.y };
+    console.log(shape);
 
 
-    let newWidth = obj.width - posDelta.x;
-    let newHeight = obj.height - posDelta.y;
+    let newWidth = shape.width - posDelta.x;
+    let newHeight = shape.height - posDelta.y;
 
     obj.resize(newWidth, newHeight);
     obj.translate(newPosition.x, newPosition.y);
-    this.resetControls(obj);
+    this.resetControlPositions(obj);
+    //this.resetControls(obj);
   }
   dragEnd = (obj, event) => {
     obj.alpha = 1.0;
