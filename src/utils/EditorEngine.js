@@ -216,13 +216,18 @@ class Engine {
           ctl.y = offset.y;
         };
         ctl.setDraggingBounds = () => {
-          //let gpos = ctl.data.getLocalPosition(ctl.parent.parent);
+          // TODO: Better interface to graphicsData[0].shape
+          console.log(ctl.parent);
+          let gpos = ctl.parent.position;
+          let shape = ctl.parent.graphicsData[0].shape;
+          let MIN_RECT_SIZE = 10; // TODO: move somewhere nicer
           ctl.draggingBounds = {
             xMin: -10000,
-            xMax: ctl.parent.graphicsData[0].shape.width, //ctl.parent.x + ctl.parent.graphicsData[0].shape.width,
+            xMax: gpos.x + shape.width - MIN_RECT_SIZE, //ctl.parent.position.x + ctl.parent.graphicsData[0].shape.width,
             yMin: -10000,
-            yMax: ctl.parent.graphicsData[0].shape.height, //ctl.parent.y + ctl.parent.graphicsData[0].shape.height,
+            yMax: gpos.y + shape.height - MIN_RECT_SIZE, //ctl.parent.position.y + ctl.parent.graphicsData[0].shape.height,
           };
+          console.log(ctl.draggingBounds);
         };
 
         obj.addChild(ctl);
@@ -323,6 +328,7 @@ class Engine {
     }
   }
   resizeByControl(control, dragPos) {
+    const MIN_SIZE = 10; // TODO: move somewhere nicer
     // TODO: make this function an obj method for control elements
     // dragPos: position being dragged to. (Could use control's position?)
     let obj = control.parent;
@@ -339,7 +345,11 @@ class Engine {
         y: dragPos.y + (control.height / 2),
       };
 
-      //if desiredPosition.x >
+      let xMax = (obj.x + shape.width) - MIN_SIZE;
+      desiredPosition.x = Math.min(desiredPosition.x, xMax);
+
+      let yMax = (obj.y + shape.height) - MIN_SIZE;
+      desiredPosition.y = Math.min(desiredPosition.y, yMax);
 
       posDelta = { x: desiredPosition.x - obj.x, y: desiredPosition.y - obj.y };
 
@@ -358,6 +368,12 @@ class Engine {
 //    let newSize = desiredSize;
 //    let newPosition = desiredPosition;
     console.log(`desiredPosition: (${desiredPosition.x}, ${desiredPosition.y})`);
+    console.log(`bounds x: (${control.draggingBounds.xMin}, ${control.draggingBounds.xMax})`);
+    console.log(`bounds y: (${control.draggingBounds.yMin}, ${control.draggingBounds.yMax})`);
+
+
+
+    /*
     if (desiredSize.width < 10) {
       //return;
       desiredSize.width = 10;
@@ -368,6 +384,7 @@ class Engine {
       desiredSize.height = 10;
       desiredPosition.y = obj.y + (control.height / 2);
     }
+    */
 
     /*
     if (desiredSize.width !== shape.width || desiredSize.height !== shape.height) {
