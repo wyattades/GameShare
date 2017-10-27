@@ -276,17 +276,36 @@ class Engine {
   }
   resizeByControl(control, dragPos) {
     // TODO: make this function an obj method for control elements
+    // dragPos: position being dragged to. (Could use control's position?)
     let obj = control.parent;
     let shape = obj.graphicsData[0].shape; // TODO: build interface in obj
 
-    // TODO: offsets will be different for different corner controls.
-    let newPosition = {
-      x: dragPos.x + (control.width / 2),
-      y: dragPos.y + (control.height / 2),
-    };
-    let posDelta = { x: newPosition.x - obj.x, y: newPosition.y - obj.y };
+    let newPosition = { x: 0, y: 0 };
+    let newSize = { width: 0, height: 0 };
+    let posDelta = { x: 0, y: 0 };
 
-    obj.resize(shape.width - posDelta.x, shape.height - posDelta.y);
+    // TODO: offsets will be different for different corner controls.
+    if (control.controlPosition.x === 0 && control.controlPosition.y === 0) {
+      newPosition = {
+        x: dragPos.x + (control.width / 2),
+        y: dragPos.y + (control.height / 2),
+      };
+      posDelta = { x: newPosition.x - obj.x, y: newPosition.y - obj.y };
+
+      newSize = { width: shape.width - posDelta.x, height: shape.height - posDelta.y };
+
+    } else if (control.controlPosition.x === 1 && control.controlPosition.y === 0) {
+      //let cursorDelta = { x: dragPos.x - obj.x, y: dragPos.y - obj.y };
+      newPosition = {
+        x: obj.x,//obj.x + (dragPos.x - obj.x) + (control.width / 2),
+        y: dragPos.y + (control.height / 2),
+      };
+      posDelta = { x: newPosition.x - obj.x, y: newPosition.y - obj.y };
+
+      newSize = { width: dragPos.x - obj.x, height: shape.height - posDelta.y };
+    }
+
+    obj.resize(newSize.width, newSize.height);
     obj.translate(newPosition.x, newPosition.y);
     this.resetControlPositions(obj);
   }
