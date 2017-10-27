@@ -39,11 +39,11 @@ function drawGrid() {
 
 drawGrid();
 
-document.getElementById('obj-create').addEventListener('click', () => {
-  grid.addObject(createRect({
-    x: 80, y: 80, w: 80, h: 80, draggable: true, fill: 0xFFAABB, stroke: 0x000000,
-  }));
-});
+// document.getElementById('obj-create').addEventListener('click', () => {
+//   grid.addObject(createRect({
+//     x: 80, y: 80, w: 80, h: 80, draggable: true, fill: 0xFFAABB, stroke: 0x000000,
+//   }));
+// });
 
 // document.getElementById('boundary-x').addEventListener('change', () => {
 //   GRID_X = document.getElementById('boundary-x').value;
