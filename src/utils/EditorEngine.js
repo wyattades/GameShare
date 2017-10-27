@@ -104,7 +104,7 @@ class Engine {
       };
 
       obj.translate = (xp, yp) => {
-        console.log(`[DEBUG]: translate from (${obj.position.x}, ${obj.position.y}) to (${xp}, ${yp})`);
+        // console.log(`[DEBUG]: translate from (${obj.position.x}, ${obj.position.y}) to (${xp}, ${yp})`);
         obj.position.x = xp;
         obj.position.y = yp;
       };
@@ -173,6 +173,7 @@ class Engine {
     return rect;
   };
 
+  // TODO: Make control manipulation functions into obj methods
   createControls = (obj) => {
     let width = 10;
     let height = 10;
@@ -193,6 +194,18 @@ class Engine {
           selectable: false });
         ctl.isControl = true;
         ctl.controlPosition = { x, y };
+
+        ctl.getOffset = () => ({
+          // TODO: Better interface to graphicsData[0].shape
+          x: ctl.controlPosition.x === 0 ? -ctl.width : ctl.parent.graphicsData[0].shape.width,
+          y: ctl.controlPosition.y === 0 ? -ctl.height : ctl.parent.graphicsData[0].shape.height,
+        });
+        ctl.resetPosition = () => {
+          let offset = ctl.getOffset();
+          ctl.x = offset.x;
+          ctl.y = offset.y;
+        };
+
         obj.addChild(ctl);
       }
     }
@@ -201,7 +214,7 @@ class Engine {
     for (let i = 0; i < obj.children.length; i++) {
       if (obj.children[i].isControl) {
         obj.removeChildAt(i);
-        // Need to destroy child object?
+        // Do we need to destroy the child here?
         i--;
       }
     }
@@ -213,9 +226,7 @@ class Engine {
   resetControlPositions = obj => {
     for (let c of obj.children) {
       if (c.isControl) {
-        // TODO: Better interface to graphicsData[0].shape
-        c.x = c.controlPosition.x === 0 ? -c.width : obj.graphicsData[0].shape.width;
-        c.y = c.controlPosition.y === 0 ? -c.height : obj.graphicsData[0].shape.height;
+        c.resetPosition();
       }
     }
   };
@@ -224,7 +235,7 @@ class Engine {
   clearSelection = () => {
     if (this.selectedObject) {
       this.selectedObject.tint = Colors.WHITE;
-      this.removeControls(this.selectedObject);
+      this.removeControls(this.selectedObject); // TODO: move to obj method
     }
 
     this.selectedObject = null;
@@ -259,45 +270,25 @@ class Engine {
 
       if (obj.isControl) {
         this.resizeByControl(obj, obj.data.getLocalPosition(obj.parent.parent));
-        // let newPos = obj.data.getLocalPosition(obj.parent);
-        // let newPosX = newPos.x + (obj.width / 2);
-        // let newPosY = newPos.y + (obj.height / 2);
-        // obj.parent.drawRect(newPosX, newPosY, obj.parent.width, obj.parent.height);
       }
 
     }
   }
   resizeByControl(control, dragPos) {
-    this.generateGrid(); // SQUELCH
-    // obj = object being resized
-
-    // obj.graphicsData[0].shape.height
+    // TODO: make this function an obj method for control elements
     let obj = control.parent;
-    let shape = obj.graphicsData[0].shape;
-    // Have to save these values because the control object is deleted before resizing.
-
-    // ctrlType is really the position of the control relative the target object.
-    // { x: 0, y: 0 } is the upper left, { x: 1, y: 1 } is the lower right.
-    let ctrlType = { x: control.controlPosition, y: control.controlPosition };
-    let ctrlSize = { width: control.width, height: control.height };
+    let shape = obj.graphicsData[0].shape; // TODO: build interface in obj
 
     // TODO: offsets will be different for different corner controls.
-    let newPosition = { x: dragPos.x + (ctrlSize.width / 2), y: dragPos.y + (ctrlSize.height / 2) };
-    console.log(newPosition);
-
-    //this.removeControls(obj);
-
+    let newPosition = {
+      x: dragPos.x + (control.width / 2),
+      y: dragPos.y + (control.height / 2),
+    };
     let posDelta = { x: newPosition.x - obj.x, y: newPosition.y - obj.y };
-    console.log(shape);
 
-
-    let newWidth = shape.width - posDelta.x;
-    let newHeight = shape.height - posDelta.y;
-
-    obj.resize(newWidth, newHeight);
+    obj.resize(shape.width - posDelta.x, shape.height - posDelta.y);
     obj.translate(newPosition.x, newPosition.y);
     this.resetControlPositions(obj);
-    //this.resetControls(obj);
   }
   dragEnd = (obj, event) => {
     obj.alpha = 1.0;
@@ -305,73 +296,8 @@ class Engine {
 
 
     if (obj.isControl) {
-      // How do we check which control this is, and do we need to?
-      // Set X/Y values for control on creation: obj.control_x = 1/0, obj.control_y = 1/0
-
-      // get position of control with respect to the grid ("global coords")
-      // the top left corner of the transformed parent will be set near here
       let newPosition = obj.data.getLocalPosition(obj.parent.parent);
-
       this.resizeByControl(obj, newPosition);
-      return;
-
-      // offset the position by the size of the control itself.
-      newPosition.x += obj.width / 2;
-      newPosition.y += obj.height / 2;
-
-      // find the change in position
-      let parent_delta_x = newPosition.x - obj.parent.x;
-      let parent_delta_y = newPosition.y - obj.parent.y;
-
-//  let new_width = parent_delta_x < 0 ? obj.parent.width - obj.width : obj.parent.width - parent_delta_x;
-//  let new_height = parent_delta_y < 0 ? obj.parent.height - obj.height : obj.parent.height - parent_delta_y;
-
-      // assuming, at this point, that this control is for the upper left corner
-      // then if change in position is < 0, we're moving left/up
-      // if change in position is > 0, we're going right/down
-      console.log(`parent_delta_x: ${parent_delta_x}`);
-      console.log(`parent_delta_y: ${parent_delta_y}`);
-      // resizing problem occurs when delta is greater than 0 but less than the size of the control
-
-      let eff_control_width = obj.width - parent_delta_x;
-      let eff_control_height = obj.height - parent_delta_y;
-      console.log(`eff_control_height: ${eff_control_height}`);
-      console.log(`eff_control_width: ${eff_control_width}`);
-
-// Works for dragging in/out WITHOUT control landing on border:
-
-
-      let new_width = 0;
-      let new_height = 0;
-      // BUG: resizing after dragging can cause width/height to be increased by an additional pixel.
-      // Not fixing because the problem is minor and should go away once snapping in implemented.
-      if (Math.abs(parent_delta_x) < obj.width) {
-        // The control is over the border of the rectangle it manipulates.
-        new_width = parent_delta_x <= 0 ? obj.parent.width - (obj.width * 2)
-          : obj.parent.width - (obj.width * 2) - eff_control_width - parent_delta_x;
-/*
-        if (parent_delta_x <= 0) {
-          new_width = obj.parent.width - (obj.width * 2);
-        } else {
-          new_width = obj.parent.width - (obj.width * 2) - eff_control_width - parent_delta_x;
-        }
-        */
-      } else {
-        new_width = parent_delta_x <= 0 ? obj.parent.width - obj.width*2 : obj.parent.width - obj.width*2 - parent_delta_x;
-      }
-      if (Math.abs(parent_delta_y) < obj.height) {
-        /* if (parent_delta_y <= 0) {
-          new_height = obj.parent.height - obj.height;
-        } else { new_height = obj.parent.height - } */
-        new_height = parent_delta_y <= 0 ? obj.parent.height - obj.height*2 : obj.parent.height - obj.height*2 - eff_control_height - parent_delta_y;
-      } else {
-        new_height = parent_delta_y <= 0 ? obj.parent.height - obj.height*2 : obj.parent.height - obj.height*2 - parent_delta_y;
-      }
-
-      obj.parent.translate(newPosition.x, newPosition.y);
-      obj.parent.resize(new_width, new_height);
-
-      this.resetControls(obj.parent);
     }
   }
 
