@@ -303,9 +303,9 @@ export const addBullet = (id, data) => {
   bullet.body.thrust(speed);
 };
 
-export const createGroup = data => {
+export const createGroup = () => {
 
-  // TODO: do something with data?
+  // TODO: do something with group data?
 
   const group = game.add.group();
 
@@ -314,9 +314,9 @@ export const createGroup = data => {
       group.add(physics.enablePhysics(createRect(obj), 'wall'));
     },
 
-    remove: obj => {
-      // TODO: is this necessary?
-    },
+    // TODO: is this necessary?
+    // remove: obj => {
+    // },
   };
 };
 

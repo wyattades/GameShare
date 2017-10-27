@@ -5,7 +5,8 @@ let client = _client;
 
 const init = () => client.connect('my_test_game')
 .catch(err => {
-  alert(err);
+  // TEMP
+  alert(err); // eslint-disable-line no-alert
   console.log('Init Error:', err);
 });
 
