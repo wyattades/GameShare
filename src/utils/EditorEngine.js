@@ -205,8 +205,17 @@ class Engine {
           ctl.x = offset.x;
           ctl.y = offset.y;
         };
+        ctl.setDraggingBounds = () => {
+          ctl.draggingBounds = {
+            xMin: 0,
+            xMax: ctl.parent.x + ctl.parent.graphicsData[0].shape.width,
+            yMin: 0,
+            yMax: ctl.parent.y + ctl.parent.graphicsData[0].shape.height,
+          };
+        };
 
         obj.addChild(ctl);
+        ctl.setDraggingBounds();
       }
     }
   };
@@ -260,13 +269,34 @@ class Engine {
     obj.dragging = true;
     obj.data = event.data;
     obj.offset = event.data.getLocalPosition(obj);
+
+    if (obj.isControl) {
+      obj.setDraggingBounds();
+    }
   }
   dragMove = (obj, event) => {
     if (obj.dragging) {
       let newPosition = obj.data.getLocalPosition(obj.parent);
+      newPosition.x -= obj.offset.x;
+      newPosition.y -= obj.offset.y;
 
-      obj.position.x = newPosition.x - obj.offset.x;
-      obj.position.y = newPosition.y - obj.offset.y;
+      if (obj.draggingBounds) {
+        if (newPosition.x < obj.draggingBounds.xMin) {
+          newPosition.x = obj.draggingBounds.xMin;
+        } else if (newPosition.x > obj.draggingBounds.xMax) {
+          newPosition.x = obj.draggingBounds.xMax;
+        }
+
+        if (newPosition.y < obj.draggingBounds.yMin) {
+          newPosition.y = obj.draggingBounds.yMin;
+          console.log(`out of bounds: set to ${obj.draggingBounds.yMin}`);
+        } else if (newPosition.y > obj.draggingBounds.yMax) {
+          newPosition.y = obj.draggingBounds.yMax;
+        }
+      }
+
+      obj.position.x = newPosition.x;// - obj.offset.x;
+      obj.position.y = newPosition.y;// - obj.offset.y;
 
       if (obj.isControl) {
         this.resizeByControl(obj, obj.data.getLocalPosition(obj.parent.parent));
@@ -295,9 +325,8 @@ class Engine {
       newSize = { width: shape.width - posDelta.x, height: shape.height - posDelta.y };
 
     } else if (control.controlPosition.x === 1 && control.controlPosition.y === 0) {
-      //let cursorDelta = { x: dragPos.x - obj.x, y: dragPos.y - obj.y };
       newPosition = {
-        x: obj.x,//obj.x + (dragPos.x - obj.x) + (control.width / 2),
+        x: obj.x,
         y: dragPos.y + (control.height / 2),
       };
       posDelta = { x: newPosition.x - obj.x, y: newPosition.y - obj.y };
@@ -305,6 +334,7 @@ class Engine {
       newSize = { width: dragPos.x - obj.x, height: shape.height - posDelta.y };
     }
 
+    if (newSize.width < 1 || newSize.height < 1) return;
     obj.resize(newSize.width, newSize.height);
     obj.translate(newPosition.x, newPosition.y);
     this.resetControlPositions(obj);
