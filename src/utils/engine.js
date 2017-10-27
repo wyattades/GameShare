@@ -26,11 +26,8 @@ let options;
 let nextFire = 0,
     bulletsShot = 0;
 
-const BULLET_SPEED = 1000;
-const FIRE_RATE = 200;
 const GUN_LENGTH = 48;
 const GUN_BODY_RATIO = 0.25;
-const SPEED = 500; // Player speed
 
 const parent = document.getElementById('root');
 const grandParent = parent.parentElement;
@@ -116,7 +113,6 @@ export const setup = gameOptions => {
   // Setup game properties
   // game.paused = true;
   game.stage.disableVisibilityChange = true;
-  // game.state.clearCurrentState();
   physics.init(game);
   if (DEV) game.time.advancedTiming = true;
 
@@ -149,6 +145,7 @@ export const setup = gameOptions => {
         // Point bullet towards velocity
         const { mx, my } = bullet.body.velocity;
         bullet.body.rotation = Math.atan2(my, mx) - (Math.PI / 2);
+        bullet.body.angularVelocity = 0;
       }
     });
   });
@@ -292,7 +289,7 @@ export const removeBullet = (id, data) => {
 };
 
 export const addBullet = (id, data) => {
-  // TODO
+
   const { x, y, angle, speed, index } = data;
 
   if (!players.hasOwnProperty(id) || typeof index !== 'number' || index >= options.maxBulletsPerPlayer) {
@@ -300,7 +297,7 @@ export const addBullet = (id, data) => {
   }
 
   const bullet = bullets.getAt((players[id].index * options.maxBulletsPerPlayer) + index);
-  bullet.reset(x, y, 2); // 2 health aka can bounce once before dying
+  bullet.reset(x, y, options.bulletHealth); // health - 1 = number of bounces before dying
   
   bullet.body.rotation = angle;
   bullet.body.thrust(speed);
@@ -318,7 +315,7 @@ export const createGroup = data => {
     },
 
     remove: obj => {
-      // TODO
+      // TODO: is this necessary?
     },
   };
 };
@@ -394,9 +391,9 @@ game.state.add('Play', {
   
     // Move forward and backward
     if (input.up.isDown) {
-      player.body.thrust(SPEED);
+      player.body.thrust(options.playerSpeed);
     } else if (input.down.isDown) {
-      player.body.reverse(SPEED);
+      player.body.reverse(options.playerSpeed);
     }
 
     // Point turret at mouse pointer
@@ -407,13 +404,13 @@ game.state.add('Play', {
       bulletsShot < options.maxBulletsPerPlayer && // there's an available bullet
       game.time.now > nextFire) { // fire rate has serpassed
 
-      nextFire = game.time.now + FIRE_RATE;
+      nextFire = game.time.now + options.fireRate;
       
       const data = {
         x: player.x + (GUN_LENGTH * Math.cos(angle)),
         y: player.y + (GUN_LENGTH * Math.sin(angle)),
         angle: angle + (Math.PI * 0.5),
-        speed: BULLET_SPEED,
+        speed: options.bulletSpeed,
         index: availableBullet(),
       };
 

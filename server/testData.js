@@ -4,7 +4,6 @@ module.exports = {
   options: {
     // example options:
     snap: 8,
-    bulletSpeed: 2,
     backgroundColor: 0xDDEEDD,
     maxBulletsPerPlayer: 4,
     maxPlayers: 6,
@@ -14,6 +13,10 @@ module.exports = {
       w: 1000,
       h: 1000,
     },
+    bulletSpeed: 1000,
+    fireRate: 200,
+    playerSpeed: 500,
+    bulletHealth: 2,
   },
   groups: [
     {
