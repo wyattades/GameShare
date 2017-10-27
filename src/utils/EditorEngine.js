@@ -96,8 +96,16 @@ class Engine {
 
     if (primitive) {
       obj.resize = (width, height) => {
-        obj.graphicsData[0].shape.height = height;
+        /*
+        if (width !== obj.graphicsData[0].shape.width) {
+          obj.graphicsData[0].shape.width = width;
+        }
+        if (height !== obj.graphicsData[0].shape.height) {
+          obj.graphicsData[0].shape.height = height;
+        }
+        */
         obj.graphicsData[0].shape.width = width;
+        obj.graphicsData[0].shape.height = height;
         obj.hitArea = new Pixi.Rectangle(0, 0, width, height);
         obj.dirty++;
         obj.clearDirty++;
@@ -105,6 +113,8 @@ class Engine {
 
       obj.translate = (xp, yp) => {
         // console.log(`[DEBUG]: translate from (${obj.position.x}, ${obj.position.y}) to (${xp}, ${yp})`);
+        //if (xp !== obj.position.x) { obj.position.x = xp; }
+        //if (yp !== obj.position.y) { obj.position.y = yp; }
         obj.position.x = xp;
         obj.position.y = yp;
       };
@@ -206,11 +216,12 @@ class Engine {
           ctl.y = offset.y;
         };
         ctl.setDraggingBounds = () => {
+          //let gpos = ctl.data.getLocalPosition(ctl.parent.parent);
           ctl.draggingBounds = {
-            xMin: 0,
-            xMax: ctl.parent.x + ctl.parent.graphicsData[0].shape.width,
-            yMin: 0,
-            yMax: ctl.parent.y + ctl.parent.graphicsData[0].shape.height,
+            xMin: -10000,
+            xMax: ctl.parent.graphicsData[0].shape.width, //ctl.parent.x + ctl.parent.graphicsData[0].shape.width,
+            yMin: -10000,
+            yMax: ctl.parent.graphicsData[0].shape.height, //ctl.parent.y + ctl.parent.graphicsData[0].shape.height,
           };
         };
 
@@ -232,9 +243,9 @@ class Engine {
     this.removeControls(obj);
     this.createControls(obj);
   };
-  resetControlPositions = obj => {
+  resetControlPositions = (obj, ignore = null) => {
     for (let c of obj.children) {
-      if (c.isControl) {
+      if (c.isControl && c !== ignore) {
         c.resetPosition();
       }
     }
@@ -268,7 +279,7 @@ class Engine {
     obj.alpha = 0.8;
     obj.dragging = true;
     obj.data = event.data;
-    obj.offset = event.data.getLocalPosition(obj);
+    obj.offset = event.data.getLocalPosition(obj); // Mouse offset within obj.
 
     if (obj.isControl) {
       obj.setDraggingBounds();
@@ -276,24 +287,31 @@ class Engine {
   }
   dragMove = (obj, event) => {
     if (obj.dragging) {
+      console.log("OFFSET:"); console.log(obj.offset);
       let newPosition = obj.data.getLocalPosition(obj.parent);
       newPosition.x -= obj.offset.x;
       newPosition.y -= obj.offset.y;
 
+      /*
       if (obj.draggingBounds) {
         if (newPosition.x < obj.draggingBounds.xMin) {
+          console.log(`newpos.x = ${newPosition.x} out of bounds (low): set to ${obj.draggingBounds.xMin}`);
           newPosition.x = obj.draggingBounds.xMin;
         } else if (newPosition.x > obj.draggingBounds.xMax) {
+          console.log(`newpos.x = ${newPosition.x} out of bounds (high): set to ${obj.draggingBounds.xMax}`);
           newPosition.x = obj.draggingBounds.xMax;
         }
 
         if (newPosition.y < obj.draggingBounds.yMin) {
+          console.log(`newpos.y = ${newPosition.y} out of bounds (low): set to ${obj.draggingBounds.yMin}`);
           newPosition.y = obj.draggingBounds.yMin;
-          console.log(`out of bounds: set to ${obj.draggingBounds.yMin}`);
         } else if (newPosition.y > obj.draggingBounds.yMax) {
+          console.log(`newpos.y = ${newPosition.y} out of bounds (high): set to ${obj.draggingBounds.yMax}`);
           newPosition.y = obj.draggingBounds.yMax;
         }
       }
+      console.log(`new position: ${newPosition.x}, ${newPosition.y}`);
+      */
 
       obj.position.x = newPosition.x;// - obj.offset.x;
       obj.position.y = newPosition.y;// - obj.offset.y;
@@ -310,43 +328,66 @@ class Engine {
     let obj = control.parent;
     let shape = obj.graphicsData[0].shape; // TODO: build interface in obj
 
-    let newPosition = { x: 0, y: 0 };
-    let newSize = { width: 0, height: 0 };
+    let desiredPosition = { x: 0, y: 0 }; // Target position for upper left corner of obj.
+    let desiredSize = { width: 0, height: 0 }; //
     let posDelta = { x: 0, y: 0 };
 
     // TODO: offsets will be different for different corner controls.
     if (control.controlPosition.x === 0 && control.controlPosition.y === 0) {
-      newPosition = {
+      desiredPosition = {
         x: dragPos.x + (control.width / 2),
         y: dragPos.y + (control.height / 2),
       };
-      posDelta = { x: newPosition.x - obj.x, y: newPosition.y - obj.y };
 
-      newSize = { width: shape.width - posDelta.x, height: shape.height - posDelta.y };
+      //if desiredPosition.x >
 
-    } else if (control.controlPosition.x === 1 && control.controlPosition.y === 0) {
-      newPosition = {
+      posDelta = { x: desiredPosition.x - obj.x, y: desiredPosition.y - obj.y };
+
+      desiredSize = { width: shape.width - posDelta.x, height: shape.height - posDelta.y };
+
+    } /* else if (control.controlPosition.x === 1 && control.controlPosition.y === 0) {
+      desiredPosition = {
         x: obj.x,
         y: dragPos.y + (control.height / 2),
       };
-      posDelta = { x: newPosition.x - obj.x, y: newPosition.y - obj.y };
+      posDelta = { x: desiredPosition.x - obj.x, y: desiredPosition.y - obj.y };
 
-      newSize = { width: dragPos.x - obj.x, height: shape.height - posDelta.y };
+      desiredSize = { width: dragPos.x - obj.x, height: shape.height - posDelta.y };
+    } */
+
+//    let newSize = desiredSize;
+//    let newPosition = desiredPosition;
+    console.log(`desiredPosition: (${desiredPosition.x}, ${desiredPosition.y})`);
+    if (desiredSize.width < 10) {
+      //return;
+      desiredSize.width = 10;
+      desiredPosition.x = obj.x + (control.width / 2);
+    }
+    if (desiredSize.height < 10) {
+      //return;
+      desiredSize.height = 10;
+      desiredPosition.y = obj.y + (control.height / 2);
     }
 
-    if (newSize.width < 1 || newSize.height < 1) return;
-    obj.resize(newSize.width, newSize.height);
-    obj.translate(newPosition.x, newPosition.y);
+    /*
+    if (desiredSize.width !== shape.width || desiredSize.height !== shape.height) {
+      obj.resize(desiredSize.width, desiredSize.height);
+    }
+    if (desiredPosition.x !== obj.x + (control.width / 2) ||
+        desiredPosition.y !== obj.y + (control.height / 2)) {
+      obj.translate(desiredPosition.x, desiredPosition.y);
+    }
+    */
+    obj.translate(desiredPosition.x, desiredPosition.y);
+    obj.resize(desiredSize.width, desiredSize.height);
     this.resetControlPositions(obj);
   }
   dragEnd = (obj, event) => {
     obj.alpha = 1.0;
     obj.dragging = false;
 
-
     if (obj.isControl) {
-      let newPosition = obj.data.getLocalPosition(obj.parent.parent);
-      this.resizeByControl(obj, newPosition);
+      this.resizeByControl(obj, obj.data.getLocalPosition(obj.parent.parent));
     }
   }
 
