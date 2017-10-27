@@ -10,13 +10,13 @@ let GRID_Y = 7000;
 
 // Create a draggable grid
 let grid = createObject({
-  x: 0, y: 0, w: GRID_X + 800, h: GRID_Y + 800, draggable: true, container: true
+  x: 0, y: 0, w: GRID_X + 800, h: GRID_Y + 800, draggable: true, container: true,
 });
 
 // Create a rectangle for the boundary of the game
-let boundary = grid.addObject(createRect({
-  x: 400, y: 400, w: GRID_X, h: GRID_Y, draggable: false, stroke: 0xFF0000, weight: 3
-}));
+// let boundary = grid.addObject(createRect({
+//   x: 400, y: 400, w: GRID_X, h: GRID_Y, draggable: false, stroke: 0xFF0000, weight: 3,
+// }));
 
 function drawGrid() {
   grid.w = GRID_X;
@@ -24,14 +24,12 @@ function drawGrid() {
   console.log(grid.w, grid.h);
 
   for (let x = 0; x < grid.w + 800; x += SNAP) {
-    if (x % 100 === 0) { grid.lineStyle(2, 0xAAAAAA, 1); }
-    else { grid.lineStyle(1, 0xAAAAAA, 1); }
+    grid.lineStyle(x % 100 === 0 ? 2 : 1, 0xAAAAAA, 1);
     grid.moveTo(x, 0);
     grid.lineTo(x, grid.w + 800);
   }
   for (let y = 0; y < grid.h + 800; y += SNAP) {
-    if (y % 100 === 0) { grid.lineStyle(2, 0xAAAAAA, 1); }
-    else { grid.lineStyle(1, 0xAAAAAA, 1); }
+    grid.lineStyle(y % 100 === 0 ? 2 : 1, 0xAAAAAA, 1);
     grid.moveTo(0, y);
     grid.lineTo(grid.h + 800, y);
   }
