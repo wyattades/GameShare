@@ -19,7 +19,7 @@ class Engine {
 
     // TODO: grid size to initial size params
     const GRID_SIZE = 10000;
-    this.gridSpacing = 20;
+    this.gridSpacing = 20; // Formerly SNAP
     this.container = this.generateGrid(GRID_SIZE, GRID_SIZE, this.gridSpacing);
     this.app.stage.addChild(this.container);
 
@@ -29,28 +29,28 @@ class Engine {
     // Adding some test data
     this.container.addObject(
       this.createRect({
-        x: this.gridSpacing*4,
-        y: this.gridSpacing*4,
-        w: this.gridSpacing*2,
-        h: this.gridSpacing*2,
+        x: this.gridSpacing * 4,
+        y: this.gridSpacing * 4,
+        w: this.gridSpacing * 2,
+        h: this.gridSpacing * 2,
         draggable: true,
         selectable: true,
         fill: 0xFFAABB,
         stroke: 0x000000 }),
     );
-    /*
+
     this.container.addObject(
       this.createRect({
-        x: 100,
-        y: 100,
-        w: 50,
-        h: 50,
+        x: this.gridSpacing * 8,
+        y: this.gridSpacing * 8,
+        w: this.gridSpacing * 4,
+        h: this.gridSpacing * 4,
         draggable: true,
         selectable: true,
         fill: Colors.WHITE,
         stroke: Colors.BLACK }),
     );
-    */
+
 
   }
 
@@ -104,6 +104,7 @@ class Engine {
       };
 
       obj.translate = (xp, yp) => {
+        console.log(`[DEBUG]: translate from (${obj.position.x}, ${obj.position.y}) to (${xp}, ${yp})`);
         obj.position.x = xp;
         obj.position.y = yp;
       };
@@ -243,27 +244,12 @@ class Engine {
   dragMove = (obj, event) => {
     if (obj.dragging) {
       let newPosition = obj.data.getLocalPosition(obj.parent);
-      //console.log(`real pos: ${newPosition.x}, ${newPosition.y}`);
 
-      // testing snap
-      // ((number + multiple/2) / multiple) * multiple;
-
-      if (obj != this.container) {
-      newPosition.x = Math.floor(newPosition.x / this.gridSpacing) * this.gridSpacing; //(((newPosition.x + (SNAP / 2)) / SNAP) * SNAP);
-      newPosition.y = Math.floor(newPosition.y / this.gridSpacing) * this.gridSpacing;//(((newPosition.y + (SNAP / 2)) / SNAP) * SNAP);
-      //console.log(`snapped to: ${newPosition.x}, ${newPosition.y}`);
-    }
-
-      obj.position.x = newPosition.x;// - obj.offset.x;
-      obj.position.y = newPosition.y;// - obj.offset.y;
-
-      if (obj === this.container) {
-        obj.position.x -= obj.offset.x;
-        obj.position.y -= obj.offset.y;
-      }
-
+      obj.position.x = newPosition.x - obj.offset.x;
+      obj.position.y = newPosition.y - obj.offset.y;
 
       if (obj.isControl) {
+        this.resizeByControl(obj, obj.data.getLocalPosition(obj.parent.parent));
         // let newPos = obj.data.getLocalPosition(obj.parent);
         // let newPosX = newPos.x + (obj.width / 2);
         // let newPosY = newPos.y + (obj.height / 2);
@@ -272,22 +258,31 @@ class Engine {
 
     }
   }
-  resizeByControl(obj, control, dragPos) {
+  resizeByControl(control, dragPos) {
     // obj = object being resized
-    // ctrlType = tells type of control (upper left, lower right, etc)
+    let obj = control.parent;
+    // Have to save these values because the control object is deleted before resizing.
 
-    // These are saved because the control object is deleted before resizing.
+    // ctrlType is really the position of the control relative the target object.
+    // { x: 0, y: 0 } is the upper left, { x: 1, y: 1 } is the lower right.
     let ctrlType = { x: control.controlPosition, y: control.controlPosition };
     let ctrlSize = { width: control.width, height: control.height };
-    let newPosition = { x: dragPos.x + (ctrlSize / 2), y: dragPos.y + (ctrlSize / 2) };
+
+    // TODO: offsets will be different for different corner controls.
+    let newPosition = { x: dragPos.x + (ctrlSize.width / 2), y: dragPos.y + (ctrlSize.height / 2) };
+    console.log(newPosition);
+
     this.removeControls(obj);
 
     let posDelta = { x: newPosition.x - obj.x, y: newPosition.y - obj.y };
 
-    let newWidth = obj.width;
-    let newHeight = obj.height;
 
+    let newWidth = obj.width - posDelta.x;
+    let newHeight = obj.height - posDelta.y;
 
+    obj.resize(newWidth, newHeight);
+    obj.translate(newPosition.x, newPosition.y);
+    this.resetControls(obj);
   }
   dragEnd = (obj, event) => {
     obj.alpha = 1.0;
@@ -301,6 +296,9 @@ class Engine {
       // get position of control with respect to the grid ("global coords")
       // the top left corner of the transformed parent will be set near here
       let newPosition = obj.data.getLocalPosition(obj.parent.parent);
+
+      this.resizeByControl(obj, newPosition);
+      return;
 
       // offset the position by the size of the control itself.
       newPosition.x += obj.width / 2;
