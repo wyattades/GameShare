@@ -8,6 +8,7 @@ import { sendUpdate, sendShoot, sendHit } from './client';
 import * as physics from './physics';
 
 const DEV = process.env.NODE_ENV === 'development';
+let devToggle;
 
 const { Game, KeyCode } = Phaser;
 
@@ -63,7 +64,11 @@ const createRect = ({ x, y, w = 1, h = 1, fill, stroke }) => {
 
 const generateTextures = () => {
   
-  // Create temporary graphics objects
+  // Create textures from temporary graphics objects
+  const createTexture = (graphic, name) => {
+    textures[name] = graphic.generateTexture();
+    graphic.destroy();
+  };
   
   const w = 50,
         h = 60;
@@ -72,6 +77,7 @@ const generateTextures = () => {
   playerGraphic.lineStyle(1, 0x000000, 1);
   playerGraphic.drawRect(-w / 2, -h / 2, w, h);
   playerGraphic.endFill();
+  createTexture(playerGraphic, 'player');
 
   const turretGraphic = game.add.graphics(0, 0);
   turretGraphic.beginFill(0xCCCCCC);
@@ -79,6 +85,7 @@ const generateTextures = () => {
   const radius = (GUN_LENGTH * GUN_BODY_RATIO) / (1 - GUN_BODY_RATIO);
   turretGraphic.drawEllipse(0, 0, radius, radius);
   turretGraphic.endFill();
+  createTexture(turretGraphic, 'turret');
   
   const bulletGraphic = game.add.graphics(0, 0);
   bulletGraphic.beginFill(0xFFFF00);
@@ -88,27 +95,16 @@ const generateTextures = () => {
     new Phaser.Point(4, 3),
   ]);
   bulletGraphic.endFill();
+  createTexture(bulletGraphic, 'bullet');
 
-  // Generate static textures from graphics
-  textures.player = playerGraphic.generateTexture();
-  textures.turret = turretGraphic.generateTexture();
-  textures.bullet = bulletGraphic.generateTexture();
-
-  // Destroy graphics
-  playerGraphic.destroy();
-  turretGraphic.destroy();
-  bulletGraphic.destroy();
 };
 
 export const setup = gameOptions => {
+  if (!game.isBooted) {
+    throw new Error('Setup started before game boot!');
+  }
 
   options = gameOptions;
-
-  if (!game.isBooted) {
-    const err = 'Setup started before game boot!';
-    console.error(err);
-    throw err;
-  }
 
   generateTextures();
 
@@ -116,8 +112,29 @@ export const setup = gameOptions => {
   // game.paused = true;
   game.stage.disableVisibilityChange = true;
   physics.init(game);
+
   if (DEV) {
-    game.time.advancedTiming = true;
+
+    const setDev = state => {
+      devToggle = state;
+
+      game.time.advancedTiming = devToggle;
+      if (devToggle) {
+        game.fpsProblemNotifier.add(msg => console.log(`FPS problems: ${msg}`));
+      } else {
+        game.debug.reset();
+        game.fpsProblemNotifier.removeAll();
+      }
+
+    };
+
+    setDev(true);
+
+    const toggleButton = createRect({ x: 10, y: 10, w: 100, h: 24, fill: 0xEEEEEE });
+    toggleButton.inputEnabled = true;
+    toggleButton.events.onInputDown.add(() => setDev(!devToggle));
+    toggleButton.addChild(game.add.text(-40, -12, 'Toggle Dev', { stroke: 0x000000, fontSize: 16 }));
+    game.stage.addChild(toggleButton);
   }
 
   // Handle WASD keyboard inputs
@@ -127,7 +144,8 @@ export const setup = gameOptions => {
     down: KeyCode.S,
     right: KeyCode.D,
   });
-    
+  game.input.enabled = false;
+
   // Reset player map
   playerMap = {};
 
@@ -255,7 +273,7 @@ export const initUser = id => {
           index: i,
         });
       } else if (collider.name === 'bullet') {
-        // We don't kill the bullet here because we want to make sure
+        // We don't immediately kill the bullet here because we want to make sure
         // the other client's bullet detects the collision as well
         sendHit({
           index: i,
@@ -275,6 +293,7 @@ export const initUser = id => {
   }
 
   game.camera.follow(player); // TODO: sometimes camera doesn't set the player as its target  
+  game.input.enabled = true;
 
   return Promise.resolve();
 };
@@ -357,19 +376,21 @@ game.state.add('Play', {
   // },
 
   render: DEV ? () => {
-    game.debug.start(20, 20, 'white');
-    game.debug.line(`FPS: ${game.time.fps}`);
-    game.debug.line();
-    game.debug.line('Players:');
-    for (let i = 0, ids = Object.keys(playerMap); i < ids.length; i++) {
-      const id = ids[i],
-            plyr = playerMap[id];
-      game.debug.line(`${i + 1}) id=${id}, x=${Math.round(plyr.x)}, y=${Math.round(plyr.y)}`);
+    if (devToggle) {
+      game.debug.start(20, 50, 'white');
+      game.debug.line(`FPS: ${game.time.fps}`);
+      game.debug.line();
+      game.debug.line('Players:');
+      for (let i = 0, ids = Object.keys(playerMap); i < ids.length; i++) {
+        const id = ids[i],
+              plyr = playerMap[id];
+        game.debug.line(`${i + 1}) id=${id}, x=${Math.round(plyr.x)}, y=${Math.round(plyr.y)}`);
+      }
+      game.debug.line();
+      game.debug.line(`Bullets Shot: ${bulletsShot}`);
+      game.debug.stop();
+      // game.debug.cameraInfo(game.camera, 20, 400);
     }
-    game.debug.line();
-    game.debug.line(`Bullets Shot: ${bulletsShot}`);
-    game.debug.stop();
-    // game.debug.cameraInfo(game.camera, 20, 400);
   } : undefined,
 
   update: () => {
