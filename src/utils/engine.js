@@ -199,7 +199,15 @@ export const removePlayer = id => {
   const plyr = players[id];
 
   if (plyr) {
+    // Kill all of the players bullets when they disconnect
+    const start = plyr.index * options.maxBulletsPerPlayer;
+    for (let i = 0; i < options.maxBulletsPerPlayer; i++) {
+      bullets.getAt(start + i).kill();
+    }
+    // Add player index back to queue
     openIndicis.push(plyr.index);
+    
+    // Destory player
     plyr.destroy();
     delete players[id];
   } else {
@@ -237,8 +245,6 @@ export const initUser = id => {
 
     const bullet = bullets.getAt(start + i);
 
-    // bullet.indexInPlayer = i;
-
     physics.collideStart(bullet, collider => {
       // Kill on bullet or player collision
       if (collider.name === 'player') {
@@ -248,7 +254,8 @@ export const initUser = id => {
           index: i,
         });
       } else if (collider.name === 'bullet') {
-        // bullet.kill();
+        // We don't kill the bullet here because we want to make sure
+        // the other client's bullet detects the collision as well
         sendHit({
           index: i,
         });
