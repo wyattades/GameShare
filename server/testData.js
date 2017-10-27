@@ -6,7 +6,7 @@ module.exports = {
     snap: 8,
     backgroundColor: 0xDDEEDD,
     maxBulletsPerPlayer: 4,
-    maxPlayers: 6,
+    maxPlayers: 20,
     bounds: {
       x: 300,
       y: 300,

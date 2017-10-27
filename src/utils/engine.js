@@ -12,17 +12,19 @@ const DEV = process.env.NODE_ENV === 'development';
 const { Game, KeyCode } = Phaser;
 
 // Object hashmaps
-let players = {};
+let playerMap = {};
 const textures = {};
-let openIndicis = [];
 
 // Phaser objects
 let input,
     player,
-    bullets;
+    bullets,
+    players;
 
+// Game options
 let options;
 
+// Player weapon variables
 let nextFire = 0,
     bulletsShot = 0;
 
@@ -114,7 +116,9 @@ export const setup = gameOptions => {
   // game.paused = true;
   game.stage.disableVisibilityChange = true;
   physics.init(game);
-  if (DEV) game.time.advancedTiming = true;
+  if (DEV) {
+    game.time.advancedTiming = true;
+  }
 
   // Handle WASD keyboard inputs
   input = game.input.keyboard.addKeys({
@@ -124,21 +128,34 @@ export const setup = gameOptions => {
     right: KeyCode.D,
   });
     
-  // Reset object maps
-  players = {};
+  // Reset player map
+  playerMap = {};
 
-  // Creates array of possible player indicis: 0, 1, 2, ..., options.maxPlayers - 1
-  openIndicis = [ ...Array(options.maxPlayers).keys() ];
+  // Create cached players
+  players = game.add.group();
+  players.createMultiple(options.maxPlayers, textures.player, 0, false, (plyr, i) => {
+    // Enable physics
+    physics.enablePhysics(plyr, 'player');
 
-  // Create bullets group
+    // Create turret sprite
+    const turret = game.add.sprite(0, 0, textures.turret);
+    turret.anchor.set(GUN_BODY_RATIO, 0.5);
+    plyr.addChild(turret);
+
+    // Store reference to turret in player
+    plyr.turret = turret;
+
+    // Custom variables
+    plyr.index = i;
+    plyr.id = null;
+  });
+
+  // Create cached bullets
   bullets = game.add.group();
-
-  // Save bullets to cache
-  bullets.createMultiple(options.maxPlayers * options.maxBulletsPerPlayer, textures.bullet);
-  // Enable physics and check for collisions
-  bullets.forEach(bullet => {
+  bullets.createMultiple(options.maxPlayers * options.maxBulletsPerPlayer, textures.bullet, 0, false, (bullet) => {
+    // Enable physics and check for collisions
     physics.enablePhysics(bullet, 'bullet');
-
+    
     physics.collideEnd(bullet, collider => {
       if (collider.name === 'wall' && bullet.health > 0) {
         
@@ -160,53 +177,40 @@ export const setup = gameOptions => {
 };
 
 export const addPlayer = (id, data) => {
-  if (players.hasOwnProperty(id)) {
+  if (playerMap.hasOwnProperty(id)) {
     console.log(`Invalid addPlayer: ${id}`);
   } else {
 
     const { x, y, color } = data;
     const { width, height } = textures.player;
 
-    const newPlayer = game.add.sprite(x + (width / 2), y + (height / 2), textures.player);
-    newPlayer.tint = color;
-    physics.enablePhysics(newPlayer, 'player');
-    
-    const turret = game.add.sprite(0, 0, textures.turret);
-    turret.tint = color;
-    turret.anchor.set(GUN_BODY_RATIO, 0.5);
-    newPlayer.addChild(turret);
-
-    // Store reference to turret in player
-    newPlayer.turret = turret;
+    const plyr = players.getFirstExists(false, false, x + (width / 2), y + (height / 2));
+    plyr.tint = color;
+    plyr.turret.tint = color;
 
     // Store player id
-    newPlayer.id = id;
-    // Store player index
-    newPlayer.index = openIndicis.shift();
+    plyr.id = id;
   
     // Store player reference
-    players[id] = newPlayer;
-
-    // TODO: add to player group
-    // game.add.existing(newPlayer);
+    playerMap[id] = plyr;
   }
 };
 
 export const removePlayer = id => {
-  const plyr = players[id];
+  const plyr = playerMap[id];
 
   if (plyr) {
-    // Kill all of the players bullets when they disconnect
+    // Kill all of the player's bullets when they disconnect
     const start = plyr.index * options.maxBulletsPerPlayer;
     for (let i = 0; i < options.maxBulletsPerPlayer; i++) {
       bullets.getAt(start + i).kill();
     }
-    // Add player index back to queue
-    openIndicis.push(plyr.index);
     
-    // Destory player
-    plyr.destroy();
-    delete players[id];
+    // Despawn player
+    plyr.id = null;
+    plyr.kill();
+    delete playerMap[id];
+
   } else {
     console.log(`Invalid removePlayer: ${id}`);
   }
@@ -214,7 +218,7 @@ export const removePlayer = id => {
 
 export const updatePlayer = (id, data) => {
 
-  const plyr = players[id];
+  const plyr = playerMap[id];
   
   if (plyr) {
     plyr.body.x = data.x;
@@ -231,7 +235,7 @@ export const updatePlayer = (id, data) => {
 };
 
 export const initUser = id => {
-  player = players[id];
+  player = playerMap[id];
 
   const allowBullet = () => {
     bulletsShot = Math.max(0, bulletsShot - 1);
@@ -270,7 +274,7 @@ export const initUser = id => {
     bullet.events.onKilled.add(allowBullet);
   }
 
-  // game.camera.follow(player); // TODO: sometimes camera doesn't set the player as its target  
+  game.camera.follow(player); // TODO: sometimes camera doesn't set the player as its target  
 
   return Promise.resolve();
 };
@@ -279,11 +283,11 @@ export const removeBullet = (id, data) => {
 
   const { index } = data;
 
-  if (!players.hasOwnProperty(id) || typeof index !== 'number' || index >= options.maxBulletsPerPlayer) {
+  if (!playerMap.hasOwnProperty(id) || typeof index !== 'number' || index >= options.maxBulletsPerPlayer) {
     throw new Error(`Invalid id (${id}) or index (${index}) in removeBullet()`);
   }
 
-  const bullet = bullets.getAt((players[id].index * options.maxBulletsPerPlayer) + index);
+  const bullet = bullets.getAt((playerMap[id].index * options.maxBulletsPerPlayer) + index);
 
   if (bullet.exists) bullet.kill();
 };
@@ -292,11 +296,11 @@ export const addBullet = (id, data) => {
 
   const { x, y, angle, speed, index } = data;
 
-  if (!players.hasOwnProperty(id) || typeof index !== 'number' || index >= options.maxBulletsPerPlayer) {
+  if (!playerMap.hasOwnProperty(id) || typeof index !== 'number' || index >= options.maxBulletsPerPlayer) {
     throw new Error(`Invalid id (${id}) or index (${index}) in addBullet()`);
   }
 
-  const bullet = bullets.getAt((players[id].index * options.maxBulletsPerPlayer) + index);
+  const bullet = bullets.getAt((playerMap[id].index * options.maxBulletsPerPlayer) + index);
   bullet.reset(x, y, options.bulletHealth); // health - 1 = number of bounces before dying
   
   bullet.body.rotation = angle;
@@ -357,9 +361,9 @@ game.state.add('Play', {
     game.debug.line(`FPS: ${game.time.fps}`);
     game.debug.line();
     game.debug.line('Players:');
-    for (let i = 0, ids = Object.keys(players); i < ids.length; i++) {
+    for (let i = 0, ids = Object.keys(playerMap); i < ids.length; i++) {
       const id = ids[i],
-            plyr = players[id];
+            plyr = playerMap[id];
       game.debug.line(`${i + 1}) id=${id}, x=${Math.round(plyr.x)}, y=${Math.round(plyr.y)}`);
     }
     game.debug.line();
@@ -376,7 +380,7 @@ game.state.add('Play', {
     }
 
     // TEMP
-    game.camera.focusOn(player);
+    // game.camera.focusOn(player);
   
     // Rotate left and right
     if (input.left.isDown && input.right.isDown) {
