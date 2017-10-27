@@ -96,14 +96,6 @@ class Engine {
 
     if (primitive) {
       obj.resize = (width, height) => {
-        /*
-        if (width !== obj.graphicsData[0].shape.width) {
-          obj.graphicsData[0].shape.width = width;
-        }
-        if (height !== obj.graphicsData[0].shape.height) {
-          obj.graphicsData[0].shape.height = height;
-        }
-        */
         obj.graphicsData[0].shape.width = width;
         obj.graphicsData[0].shape.height = height;
         obj.hitArea = new Pixi.Rectangle(0, 0, width, height);
@@ -113,8 +105,6 @@ class Engine {
 
       obj.translate = (xp, yp) => {
         // console.log(`[DEBUG]: translate from (${obj.position.x}, ${obj.position.y}) to (${xp}, ${yp})`);
-        //if (xp !== obj.position.x) { obj.position.x = xp; }
-        //if (yp !== obj.position.y) { obj.position.y = yp; }
         obj.position.x = xp;
         obj.position.y = yp;
       };
@@ -215,23 +205,8 @@ class Engine {
           ctl.x = offset.x;
           ctl.y = offset.y;
         };
-        ctl.setDraggingBounds = () => {
-          // TODO: Better interface to graphicsData[0].shape
-          console.log(ctl.parent);
-          let gpos = ctl.parent.position;
-          let shape = ctl.parent.graphicsData[0].shape;
-          let MIN_RECT_SIZE = 10; // TODO: move somewhere nicer
-          ctl.draggingBounds = {
-            xMin: -10000,
-            xMax: gpos.x + shape.width - MIN_RECT_SIZE, //ctl.parent.position.x + ctl.parent.graphicsData[0].shape.width,
-            yMin: -10000,
-            yMax: gpos.y + shape.height - MIN_RECT_SIZE, //ctl.parent.position.y + ctl.parent.graphicsData[0].shape.height,
-          };
-          console.log(ctl.draggingBounds);
-        };
 
         obj.addChild(ctl);
-        ctl.setDraggingBounds();
       }
     }
   };
@@ -285,41 +260,12 @@ class Engine {
     obj.dragging = true;
     obj.data = event.data;
     obj.offset = event.data.getLocalPosition(obj); // Mouse offset within obj.
-
-    if (obj.isControl) {
-      obj.setDraggingBounds();
-    }
   }
   dragMove = (obj, event) => {
     if (obj.dragging) {
-      console.log("OFFSET:"); console.log(obj.offset);
       let newPosition = obj.data.getLocalPosition(obj.parent);
-      newPosition.x -= obj.offset.x;
-      newPosition.y -= obj.offset.y;
-
-      /*
-      if (obj.draggingBounds) {
-        if (newPosition.x < obj.draggingBounds.xMin) {
-          console.log(`newpos.x = ${newPosition.x} out of bounds (low): set to ${obj.draggingBounds.xMin}`);
-          newPosition.x = obj.draggingBounds.xMin;
-        } else if (newPosition.x > obj.draggingBounds.xMax) {
-          console.log(`newpos.x = ${newPosition.x} out of bounds (high): set to ${obj.draggingBounds.xMax}`);
-          newPosition.x = obj.draggingBounds.xMax;
-        }
-
-        if (newPosition.y < obj.draggingBounds.yMin) {
-          console.log(`newpos.y = ${newPosition.y} out of bounds (low): set to ${obj.draggingBounds.yMin}`);
-          newPosition.y = obj.draggingBounds.yMin;
-        } else if (newPosition.y > obj.draggingBounds.yMax) {
-          console.log(`newpos.y = ${newPosition.y} out of bounds (high): set to ${obj.draggingBounds.yMax}`);
-          newPosition.y = obj.draggingBounds.yMax;
-        }
-      }
-      console.log(`new position: ${newPosition.x}, ${newPosition.y}`);
-      */
-
-      obj.position.x = newPosition.x;// - obj.offset.x;
-      obj.position.y = newPosition.y;// - obj.offset.y;
+      obj.position.x = newPosition.x - obj.offset.x;
+      obj.position.y = newPosition.y - obj.offset.y;
 
       if (obj.isControl) {
         this.resizeByControl(obj, obj.data.getLocalPosition(obj.parent.parent));
@@ -365,36 +311,6 @@ class Engine {
       desiredSize = { width: dragPos.x - obj.x, height: shape.height - posDelta.y };
     } */
 
-//    let newSize = desiredSize;
-//    let newPosition = desiredPosition;
-    console.log(`desiredPosition: (${desiredPosition.x}, ${desiredPosition.y})`);
-    console.log(`bounds x: (${control.draggingBounds.xMin}, ${control.draggingBounds.xMax})`);
-    console.log(`bounds y: (${control.draggingBounds.yMin}, ${control.draggingBounds.yMax})`);
-
-
-
-    /*
-    if (desiredSize.width < 10) {
-      //return;
-      desiredSize.width = 10;
-      desiredPosition.x = obj.x + (control.width / 2);
-    }
-    if (desiredSize.height < 10) {
-      //return;
-      desiredSize.height = 10;
-      desiredPosition.y = obj.y + (control.height / 2);
-    }
-    */
-
-    /*
-    if (desiredSize.width !== shape.width || desiredSize.height !== shape.height) {
-      obj.resize(desiredSize.width, desiredSize.height);
-    }
-    if (desiredPosition.x !== obj.x + (control.width / 2) ||
-        desiredPosition.y !== obj.y + (control.height / 2)) {
-      obj.translate(desiredPosition.x, desiredPosition.y);
-    }
-    */
     obj.translate(desiredPosition.x, desiredPosition.y);
     obj.resize(desiredSize.width, desiredSize.height);
     this.resetControlPositions(obj);
