@@ -284,32 +284,65 @@ class Engine {
     let desiredSize = { width: 0, height: 0 }; //
     let posDelta = { x: 0, y: 0 };
 
+    if (control.controlPosition.x === 0) {
+      desiredPosition.x = dragPos.x + (control.width / 2);
+    } else {
+      desiredPosition.x = obj.x;
+    }
+    if (control.controlPosition.y === 0) {
+      desiredPosition.y = dragPos.y + (control.height / 2);
+    } else {
+      desiredPosition.y = obj.y;
+    }
+
     // TODO: offsets will be different for different corner controls.
     if (control.controlPosition.x === 0 && control.controlPosition.y === 0) {
+      // Upper left corner control.
+      // Offset position to lower right corner of control element.
+      /*
       desiredPosition = {
         x: dragPos.x + (control.width / 2),
         y: dragPos.y + (control.height / 2),
       };
+      */
 
+      // Calculate boundries and clamp position.
       let xMax = (obj.x + shape.width) - MIN_SIZE;
       desiredPosition.x = Math.min(desiredPosition.x, xMax);
 
       let yMax = (obj.y + shape.height) - MIN_SIZE;
       desiredPosition.y = Math.min(desiredPosition.y, yMax);
 
-      posDelta = { x: desiredPosition.x - obj.x, y: desiredPosition.y - obj.y };
+      // Calculate change in position and new size.
+      //posDelta = { x: desiredPosition.x - obj.x, y: desiredPosition.y - obj.y };
+      //desiredSize = { width: shape.width - posDelta.x, height: shape.height - posDelta.y };
 
-      desiredSize = { width: shape.width - posDelta.x, height: shape.height - posDelta.y };
-
-    } /* else if (control.controlPosition.x === 1 && control.controlPosition.y === 0) {
+    } else if (control.controlPosition.x === 1 && control.controlPosition.y === 0) {
+      // Upper right corner control.
+      // Offset position to lower left corner of control element.
+      /*
       desiredPosition = {
         x: obj.x,
         y: dragPos.y + (control.height / 2),
       };
-      posDelta = { x: desiredPosition.x - obj.x, y: desiredPosition.y - obj.y };
+      */
 
-      desiredSize = { width: dragPos.x - obj.x, height: shape.height - posDelta.y };
-    } */
+      //posDelta = { x: desiredPosition.x - obj.x, y: desiredPosition.y - obj.y };
+      //desiredSize = { width: dragPos.x - obj.x, height: shape.height - posDelta.y };
+
+    }
+
+    //posDelta = { x: desiredPosition.x - obj.x, y: desiredPosition.y - obj.y };
+    if (control.controlPosition.x === 0) {
+      desiredSize.width = obj.x + shape.width - desiredPosition.x;
+    } else {
+      desiredSize.width = dragPos.x - obj.x;
+    }
+    if (control.controlPosition.y === 0) {
+      desiredSize.height = obj.y + shape.height - desiredPosition.y;
+    } else {
+      desiredSize.height = dragPos.y - obj.y;
+    }
 
     obj.translate(desiredPosition.x, desiredPosition.y);
     obj.resize(desiredSize.width, desiredSize.height);
