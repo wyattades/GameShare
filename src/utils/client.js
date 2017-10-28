@@ -4,21 +4,22 @@ import * as engine from './engine';
 let socket,
     userId;
 
-const createLevel = (groups, objects) => Promise.all(groups.map(groupData => new Promise(resolve => {
-  const group = engine.createGroup(groupData);
+const createLevel = (groupsData, objects) => {
 
-  let i = 0;
-  const interval = setInterval(() => {
-    const objData = objects[groupData.objects[i]];
-    
-    group.add(Object.assign(groupData, objData));
+  const groups = {};
 
-    if (++i >= groupData.objects.length) {
-      clearInterval(interval);
-      resolve();
-    }
-  }, 2000 / groupData.objects.length); // Take 2 seconds to spawn all the objects
-})));
+  for (let groupData of groupsData) {
+    groups[groupData.name] = engine.createGroup(groupData);
+  }
+
+  for (let objData of objects) {
+    const groupData = groupsData[objData.group];
+
+    groups[groupData.name].add(Object.assign(groupData, objData));
+  }
+
+  return Promise.resolve();
+};
 
 const addPlayers = players => {
 
@@ -60,6 +61,10 @@ const bindHandlers = () => {
     engine.removeBullet(id, data);
   });
 
+  socket.on('player_despawn', id => {
+    engine.despawnPlayer(id);
+  });
+
   return Promise.resolve();
 };
 
@@ -76,22 +81,24 @@ export const sendHit = data => {
   socket.emit('bullet_hit', userId, data);
 };
 
+export const sendDead = data => {
+  socket.emit('player_despawn', data);
+};
+
 export const connect = id => new Promise((resolve, reject) => {
   socket = io(`/${id}`);
 
   socket.on('onconnected', data => {
     userId = data.id;
 
-    const { x, y, w, h } = data.users[userId];
-
-    engine.setup(data.gameData.options, x + (w / 2), y + (h / 2))
+    engine.setup(data.gameData.options)
     .then(() => {
       resolve();
 
       createLevel(data.gameData.groups, data.gameData.objects)
       .then(() => addPlayers(data.users))
-      .then(() => bindHandlers())
-      .then(() => engine.resume());
+      .then(() => bindHandlers());
+      // .then(() => engine.resume());
 
     });
   });
