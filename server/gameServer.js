@@ -170,6 +170,11 @@ class Game {
     socket.on('bullet_hit', (id, data) => {
       this.io.emit('bullet_hit', id, data);
     });
+
+	socket.on('player_despawn', id => {
+	  this.io.emit('player_despawn', id);
+	});
+
     
   }
 
