@@ -196,9 +196,8 @@ class Engine {
         ctl.controlPosition = { x, y };
 
         ctl.getOffset = () => ({
-          // TODO: Better interface to graphicsData[0].shape
-          x: ctl.controlPosition.x === 0 ? -ctl.width : ctl.parent.graphicsData[0].shape.width,
-          y: ctl.controlPosition.y === 0 ? -ctl.height : ctl.parent.graphicsData[0].shape.height,
+          x: ctl.controlPosition.x === 0 ? -ctl.width : ctl.parent.getShape().width,
+          y: ctl.controlPosition.y === 0 ? -ctl.height : ctl.parent.getShape().height,
         });
         ctl.resetPosition = () => {
           let offset = ctl.getOffset();
@@ -274,7 +273,7 @@ class Engine {
     // TODO: make this function an obj method for control elements
     // dragPos: position being dragged to. (Could use control's position?)
     let obj = control.parent;
-    let shape = obj.graphicsData[0].shape; // TODO: build interface in obj
+    let shape = obj.getShape();
 
     let newPosition = { x: 0, y: 0 };
     let newSize = { width: 0, height: 0 };
