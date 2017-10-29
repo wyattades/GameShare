@@ -1,11 +1,6 @@
 import React, { Component } from 'react';
 
 import Engine from '../utils/EditorEngine';
-// import InputManager from '../utils/InputManager';
-
-/*
-
-drawGrid();
 
 // document.getElementById('obj-create').addEventListener('click', () => {
 //   grid.addObject(createRect({
@@ -23,8 +18,6 @@ drawGrid();
 //   drawGrid();
 // });
 
-*/
-
 export default class extends Component {
 
   componentDidMount() {
@@ -33,22 +26,15 @@ export default class extends Component {
     this.init();
     this.app.start();
 
-    // grid.position.x = -400;
-    // grid.position.y = -400;
+    // this.app.container.position.x = -400;
+    // this.app.container.position.y = -400;
   }
 
   componentWillUnmount() {
     this.app.stop();
   }
 
-  init = () => {
-    /*
-    // Add example object
-    grid.addObject(createRect({
-      x: 100, y: 100, w: 80, h: 100, draggable: true, selectable: true, fill: 0xFFAABB, stroke: 0x000000,
-    }));
-    */
-  }
+  init = () => { }
 
   render() {
     return (
