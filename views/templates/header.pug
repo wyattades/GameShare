@@ -1,0 +1,31 @@
+-
+  // [ label, filename, path ]
+  const pageData =  [ ['Home','index','/'], ['Games', 'games', '/games'], ['Edit','edit','/edit'], ['Play','play','/play'] ];
+
+nav.navbar.has-shadow.is-dark
+  .container
+    .navbar-brand
+      a.navbar-item(href="/")
+        img(src="https://cdn3.iconfinder.com/data/icons/black-easy/512/535112-game_512x512.png", alt="GameShare Icon", width="112", height="28")
+      .navbar-burger.burger(data-target="navbarMenu")
+        span
+        span
+        span
+    .navbar-menu#navbarMenu
+      .navbar-start
+        each p in pageData
+          a.navbar-item.is-tab(class=self.page === p[1] && 'is-active' href=p[2])
+            = p[0]
+      .navbar-end
+        .navbar-item
+          .field.is-grouped
+            p.control
+              a.bd-tw-button.button(href="/login")
+                span.icon
+                  i.fa.fa-sign-in
+                span Login
+            p.control
+              a.button.is-primary(href="/register")
+                span.icon
+                  i.fa.fa-user-plus
+                span Register
