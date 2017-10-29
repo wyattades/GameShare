@@ -88,27 +88,11 @@ class Engine {
   }
 
 
-  createObject = ({ x = 0, y = 0, w = 1, h = 1, draggable, container, selectable, primitive }) => {
+  createObject = ({ x = 0, y = 0, w = 1, h = 1, draggable, container, selectable }) => {
 
     const obj = new Pixi.Graphics();
 
     if (selectable) { obj.selectable = true; }
-
-    if (primitive) {
-      obj.resize = (width, height) => {
-        obj.graphicsData[0].shape.width = width;
-        obj.graphicsData[0].shape.height = height;
-        obj.hitArea = new Pixi.Rectangle(0, 0, width, height);
-        obj.dirty++;
-        obj.clearDirty++;
-      };
-
-      obj.translate = (xp, yp) => {
-        // console.log(`[DEBUG]: translate from (${obj.position.x}, ${obj.position.y}) to (${xp}, ${yp})`);
-        obj.position.x = xp;
-        obj.position.y = yp;
-      };
-    }
 
     if (container) {
       obj.getChildren = () => obj.children;
@@ -163,12 +147,28 @@ class Engine {
 
   createRect = ({ w = 1, h = 1, fill, stroke, ...rest }) => {
 
-    const rect = this.createObject({ w, h, primitive: true, ...rest });
+    const rect = this.createObject({ w, h, ...rest });
 
     if (typeof stroke === 'number') rect.lineStyle(1, stroke, 1);
     if (typeof fill === 'number') rect.beginFill(fill);
     rect.drawRect(0, 0, w, h);
     rect.endFill();
+
+    // This will cause problems if the rectangle is ever destroyed, so don't do that.
+    rect.getShape = () => rect.graphicsData[0].shape;
+
+    rect.resize = (width, height) => {
+      rect.getShape().width = width;
+      rect.getShape().height = height;
+      rect.hitArea = new Pixi.Rectangle(0, 0, width, height);
+      rect.dirty++;
+      rect.clearDirty++;
+    };
+
+    rect.translate = (xp, yp) => {
+      rect.position.x = xp;
+      rect.position.y = yp;
+    };
 
     return rect;
   };
