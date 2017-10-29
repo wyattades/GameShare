@@ -281,37 +281,42 @@ class Engine {
     let shape = obj.graphicsData[0].shape; // TODO: build interface in obj
 
     let desiredPosition = { x: 0, y: 0 }; // Target position for upper left corner of obj.
-    let desiredSize = { width: 0, height: 0 }; //
-    let posDelta = { x: 0, y: 0 };
+    let desiredSize = { width: 0, height: 0 };
 
+    // Calculate new width.
     if (control.controlPosition.x === 0) {
+      // This is a left-side control.
       desiredPosition.x = dragPos.x + (control.width / 2);
-      // Elements that move the actual origin location have an additional boundry check:
+
+      // Clamp to dragging bounds (prevents sliding element):
       let xMax = (obj.x + shape.width) - MIN_SIZE;
       desiredPosition.x = Math.min(desiredPosition.x, xMax);
-    } else {
-      desiredPosition.x = obj.x;
-    }
-    if (control.controlPosition.y === 0) {
-      desiredPosition.y = dragPos.y + (control.height / 2);
-      // Elements that move the actual origin location have an additional boundry check:
-      let yMax = (obj.y + shape.height) - MIN_SIZE;
-      desiredPosition.y = Math.min(desiredPosition.y, yMax);
-    } else {
-      desiredPosition.y = obj.y;
-    }
 
-    if (control.controlPosition.x === 0) {
-      desiredSize.width = obj.x + shape.width - desiredPosition.x;
+      desiredSize.width = (obj.x + shape.width) - desiredPosition.x;
     } else {
+      // This is a right-side control.
+      desiredPosition.x = obj.x;
       desiredSize.width = dragPos.x - obj.x;
     }
+    // Clamp to dragging bounds.
     if (desiredSize.width < MIN_SIZE) { desiredSize.width = MIN_SIZE; }
+
+    // Calculate new height.
     if (control.controlPosition.y === 0) {
-      desiredSize.height = obj.y + shape.height - desiredPosition.y;
+      // This is a top control.
+      desiredPosition.y = dragPos.y + (control.height / 2);
+
+      // Clamp to dragging bounds (prevents sliding element):
+      let yMax = (obj.y + shape.height) - MIN_SIZE;
+      desiredPosition.y = Math.min(desiredPosition.y, yMax);
+
+      desiredSize.height = (obj.y + shape.height) - desiredPosition.y;
     } else {
+      // This is a bottom control.
+      desiredPosition.y = obj.y;
       desiredSize.height = dragPos.y - obj.y;
     }
+    // Clamp to dragging bounds.
     if (desiredSize.height < MIN_SIZE) { desiredSize.height = MIN_SIZE; }
 
     obj.translate(desiredPosition.x, desiredPosition.y);
