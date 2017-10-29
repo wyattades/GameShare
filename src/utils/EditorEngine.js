@@ -1,6 +1,9 @@
 import * as Pixi from 'pixi.js';
 import Colors from './Colors';
 
+const GRID_SIZE = 10000;
+const GRID_SPACING = 20; // SNAP
+const RESIZE_CONTROL_SIZE = 10;
 
 class Engine {
 
@@ -17,14 +20,15 @@ class Engine {
 
     parent.appendChild(this.app.view);
 
-    // TODO: grid size to initial size params
-    const GRID_SIZE = 10000;
-    this.gridSpacing = 20; // Formerly SNAP
-    this.container = this.generateGrid(GRID_SIZE, GRID_SIZE, this.gridSpacing);
+    this.gridSize = GRID_SIZE;
+    this.gridSpacing = GRID_SPACING;
+    this.container = this.generateGrid(this.gridSize, this.gridSize, this.gridSpacing);
     this.app.stage.addChild(this.container);
 
     this.selectedObject = null; // The currently selected object.
     this.lockSelect = false; // When true, objects won't be selected.
+
+    this.resizeControlSize = RESIZE_CONTROL_SIZE; // Size of resize control elements.
 
     // Adding some test data
     this.container.addObject(
@@ -173,20 +177,22 @@ class Engine {
     return rect;
   };
 
-  // TODO: Make control manipulation functions into obj methods
+  // Control manipulation is in the Engine class for easier
+  // access to object creation functions.
   createControls = (obj) => {
-    let width = 10;
-    let height = 10;
+    // Saving these because they change with added children.
     let obj_width = obj.width;
     let obj_height = obj.height;
 
+    // controlPosition.x: left (0) or right (1) side.
+    // controlPosition.y: top (0) or bottom (1) side.
     for (let x = 0; x < 2; x++) {
       for (let y = 0; y < 2; y++) {
         let ctl = this.createRect({
-          x: x === 0 ? -width : obj_width,
-          y: y === 0 ? -height : obj_height,
-          w: width,
-          h: height,
+          x: x === 0 ? -this.resizeControlSize : obj_width,
+          y: y === 0 ? -this.resizeControlSize : obj_height,
+          w: this.resizeControlSize,
+          h: this.resizeControlSize,
           fill: Colors.WHITE,
           stroke: Colors.BLACK,
           draggable: true,
@@ -195,14 +201,9 @@ class Engine {
         ctl.isControl = true;
         ctl.controlPosition = { x, y };
 
-        ctl.getOffset = () => ({
-          x: ctl.controlPosition.x === 0 ? -ctl.width : ctl.parent.getShape().width,
-          y: ctl.controlPosition.y === 0 ? -ctl.height : ctl.parent.getShape().height,
-        });
         ctl.resetPosition = () => {
-          let offset = ctl.getOffset();
-          ctl.x = offset.x;
-          ctl.y = offset.y;
+          ctl.x = ctl.controlPosition.x === 0 ? -ctl.width : ctl.parent.getShape().width;
+          ctl.y = ctl.controlPosition.y === 0 ? -ctl.height : ctl.parent.getShape().height;
         };
 
         obj.addChild(ctl);
