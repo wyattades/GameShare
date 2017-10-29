@@ -3,6 +3,7 @@ import Colors from './Colors';
 
 const GRID_SIZE = 10000;
 const GRID_SPACING = 20; // SNAP
+const RECT_MIN_SIZE = 10; // Minimum size of a rectangle object.
 const RESIZE_CONTROL_SIZE = 10;
 
 class Engine {
@@ -86,11 +87,6 @@ class Engine {
     this.app.ticker.destroy(); // or stop() ?
     this.app.stop();
   }
-
-  translate = (x, y, z) => {
-
-  }
-
 
   createObject = ({ x = 0, y = 0, w = 1, h = 1, draggable, container, selectable }) => {
 
@@ -231,7 +227,7 @@ class Engine {
   clearSelection = () => {
     if (this.selectedObject) {
       this.selectedObject.tint = Colors.WHITE;
-      this.removeControls(this.selectedObject); // TODO: move to obj method
+      this.removeControls(this.selectedObject);
     }
 
     this.selectedObject = null;
@@ -257,23 +253,22 @@ class Engine {
     obj.data = event.data;
     obj.offset = event.data.getLocalPosition(obj); // Mouse offset within obj.
   }
-  dragMove = (obj, event) => {
+  dragMove = (obj) => {
     if (obj.dragging) {
       let newPosition = obj.data.getLocalPosition(obj.parent);
       obj.position.x = newPosition.x - obj.offset.x;
       obj.position.y = newPosition.y - obj.offset.y;
 
       if (obj.isControl) {
-        this.resizeByControl(obj, obj.data.getLocalPosition(obj.parent.parent));
+        this.resizeByControl(obj);
       }
 
     }
   }
-  resizeByControl(control, dragPos) {
-    const MIN_SIZE = 10; // TODO: move somewhere nicer
-    // TODO: make this function an obj method for control elements
-    // dragPos: position being dragged to. (Could use control's position?)
+  resizeByControl(control) {
+    let MIN_SIZE = RECT_MIN_SIZE;
     let obj = control.parent;
+    let dragPos = obj.data.getLocalPosition(obj.parent); // data added in dragStart().
     let shape = obj.getShape();
 
     let newPosition = { x: 0, y: 0 };
@@ -319,7 +314,7 @@ class Engine {
     obj.resize(newSize.width, newSize.height);
     this.resetControlPositions(obj);
   }
-  dragEnd = (obj, event) => {
+  dragEnd = (obj) => {
     obj.alpha = 1.0;
     obj.dragging = false;
 
