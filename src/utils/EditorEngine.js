@@ -1,9 +1,9 @@
 import * as Pixi from 'pixi.js';
 import Colors from './Colors';
 
-const GRID_SIZE = 10000;
+const GRID_SIZE = 401;
 const GRID_SPACING = 20; // SNAP
-const GRID_BORDER_SIZE = 400; // Size of the border around the playable area (one side)
+const GRID_BORDER_SIZE = 0; // Size of the border around the playable area (one side)
 
 const RECT_MIN_SIZE = 10; // Minimum size of a rectangle object.
 const RESIZE_CONTROL_SIZE = 10;
@@ -68,7 +68,7 @@ class Engine {
     let h = height + (borderSize * 2);
 
     let grid = this.createObject({
-      x: 0, y: 0, w: width, h: height, draggable: true, container: true,
+      x: 0, y: 0, w, h, draggable: true, container: true,
     });
     grid.lineStyle(1, lineColor, 1);
     for (let x = 0; x < w; x += snap) {
@@ -81,6 +81,8 @@ class Engine {
       grid.moveTo(0, y);
       grid.lineTo(h, y);
     }
+    grid.boundsX = width;
+    grid.boundsY = height;
     return grid;
   }
 
@@ -265,8 +267,28 @@ class Engine {
   dragMove = (obj) => {
     if (obj.dragging) {
       let newPosition = obj.data.getLocalPosition(obj.parent);
-      obj.position.x = newPosition.x - obj.offset.x;
-      obj.position.y = newPosition.y - obj.offset.y;
+
+      newPosition.x -= obj.offset.x;
+      newPosition.y -= obj.offset.y;
+
+      if (obj !== this.container) {
+        // Check bounds
+        let shape = obj.getShape();
+        if (newPosition.x < 0) {
+          newPosition.x = 0;
+        } else if (newPosition.x + shape.width > this.container.boundsX) {
+          newPosition.x = this.container.boundsX - shape.width;
+        }
+
+        if (newPosition.y < 0) {
+          newPosition.y = 0;
+        } else if (newPosition.y + shape.height > this.container.boundsY) {
+          newPosition.y = this.container.boundsY - shape.height;
+        }
+      }
+
+      obj.position.x = newPosition.x;
+      obj.position.y = newPosition.y;
 
       if (obj.isControl) {
         this.resizeParent(obj);
@@ -277,7 +299,7 @@ class Engine {
   resizeParent(control) {
     let MIN_SIZE = RECT_MIN_SIZE;
     let obj = control.parent;
-    let dragPos = obj.data.getLocalPosition(obj.parent); // data added in dragStart().
+    let dragPos = control.data.getLocalPosition(obj.parent);
     let shape = obj.getShape();
 
     let newPosition = { x: 0, y: 0 };
