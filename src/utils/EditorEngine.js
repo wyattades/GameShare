@@ -274,6 +274,7 @@ class Engine {
       if (obj !== this.container) {
         // Check bounds
         let shape = obj.getShape();
+
         if (newPosition.x < 0) {
           newPosition.x = 0;
         } else if (newPosition.x + shape.width > this.container.boundsX) {
@@ -314,14 +315,24 @@ class Engine {
       let xMax = (obj.x + shape.width) - MIN_SIZE;
       newPosition.x = Math.min(newPosition.x, xMax);
 
+      // Clamp to grid area.
+      let xMin = 0;
+      newPosition.x = Math.max(newPosition.x, xMin);
+
       newSize.width = (obj.x + shape.width) - newPosition.x;
     } else {
       // This is a right-side control.
       newPosition.x = obj.x;
       newSize.width = dragPos.x - obj.x;
+
+      // Clamp to grid boundary width.
+      if (newPosition.x + newSize.width > this.container.boundsX) {
+        newSize.width = this.container.boundsX - newPosition.x;
+      }
     }
-    // Clamp to dragging bounds.
+    // Clamp to minimum width.
     if (newSize.width < MIN_SIZE) { newSize.width = MIN_SIZE; }
+
 
     // Calculate new height.
     if (control.controlPosition.y === 0) {
@@ -332,13 +343,22 @@ class Engine {
       let yMax = (obj.y + shape.height) - MIN_SIZE;
       newPosition.y = Math.min(newPosition.y, yMax);
 
+      // Clamp to grid area.
+      let yMin = 0;
+      newPosition.y = Math.max(newPosition.y, yMin);
+
       newSize.height = (obj.y + shape.height) - newPosition.y;
     } else {
       // This is a bottom control.
       newPosition.y = obj.y;
       newSize.height = dragPos.y - obj.y;
+
+      // Clamp to grid boundary height.
+      if (newPosition.y + newSize.height > this.container.boundsY) {
+        newSize.height = this.container.boundsY - newPosition.y;
+      }
     }
-    // Clamp to dragging bounds.
+    // Clamp to minimum height.
     if (newSize.height < MIN_SIZE) { newSize.height = MIN_SIZE; }
 
     obj.translate(newPosition.x, newPosition.y);
