@@ -7,20 +7,92 @@
     <% for (let c of css) { %>
       <link rel="stylesheet" href="<%= c %>">
     <% } %>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
   </head>
   <body>
-    <div class="ui">
-      <%- include templates/header %>        
-      <div class="ui-body">
-        <div class="ui-sidebar">
-          <p>Sidebar</p>
-          <button id="obj-create">Create</button>
-          <button id="obj-delete">Delete</button>
-          <button id="obj-duplicate">Duplicate</button>
+    <%- include templates/header %>
+    <section class="ui">
+      <div class="columns ui-body">
+        <div class="column is-one-quarter sidebar">
+          <div class="panel">
+            <p class="panel-heading">Grid Settings</p>
+            <div class="panel-block">
+              <div class="field">
+                <label class="label is-small" for="snap-input">Snap</label>
+                <div class="control">
+                  <input class="input is-small" id="snap-input" type="number" value="10" max="100" name="snap">
+                </div>
+              </div>
+            </div>
+            <div class="panel-block">
+              <div class="field">
+                <label class="label is-small" for="boundary-x">Width of Playable Area</label>
+                <div class="control">
+                  <input class="input is-small" id="boundary-x" type="number" value="7000" max="10000" name="boundary-x">
+                </div>
+              </div>
+            </div>
+            <div class="panel-block">
+              <div class="field">
+                <label class="label is-small" for="boundary-x">Height of Playable Area</label>
+                <div class="control">
+                  <input class="input is-small" id="boundary-y" type="number" value="7000" max="10000" name="boundary-y">
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="panel">
+            <p class="panel-heading">Objects</p>
+            <div class="panel-block">
+              <span class="type-name">default</span>
+              <input type="color" name="type color" id="type-color" value="#FFAABB" style="margin-left: auto;">
+              <div class="field has-addons">
+                <div class="control">
+                  <button class="button is-small" name="rename type">
+                    <i class="fa fa-pencil"></i>
+                  </button>
+                </div>
+                <div class="control">
+                  <button class="button is-small" name="delete type">
+                    <i class="fa fa-trash"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+            <div class="panel-block">
+              <button>
+                <div class="color-box"></div>
+                x: 450, y: 450, w: 80, h: 100
+              </button>
+<!--                   <button
+      onClick={this._pressChild(obj)}
+      className={`child-item menu-item menu-button ${obj === this.props.selected.obj ? 'selected' : ''}`}
+    >
+      <div className="color-box" style={obj.color ? { backgroundColor: obj.color, backgroundImage: 'none' } : {}}/>
+      <span>{`x:${obj.x}, y:${obj.y}, w:${obj.w}, h:${obj.h}`}</span>
+    </button> -->
+            </div>
+            <div class="panel-block">
+              <div class="field is-grouped is-centered">
+                <div class="control">
+                  <button class="button is-small">New Type</button>
+                </div>
+                <div class="control">
+                  <button class="button is-small">New Object</button>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="panel">
+            <p class="panel-heading">Object Settings</p>
+            <div class="panel-block">
+
+            </div>
+          </div>
         </div>
-        <div id="<%= rootId %>"></div>            
+        <div class="column root-column" id="<%= rootId %>"></div>
       </div>
-    </div>  
+    </section>
     <script src="<%= script %>"></script>
   </body>
 </html>
