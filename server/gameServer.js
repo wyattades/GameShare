@@ -77,6 +77,7 @@ class Game {
         vy: user.vy,
         angle: user.angle,
         vangle: user.vangle,
+        turret: user.turret,
       };
     }
 
@@ -97,29 +98,38 @@ class Game {
     const userId = UUID();
   
     const newUser = {
+      w: 60,
+      h: 60,
       vx: 0,
       vy: 0,
       vangle: 0,
       angle: 0,
+      turret: 0,
       color: Math.random() * 0xFFFFFF << 0,
     };
 
     const bounds = this.gameData.options.bounds;
 
     // TEMP: add player to random position on map
-    let collide = true;
-    while (collide) {
-      newUser.x = bounds.x + (Math.random() * bounds.w);
-      newUser.y = bounds.y + (Math.random() * bounds.h);
+    newUser.x = bounds.x + (Math.random() * (bounds.w - newUser.w));
+    newUser.y = bounds.y + (Math.random() * (bounds.h - newUser.h));
 
-      collide = false;
-      // for (let obj of this.gameData.objects) {
-      //   if (boxCollide(obj, newUser)) {
-      //     collide = true;
-      //     break;
-      //   }
-      // }
-    }
+    // const displace = Math.random() > 0.5 ? 10 : -10;
+
+    // // Move player left or right until it doesn't collide with anything
+    // let collide = true;
+    // while (collide) {
+
+    //   newUser.x += displace;
+
+    //   collide = false;
+    //   for (let obj of this.gameData.objects) {
+    //     if (boxCollide(obj, newUser)) {
+    //       collide = true;
+    //       break;
+    //     }
+    //   }
+    // }
 
     this.users[userId] = newUser;
   
@@ -151,6 +161,14 @@ class Game {
       }
 
       Object.assign(user, data);
+    });
+
+    socket.on('bullet_create', (id, data) => {
+      this.io.emit('bullet_create', id, data);
+    });
+
+    socket.on('bullet_hit', (id, data) => {
+      this.io.emit('bullet_hit', id, data);
     });
     
   }
