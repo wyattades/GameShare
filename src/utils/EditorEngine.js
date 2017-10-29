@@ -33,6 +33,7 @@ class Engine {
     this.selectedObject = null; // The currently selected object.
     this.lockSelect = false; // When true, objects won't be selected.
 
+    this.rectMinSize = RECT_MIN_SIZE;
     this.resizeControlSize = RESIZE_CONTROL_SIZE; // Size of resize control elements.
 
     // Adding some test data
@@ -81,8 +82,7 @@ class Engine {
       grid.moveTo(0, y);
       grid.lineTo(h, y);
     }
-    grid.boundsX = width;
-    grid.boundsY = height;
+    grid.bounds = { x: width, y: height };
     return grid;
   }
 
@@ -164,13 +164,11 @@ class Engine {
     if (typeof fill === 'number') rect.beginFill(fill);
     rect.drawRect(0, 0, w, h);
     rect.endFill();
-
-    // This will cause problems if the rectangle is ever destroyed, so don't do that.
-    rect.getShape = () => rect.graphicsData[0].shape;
+    rect.shape = rect.graphicsData[0].shape;
 
     rect.resize = (width, height) => {
-      rect.getShape().width = width;
-      rect.getShape().height = height;
+      rect.shape.width = width;
+      rect.shape.height = height;
       rect.hitArea = new Pixi.Rectangle(0, 0, width, height);
       rect.dirty++;
       rect.clearDirty++;
@@ -188,11 +186,9 @@ class Engine {
   // access to object creation functions.
   createControls = (obj) => {
     // Saving these because they change with added children.
-    let obj_width = obj.width;
-    let obj_height = obj.height;
+    let obj_width = obj.width,
+        obj_height = obj.height;
 
-    // controlPosition.x: left (0) or right (1) side.
-    // controlPosition.y: top (0) or bottom (1) side.
     for (let x = 0; x < 2; x++) {
       for (let y = 0; y < 2; y++) {
         let ctl = this.createRect({
@@ -203,14 +199,16 @@ class Engine {
           fill: Colors.WHITE,
           stroke: Colors.BLACK,
           draggable: true,
-          container: false,
-          selectable: false });
+        });
         ctl.isControl = true;
+
+        // controlPosition.x: left (0) or right (1) side.
+        // controlPosition.y: top (0) or bottom (1) side.
         ctl.controlPosition = { x, y };
 
         ctl.resetPosition = () => {
-          ctl.x = ctl.controlPosition.x === 0 ? -ctl.width : ctl.parent.getShape().width;
-          ctl.y = ctl.controlPosition.y === 0 ? -ctl.height : ctl.parent.getShape().height;
+          ctl.x = ctl.controlPosition.x === 0 ? -ctl.width : ctl.parent.shape.width;
+          ctl.y = ctl.controlPosition.y === 0 ? -ctl.height : ctl.parent.shape.height;
         };
 
         obj.addChild(ctl);
@@ -273,18 +271,16 @@ class Engine {
 
       if (obj !== this.container) {
         // Check bounds
-        let shape = obj.getShape();
-
         if (newPosition.x < 0) {
           newPosition.x = 0;
-        } else if (newPosition.x + shape.width > this.container.boundsX) {
-          newPosition.x = this.container.boundsX - shape.width;
+        } else if (newPosition.x + obj.shape.width > this.container.bounds.x) {
+          newPosition.x = this.container.bounds.x - obj.shape.width;
         }
 
         if (newPosition.y < 0) {
           newPosition.y = 0;
-        } else if (newPosition.y + shape.height > this.container.boundsY) {
-          newPosition.y = this.container.boundsY - shape.height;
+        } else if (newPosition.y + obj.shape.height > this.container.bounds.y) {
+          newPosition.y = this.container.bounds.y - obj.shape.height;
         }
       }
 
@@ -298,13 +294,10 @@ class Engine {
     }
   }
   resizeParent(control) {
-    let MIN_SIZE = RECT_MIN_SIZE;
-    let obj = control.parent;
-    let dragPos = control.data.getLocalPosition(obj.parent);
-    let shape = obj.getShape();
-
-    let newPosition = { x: 0, y: 0 };
-    let newSize = { width: 0, height: 0 };
+    let obj = control.parent,
+        dragPos = control.data.getLocalPosition(obj.parent),
+        newPosition = { x: 0, y: 0 },
+        newSize = { width: 0, height: 0 };
 
     // Calculate new width.
     if (control.controlPosition.x === 0) {
@@ -312,26 +305,26 @@ class Engine {
       newPosition.x = dragPos.x + (control.width / 2);
 
       // Clamp to dragging bounds (prevents sliding element):
-      let xMax = (obj.x + shape.width) - MIN_SIZE;
+      let xMax = (obj.x + obj.shape.width) - this.rectMinSize;
       newPosition.x = Math.min(newPosition.x, xMax);
 
       // Clamp to grid area.
       let xMin = 0;
       newPosition.x = Math.max(newPosition.x, xMin);
 
-      newSize.width = (obj.x + shape.width) - newPosition.x;
+      newSize.width = (obj.x + obj.shape.width) - newPosition.x;
     } else {
       // This is a right-side control.
       newPosition.x = obj.x;
       newSize.width = dragPos.x - obj.x;
 
       // Clamp to grid boundary width.
-      if (newPosition.x + newSize.width > this.container.boundsX) {
-        newSize.width = this.container.boundsX - newPosition.x;
+      if (newPosition.x + newSize.width > this.container.bounds.x) {
+        newSize.width = this.container.bounds.x - newPosition.x;
       }
     }
     // Clamp to minimum width.
-    if (newSize.width < MIN_SIZE) { newSize.width = MIN_SIZE; }
+    if (newSize.width < this.rectMinSize) { newSize.width = this.rectMinSize; }
 
 
     // Calculate new height.
@@ -340,26 +333,26 @@ class Engine {
       newPosition.y = dragPos.y + (control.height / 2);
 
       // Clamp to dragging bounds (prevents sliding element):
-      let yMax = (obj.y + shape.height) - MIN_SIZE;
+      let yMax = (obj.y + obj.shape.height) - this.rectMinSize;
       newPosition.y = Math.min(newPosition.y, yMax);
 
       // Clamp to grid area.
       let yMin = 0;
       newPosition.y = Math.max(newPosition.y, yMin);
 
-      newSize.height = (obj.y + shape.height) - newPosition.y;
+      newSize.height = (obj.y + obj.shape.height) - newPosition.y;
     } else {
       // This is a bottom control.
       newPosition.y = obj.y;
       newSize.height = dragPos.y - obj.y;
 
       // Clamp to grid boundary height.
-      if (newPosition.y + newSize.height > this.container.boundsY) {
-        newSize.height = this.container.boundsY - newPosition.y;
+      if (newPosition.y + newSize.height > this.container.bounds.y) {
+        newSize.height = this.container.bounds.y - newPosition.y;
       }
     }
     // Clamp to minimum height.
-    if (newSize.height < MIN_SIZE) { newSize.height = MIN_SIZE; }
+    if (newSize.height < this.rectMinSize) { newSize.height = this.rectMinSize; }
 
     obj.translate(newPosition.x, newPosition.y);
     obj.resize(newSize.width, newSize.height);
