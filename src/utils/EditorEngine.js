@@ -27,7 +27,7 @@ class Engine {
     this.gridSpacing = GRID_SPACING;
     this.gridBorderSize = GRID_BORDER_SIZE;
     this.container = this.generateGrid(this.gridSize, this.gridSize,
-      this.gridSpacing, this.gridBorderSize);
+      this.gridSpacing, this.gridBorderSize, Colors.GRAY);
     this.app.stage.addChild(this.container);
 
     this.selectedObject = null; // The currently selected object.
@@ -63,21 +63,21 @@ class Engine {
 
   }
 
-  generateGrid = (width, height, snap, borderSize) => {
+  generateGrid = (width, height, snap, borderSize, lineColor) => {
     let w = width + (borderSize * 2);
     let h = height + (borderSize * 2);
 
     let grid = this.createObject({
       x: 0, y: 0, w: width, h: height, draggable: true, container: true,
     });
-    grid.lineStyle(1, 0xAAAAAA, 1);
+    grid.lineStyle(1, lineColor, 1);
     for (let x = 0; x < w; x += snap) {
-      grid.lineStyle(x % 100 === 0 ? 2 : 1, 0xAAAAAA, 1);
+      grid.lineStyle(x % 100 === 0 ? 2 : 1, lineColor, 1);
       grid.moveTo(x, 0);
       grid.lineTo(x, w);
     }
     for (let y = 0; y < h; y += snap) {
-      grid.lineStyle(y % 100 === 0 ? 2 : 1, 0xAAAAAA, 1);
+      grid.lineStyle(y % 100 === 0 ? 2 : 1, lineColor, 1);
       grid.moveTo(0, y);
       grid.lineTo(h, y);
     }
