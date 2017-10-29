@@ -269,12 +269,12 @@ class Engine {
       obj.position.y = newPosition.y - obj.offset.y;
 
       if (obj.isControl) {
-        this.resizeByControl(obj);
+        this.resizeParent(obj);
       }
 
     }
   }
-  resizeByControl(control) {
+  resizeParent(control) {
     let MIN_SIZE = RECT_MIN_SIZE;
     let obj = control.parent;
     let dragPos = obj.data.getLocalPosition(obj.parent); // data added in dragStart().
@@ -328,7 +328,7 @@ class Engine {
     obj.dragging = false;
 
     if (obj.isControl) {
-      this.resizeByControl(obj, obj.data.getLocalPosition(obj.parent.parent));
+      this.resizeParent(obj);
     }
   }
 
