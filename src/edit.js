@@ -22,7 +22,6 @@ let boundary = grid.addObject(createRect({
 function drawGrid() {
   grid.w = GRID_X;
   grid.h = GRID_Y;
-  // console.log(grid.w, grid.h);
 
   for (let x = 0; x < grid.w + 800; x += SNAP) {
     if (x % 100 === 0) { grid.lineStyle(2, 0xAAAAAA, 1); }
@@ -52,3 +51,9 @@ app.start();
 
 grid.position.x = -400;
 grid.position.y = -400;
+
+$('#new-object-button').click(function() {
+  grid.addObject(createRect({
+    x: 500, y: 500, w: 80, h: 80, draggable: true, fill: 0xFFAABB, stroke: 0x000000,
+  }));
+});

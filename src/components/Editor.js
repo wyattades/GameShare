@@ -1,23 +1,8 @@
 import $ from 'jquery';
-// import Engine, { createRect, createObject } from '../utils/EditorEngine';
+// import { createRect, createObject } from '../utils/EditorEngine';
 // import InputManager from '../utils/InputManager';
 
-// document.getElementById('obj-create').addEventListener('click', () => {
-//   grid.addObject(createRect({
-//     x: 80, y: 80, w: 80, h: 80, draggable: true, fill: 0xFFAABB, stroke: 0x000000,
-//   }));
-// });
-
-// document.getElementById('boundary-x').addEventListener('change', () => {
-//   GRID_X = document.getElementById('boundary-x').value;
-//   drawGrid();
-// });
-
-// document.getElementById('boundary-y').addEventListener('change', () => {
-//   GRID_Y = document.getElementById('boundary-y').value;
-//   drawGrid();
-// });
-
+// Handles displaying content for object/grid tabs
 $('#object-tab').click(function() {
   $('#object-tab').addClass('is-active');
   $('#grid-tab').removeClass('is-active');
@@ -32,4 +17,16 @@ $('#grid-tab').click(function() {
   $('.grid-block').css('display', 'block');
 });
 
+// Handles displaying object settings panel
+$('.object-button').click(function() {
+  $('.object-settings').css('display', 'block');
+});
+
+$(document).click(function(event) {
+  if ($(event.target).attr('class') !== 'object-button' && $('.object-settings').css('display') === 'block') {
+    $('.object-settings').css('display', 'none');
+  }
+});
+
+// Handles adding type to sidebar
 
