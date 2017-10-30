@@ -11,7 +11,6 @@
   },
   "dependencies": {
     "bulma": "^0.6.0",
-    "ejs": "^2.5.7",
     "express": "^4.16.1",
     "jquery": "^3.2.1",
     "node-uuid": "^1.4.8",
@@ -19,9 +18,7 @@
     "pixi.js": "^4.5.6",
     "prop-types": "^15.6.0",
     "pug": "^2.0.0-rc.4",
-    "react": "^16.0.0",
-    "react-dom": "^16.0.0",
-    "react-hot-loader": "^3.0.0-beta.7",
+    "pug-loader": "^2.3.0",
     "socket.io": "^2.0.3",
     "socket.io-client": "^2.0.3",
     "webpack": "^3.6.0",

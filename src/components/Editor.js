@@ -1,11 +1,6 @@
 import $ from 'jquery';
-// import pug from 'pug';
 
-// const pug = require('pug');
-// const compiledType = pug.compileFile('type.pug');
-
-// import { createRect, createObject } from '../utils/EditorEngine';
-// import InputManager from '../utils/InputManager';
+import typeTemplate from './type.pug';
 
 // Handles displaying content for object/grid tabs
 $('#object-tab').click(function() {
@@ -49,7 +44,7 @@ $(document).click(function(event) {
 // Handles adding type to sidebar
 $('#new-type-button').click(function() {
   let typeName = prompt('Enter new object type name:');
-  // let typeHTML = compiledType({ name: typeName });
-  let typeHTML = '<div class="object-block panel-block"><span class="type-name">' + typeName + '</span><input type="color" name="type color" id="type-color" value="#FFAABB" style="margin-left: auto;"><div class="field has-addons"><div class="control"><button class="button is-small" name="rename type"><i class="fa fa-pencil"></i></button></div><div class="control"><button class="button is-small" name="delete type"><i class="fa fa-trash"></i></button></div></div></div>'
+  let typeHTML = typeTemplate({ name: typeName });
+  // let typeHTML = '<div class="object-block panel-block"><span class="type-name">' + typeName + '</span><input type="color" name="type color" id="type-color" value="#FFAABB" style="margin-left: auto;"><div class="field has-addons"><div class="control"><button class="button is-small" name="rename type"><i class="fa fa-pencil"></i></button></div><div class="control"><button class="button is-small" name="delete type"><i class="fa fa-trash"></i></button></div></div></div>'
   $(typeHTML).insertBefore('#new-buttons');
 });
