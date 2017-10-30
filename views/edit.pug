@@ -1,18 +1,16 @@
-<!DOCTYPE html>
-<html>
-  <head>
-    <meta http-equiv="Content-type" content="text/html; charset=utf-8"/>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><%= title %></title>
-    <% for (let c of css) { %>
-      <link rel="stylesheet" href="<%= c %>">
-    <% } %>
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
-  </head>
-  <body>
-    <%- include templates/header %>
-    <section class="ui">
-      <div class="columns ui-body">
+extends ./templates/boilerplate
+
+block page_content
+
+  include ./templates/header
+
+  //- YO! If you don't see the editor canvas, the reason is probably 
+      cause React is still being used (its nesting the canvas in some divs)
+
+  <div class="layers">
+    <div id="root" class="layer"></div>
+    <div class="layer">
+      <div class="columns">
         <div class="column is-one-quarter sidebar">
           <div class="panel">
             <p class="panel-heading">Grid Settings</p>
@@ -62,15 +60,15 @@
             <div class="panel-block">
               <button>
                 <div class="color-box"></div>
-                x: 450, y: 450, w: 80, h: 100
+                <span>x: 450, y: 450, w: 80, h: 100</span>
               </button>
-<!--                   <button
-      onClick={this._pressChild(obj)}
-      className={`child-item menu-item menu-button ${obj === this.props.selected.obj ? 'selected' : ''}`}
-    >
-      <div className="color-box" style={obj.color ? { backgroundColor: obj.color, backgroundImage: 'none' } : {}}/>
-      <span>{`x:${obj.x}, y:${obj.y}, w:${obj.w}, h:${obj.h}`}</span>
-    </button> -->
+              //- <button
+              //-   onClick={this._pressChild(obj)}
+              //-   className={`child-item menu-item menu-button ${obj === this.props.selected.obj ? 'selected' : ''}`}
+              //- >
+              //-   <div className="color-box" style={obj.color ? { backgroundColor: obj.color, backgroundImage: 'none' } : {}}/>
+              //-   <span>{`x:${obj.x}, y:${obj.y}, w:${obj.w}, h:${obj.h}`}</span>
+              //- </button>
             </div>
             <div class="panel-block">
               <div class="field is-grouped is-centered">
@@ -92,7 +90,4 @@
         </div>
         <div class="column root-column" id="<%= rootId %>"></div>
       </div>
-    </section>
-    <script src="<%= script %>"></script>
-  </body>
-</html>
+    </div>

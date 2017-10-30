@@ -33,7 +33,7 @@ const GUN_LENGTH = 48;
 const GUN_BODY_RATIO = 0.25;
 
 const parent = document.getElementById('root');
-const grandParent = parent.parentElement;
+// const grandParent = parent.parentElement;
 
 // Game instance
 let game;
@@ -93,7 +93,7 @@ const generateTextures = () => {
 const create = (focusX, focusY) => {
 
   window.addEventListener('resize', () => {
-    game.scale.setGameSize(grandParent.clientWidth, grandParent.clientHeight);
+    game.scale.setGameSize(parent.clientWidth, parent.clientHeight);
   });
 
   // Setup game properties

@@ -1,0 +1,12 @@
+extends ./templates/boilerplate
+
+block page_content
+
+  include ./templates/header
+
+  .layers
+    .layer(id=self.rootId)
+    .layer#loading
+      div
+        progress.progress.is-success#loading-progress(value="25" max="100") 25%
+        h4#loading-label Loading JS

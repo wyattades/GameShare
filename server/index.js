@@ -29,20 +29,40 @@ if (DEV) {
 app.use(express.static(path.resolve(__dirname, '../public')));
 app.use(express.static(path.resolve(__dirname, '../assets')));
 
-// TODO: generate file paths automatically
-const options = page => ({
-  title: `GameShare: ${page}`,
-  css: DEV ? [] : ['/style.css'],
-  rootContent: '',
-  script: DEV ? `/public/${page}.js` : `/${page}.js`,
-  rootId: 'root',
-});
+app.set('view engine', 'pug');
+app.locals.self = true; // Access variables in pug files from 'self' object e.g. self.title
 
-app.set('view engine', 'ejs');
+// Set global pug variables
+app.locals.rootId = 'root';
 
-app.get('/', (req, res) => res.render('index', options('index')));
-app.get('/play', (req, res) => res.render('play', options('play')));
-app.get('/edit', (req, res) => res.render('edit', options('edit')));
+// Helper function for generating pug variables
+const renderPage = (page, title, options = {}) => {
+  if (options.script) {
+    delete options.script;
+    // FIXME: production and development require different file paths
+    options.scripts = [{ src: DEV ? `/public/${page}.js` : `/${page}.js`, inject: 'body' }];
+  } else {
+    options.scripts = DEV ? [{ src: '/public/loadStyles.js', inject: 'body' }] : [];
+  }
+
+  const compiled = Object.assign({
+    page,
+    title,
+    css: DEV ? [] : ['/style.css'],
+  }, options);
+
+  return (req, res) => res.render(page, compiled);
+};
+
+app.get('/', renderPage('index', 'Home'));
+app.get('/play', renderPage('play', 'Play', { script: true }));
+app.get('/edit', renderPage('edit', 'Edit', { script: true }));
+app.get('/games', renderPage('games', 'Games'));
+app.get('/login', renderPage('login', 'Login'));
+app.get('/register', renderPage('register', 'Register'));
+
+// 404 response
+app.use(renderPage('404', '404 Error', { status: 404 }));
 
 
 // ---------- Listen on http server
