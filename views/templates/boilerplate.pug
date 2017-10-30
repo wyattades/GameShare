@@ -9,14 +9,16 @@
 
   self.scripts = self.scripts || [];
   for (item of self.scripts) {
-    if (typeof item === 'string' || item instanceof String) { 
+    if (typeof item === 'string')  {
       item = { src: item, type: 'text/javascript' };
+    } else { 
+      item.type = 'text/javascript';
     }
   }
 
   self.links = self.links || [];
   for (item of self.links) {
-    if (typeof item === 'string' || item instanceof String) { 
+    if (typeof item === 'string') { 
       item = { href: item, rel: 'stylesheet' };
     }
   }
@@ -62,14 +64,11 @@ html(lang=self.lang)
     each val, key in self.css
       link(href=val rel='stylesheet')
 
+    each item in self.scripts
+      if (item.inject !== 'body')
+        script&attributes(item)
+
   body
-    if (self.unsupportedBrowser)
-      style.
-        .unsupported-browser { display: none; }
-        
-      .unsupported-browser.
-        Sorry, your browser is not supported. Please upgrade to the latest version or switch your browser to use this
-        site. See <a href="http://outdatedbrowser.com/">outdatedbrowser.com</a> for self.
 
     block page_content
 
@@ -82,8 +81,9 @@ html(lang=self.lang)
           window[key] = JSON.stringify(self.window[key]);
         }
 
-    each url in self.scripts
-      script(src=url type='text/javascript')
+    each item in self.scripts
+      if (item.inject === 'body')
+        script&attributes(item)
 
     if (self.googleAnalytics)
       script(type='text/javascript')
