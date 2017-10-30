@@ -120,6 +120,7 @@ class Engine {
     let grid = this.createObject({
       x: 0, y: 0, w, h, draggable: true, container: true,
     });
+
     grid.lineStyle(1, lineColor, 1);
     for (let x = 0; x < w; x += snap) {
       grid.lineStyle(x % 100 === 0 ? 2 : 1, lineColor, 1);
@@ -132,8 +133,6 @@ class Engine {
       grid.lineTo(h, y);
     }
 
-    //grid.lineStyle(1, Colors.RED, 1);
-    //grid.drawRect(borderSize, borderSize, w - (borderSize * 2), h - (borderSize * 2));
     this.addBorderShading(grid, borderSize, Colors.BLACK);
 
     grid.bounds = { x: w, y: h };
@@ -311,6 +310,12 @@ class Engine {
     this.selectedObject = null;
   }
 
+  // Moves the element to the bottom of the list, so it renders on top.
+  swapToTop = (obj) => {
+    this.container.removeChild(obj);
+    this.container.addChild(obj);
+  }
+
   // Clear the current selection, then select the given object.
   selectObject = (obj) => {
     if (obj.isControl) { return; }
@@ -318,6 +323,7 @@ class Engine {
     if (!obj.selectable) { return; }
 
     this.selectedObject = obj;
+    this.swapToTop(this.selectedObject);
     this.selectedObject.tint = Colors.GREEN;
 
     this.createControls(obj);
