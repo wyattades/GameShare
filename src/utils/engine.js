@@ -19,7 +19,8 @@ let openIndicis = [];
 // Phaser objects
 let input,
     player,
-    bullets;
+    bullets,
+    boundary;
 
 let options;
 
@@ -27,7 +28,7 @@ let nextFire = 0,
     bulletsShot = 0,
     tillRespawn = 0;
 
-const RESPAWN_TIMER = 1000;
+const RESPAWN_TIMER = 4000;
 const BULLET_SPEED = 1000;
 const FIRE_RATE = 200;
 const GUN_LENGTH = 48;
@@ -159,7 +160,8 @@ export const setup = gameOptions => {
   
   game.world.setBounds(0, 0, w + (x * 2), h + (y * 2));
   
-  physics.enablePhysics(createRect({ x, y, w, h, stroke: 0x00FFFF }), 'boundary');
+  boundary = createRect({ x, y, w, h, stroke: 0x00FFFF });
+  physics.enablePhysics(boundary, 'boundary');
   
   return Promise.resolve();
 };
@@ -246,12 +248,13 @@ export const initUser = id => {
       if (collider.name === 'player') {
         console.log(`Player hit: ${collider.id}`);
         bullet.kill();
-        tillRespawn = game.time.now + RESPAWN_TIMER;
         sendDead({
           player: collider.id,
         });
         sendHit({
           index: i,
+          player: collider.id,
+
         });
       } else if (collider.name === 'bullet') {
         // bullet.kill();
@@ -305,25 +308,21 @@ export const addBullet = (id, data) => {
   bullet.body.thrust(speed);
 };
 
-export const despawnPlayer = ({player: id}) => {
+export const despawnPlayer = ({index, player: id}) => {
   const plyr = players[id];
   if (plyr) {
     plyr.kill();
+    game.time.events.add(RESPAWN_TIMER, respawn, this, id).autoDestroy = true;
   } else {
     console.log(`Invalid despawnPlayer: ${id}`);
   }
 };
 
-export const respawnPlayer = ({player: id}) => {
-    const plyr = players[id];
-    if (plyr){
-      plyr.reset(500,300);
-      plyr.revive();
-    } else {
-      console.log('Invalid respawnPlayer: ${id}');
-    }
 
-};
+function respawn(id) {
+  const plyr = players[id];
+  plyr.reset(boundary.left + Math.random() * boundary.width, boundary.top + Math.random() * boundary.height);
+}
 
 export const createGroup = data => {
 

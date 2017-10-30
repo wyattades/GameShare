@@ -59,11 +59,11 @@ const bindHandlers = () => {
 
   socket.on('bullet_hit', (id, data) => {
     engine.removeBullet(id, data);
+    engine.despawnPlayer(data);
   });
 
   socket.on('player_despawn', id => {
-    engine.despawnPlayer(id);
-    engine.respawnPlayer(id);
+    //engine.despawnPlayer(id);
   });
 
   return Promise.resolve();
