@@ -52,6 +52,7 @@ $(document).click((event) => {
 
 // Handles adding type to sidebar
 $('#new-type-button').click(() => {
+  // TODO: make it a modal
   let typeName = prompt('Enter new object type name:');
   let typeHTML = typeTemplate({ name: typeName });
   $(typeHTML).insertBefore('#new-buttons');
