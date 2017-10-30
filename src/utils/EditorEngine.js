@@ -1,9 +1,9 @@
 import * as Pixi from 'pixi.js';
 import Colors from './Colors';
 
-const GRID_SIZE = 401;
+const GRID_SIZE = 500;
 const GRID_SPACING = 20; // SNAP
-const GRID_BORDER_SIZE = 0; // Size of the border around the playable area (one side)
+const GRID_BORDER_SIZE = 100; // Size of the border around the playable area (one side)
 
 const RECT_MIN_SIZE = 10; // Minimum size of a rectangle object.
 const RESIZE_CONTROL_SIZE = 10;
@@ -52,11 +52,9 @@ class Engine {
     this.addWall();
 
 
+    // Testing level data exporting
     let data = this.getLevelData();
-
     console.log(data);
-    console.log(JSON.stringify(data));
-
   }
 
   // Return a JSON-friendly level data object, for saving and loading.
@@ -69,10 +67,10 @@ class Engine {
       maxBulletsPerPlayer: 4,
       maxPlayers: 20,
       bounds: {
-        x: 300,
-        y: 300,
-        w: 1000,
-        h: 1000,
+        x: this.gridBorderSize,
+        y: this.gridBorderSize,
+        w: this.gridSize - this.gridBorderSize,
+        h: this.gridSize - this.gridBorderSize,
       },
       bulletSpeed: 1000,
       fireRate: 200,
@@ -91,19 +89,30 @@ class Engine {
 
     data.objects = [];
 
-    for (let c of this.container.children) {
+    for (let i = 0, l = this.container.children.length; i < l; i++) {
+      let c = this.container.children[i];
+      let placeholder_group = 0;
       data.objects.push({
-        group: 0,
+        group: placeholder_group,
         x: c.x,
         y: c.y,
         w: c.shape.width,
         h: c.shape.height,
       });
+      data.groups[placeholder_group].objects.push(i);
     }
 
     return data;
   }
 
+  addBorderShading = (grid, borderSize, tint) => {
+    grid.lineStyle(1, tint, 1);
+    grid.beginFill(tint, 0.08);
+    grid.drawRect(0, 0, grid.width, borderSize);
+    grid.drawRect(0, borderSize, borderSize, grid.height - (borderSize * 2));
+    grid.drawRect(grid.width - borderSize - 2, borderSize, borderSize, grid.height - (borderSize * 2));
+    grid.drawRect(0, grid.height - borderSize, grid.width - 2, borderSize);
+  }
   createGrid = (width, height, snap, borderSize, lineColor) => {
     let w = width + (borderSize * 2);
     let h = height + (borderSize * 2);
@@ -122,7 +131,12 @@ class Engine {
       grid.moveTo(0, y);
       grid.lineTo(h, y);
     }
-    grid.bounds = { x: width, y: height };
+
+    //grid.lineStyle(1, Colors.RED, 1);
+    //grid.drawRect(borderSize, borderSize, w - (borderSize * 2), h - (borderSize * 2));
+    this.addBorderShading(grid, borderSize, Colors.BLACK);
+
+    grid.bounds = { x: w, y: h };
     return grid;
   }
 
