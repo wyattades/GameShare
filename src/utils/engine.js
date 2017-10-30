@@ -24,7 +24,7 @@ let input,
 let options;
 
 let nextFire = 0,
-    bulletsShot = 0;
+    bulletsShot = 0,
     tillRespawn = 0;
 
 const RESPAWN_TIMER = 1000;
@@ -246,8 +246,9 @@ export const initUser = id => {
       if (collider.name === 'player') {
         console.log(`Player hit: ${collider.id}`);
         bullet.kill();
+        tillRespawn = game.time.now + RESPAWN_TIMER;
         sendDead({
-          player: collider.id
+          player: collider.id,
         });
         sendHit({
           index: i,
@@ -309,11 +310,18 @@ export const despawnPlayer = ({player: id}) => {
   if (plyr) {
     plyr.kill();
   } else {
-    console.log(`Invalid removePlayer: ${id}`);
+    console.log(`Invalid despawnPlayer: ${id}`);
   }
 };
 
-export const respawnPlayer = id => {
+export const respawnPlayer = ({player: id}) => {
+    const plyr = players[id];
+    if (plyr){
+      plyr.reset(500,300);
+      plyr.revive();
+    } else {
+      console.log('Invalid respawnPlayer: ${id}');
+    }
 
 };
 

@@ -63,6 +63,7 @@ const bindHandlers = () => {
 
   socket.on('player_despawn', id => {
     engine.despawnPlayer(id);
+    engine.respawnPlayer(id);
   });
 
   return Promise.resolve();
