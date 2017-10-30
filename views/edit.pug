@@ -4,98 +4,86 @@ block page_content
 
   include ./templates/header
 
-  //- YO! If you don't see the editor canvas, the reason is probably 
-      cause React is still being used (its nesting the canvas in some divs)
-
-  <div class="layers">
-    <div class="layer">
-      <div class="columns edit-body">
-        <div class="column is-one-quarter sidebar">
-          <div class="settings-panel panel">
-            <p class="panel-heading">Settings</p>
-            <p class="panel-tabs">
-              <a id="object-tab" class="is-active">Objects</a>
-              <a id="grid-tab">Grid</a>
-              <a id="level-tab">Level</a>
-            </p>
-
-            <div class="object-block panel-block">
-              <span class="type-name">default</span>
-              <input type="color" name="type color" id="type-color" value="#FFAABB" style="margin-left: auto;">
-              <div class="field has-addons">
-                <div class="control">
-                  <button class="button is-small" name="rename type">
-                    <i class="fa fa-pencil"></i>
-                  </button>
-                </div>
-                <div class="control">
-                  <button class="button is-small" name="delete type">
-                    <i class="fa fa-trash"></i>
-                  </button>
-                </div>
-              </div>
-            </div>
-
-
-            <div class="object-block panel-block">
-              <button class="object-button">
-                <div class="color-box"></div>
-                <span>x: 450, y: 450, w: 80, h: 100</span>
-              </button>
-            </div>
-
-
-            <div id="new-buttons" class="object-block panel-block">
-              <div class="field is-grouped is-centered">
-                <div class="control">
-                  <button id="new-type-button" class="button is-small">New Type</button>
-                </div>
-                <div class="control">
-                  <button id="new-object-button" class="button is-small">New Object</button>
-                </div>
-              </div>
-            </div>
-
-            <div class="grid-block panel-block">
-              <div class="field">
-                <label class="label is-small" for="snap-input">Snap</label>
-                <div class="control">
-                  <input class="input is-small" id="snap-input" type="number" value="10" max="100" name="snap">
-                </div>
-              </div>
-            </div>
-            <div class="grid-block panel-block">
-              <div class="field">
-                <label class="label is-small" for="boundary-x">Width of Playable Area</label>
-                <div class="control">
-                  <input class="input is-small" id="boundary-x" type="number" value="7000" max="10000" name="boundary-x">
-                </div>
-              </div>
-            </div>
-            <div class="grid-block panel-block">
-              <div class="field">
-                <label class="label is-small" for="boundary-x">Height of Playable Area</label>
-                <div class="control">
-                  <input class="input is-small" id="boundary-y" type="number" value="7000" max="10000" name="boundary-y">
-                </div>
-              </div>
-            </div>
-
-            <div class="level-block panel-block">
-              <div class="field">
-                <label class="label is-small" for="background-color">Level Background Color</label>
-                <input type="color" name="background-color" id="type-color" value="#000000">
-              </div>
-            </div>
-          </div>
-          
-          <div class="object-settings panel">
-            <p class="panel-heading">Object Settings</p>
-            <div class="panel-block">
-
-            </div>
-          </div>
-        </div>
-        <div class="column root-column" id="root"></div>
-      </div>
-    </div>
+  .layers
+    .layer
+      .columns.edit-body
+        .column.is-one-quarter.sidebar
+          .settings-panel.panel
+            p.panel-heading Settings
+            p.panel-tabs
+              a#object-tab.is-active Objects
+              a#grid-tab Grid
+              a#level-tab Level
+            //- TEMP: first object  
+            .object-block.panel-block#first-object
+              button.object-button
+                .color-box
+                span x: 450, y: 450, w: 80, h: 100
+            .object-block.panel-block#new-buttons
+              .field.is-grouped.is-centered
+                .control
+                  button.button.is-small#new-type-button New Type
+                .control
+                  button.button.is-small#new-type-button New Object
+            .grid-block.panel-block
+              .field
+                label(
+                  class="label is-small"
+                  for="snap-input"
+                ) Snap Value
+                .control
+                  input(
+                    class="input is-small"
+                    id="snap-input"
+                    max="100"
+                    name="snap"
+                    type="number"
+                    value="10"
+                  )
+            .grid-block.panel-block
+              .field
+                label(
+                  class="label is-small"
+                  for="boundary-x"
+                ) Width of Playable Area
+                .control
+                  input(
+                    class="input is-small"
+                    id="boundary-x"
+                    max="10000"
+                    name="boundary-x"
+                    type="number"
+                    value="7000"
+                  )
+            .grid-block.panel-block
+              .field
+                label(
+                  class="label is-small"
+                  for="boundary-y"
+                ) Height of Playable Area
+                .control
+                  input(
+                    class="input is-small"
+                    id="boundary-y"
+                    max="10000"
+                    name="boundary-y"
+                    type="number"
+                    value="7000"
+                  )
+            .level-block.panel-block
+              .field
+                label(
+                  class="label is-small"
+                  for="background-color"
+                ) Level Background Color
+                .control
+                  input(
+                    id="type-color"
+                    name="background-color"
+                    type="color"
+                    value="#000000"
+                  )
+          .object-settings.panel
+            p.panel-heading Object Settings
+            .panel-block
+        .column.root-column#root

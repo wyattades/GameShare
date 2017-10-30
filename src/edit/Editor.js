@@ -4,6 +4,9 @@ import $ from 'jquery';
 // import { createRect, createObject } from '../utils/EditorEngine';
 import typeTemplate from '../templates/type.pug';
 
+let defaultTypeHTML = typeTemplate({ name: 'default' });
+$(defaultTypeHTML).insertBefore('#first-object');
+
 // Handles displaying content for object/grid tabs
 $('#object-tab').click(() => {
   $('#object-tab').addClass('is-active');
@@ -46,8 +49,6 @@ $(document).click((event) => {
 // Handles adding type to sidebar
 $('#new-type-button').click(() => {
   let typeName = prompt('Enter new object type name:');
-  
   let typeHTML = typeTemplate({ name: typeName });
-  // let typeHTML = '<div class="object-block panel-block"><span class="type-name">' + typeName + '</span><input type="color" name="type color" id="type-color" value="#FFAABB" style="margin-left: auto;"><div class="field has-addons"><div class="control"><button class="button is-small" name="rename type"><i class="fa fa-pencil"></i></button></div><div class="control"><button class="button is-small" name="delete type"><i class="fa fa-trash"></i></button></div></div></div>'
   $(typeHTML).insertBefore('#new-buttons');
 });
