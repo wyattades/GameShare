@@ -1,11 +1,15 @@
 import $ from 'jquery';
-// const compiledType = pug.compileFile('type.pug');
 
-// import { createRect, createObject } from '../utils/EditorEngine';
 import typeTemplate from '../templates/type.pug';
+import objectTemplate from '../templates/object.pug';
 
 let defaultTypeHTML = typeTemplate({ name: 'default' });
-$(defaultTypeHTML).insertBefore('#first-object');
+$(defaultTypeHTML).insertBefore('#new-buttons');
+
+let defaultObjectHTML = objectTemplate({
+  x: '450', y: '450', w: '80', h: '100',
+});
+$(defaultObjectHTML).insertBefore('#new-buttons');
 
 // Handles displaying content for object/grid tabs
 $('#object-tab').click(() => {

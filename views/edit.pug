@@ -14,11 +14,6 @@ block page_content
               a#object-tab.is-active Objects
               a#grid-tab Grid
               a#level-tab Level
-            //- TEMP: first object  
-            .object-block.panel-block#first-object
-              button.object-button
-                .color-box
-                span x: 450, y: 450, w: 80, h: 100
             .object-block.panel-block#new-buttons
               .field.is-grouped.is-centered
                 .control
@@ -30,7 +25,7 @@ block page_content
                 label(
                   class="label is-small"
                   for="snap-input"
-                ) Snap Value
+                ) Grid Spacing
                 .control
                   input(
                     class="input is-small"
