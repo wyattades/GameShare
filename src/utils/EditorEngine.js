@@ -5,8 +5,8 @@ const GRID_SIZE = 500;
 const GRID_SPACING = 20; // SNAP
 const GRID_BORDER_SIZE = 100; // Size of the border around the playable area (one side)
 
-const RECT_MIN_SIZE = 10; // Minimum size of a rectangle object.
-const RESIZE_CONTROL_SIZE = 10;
+const RECT_MIN_SIZE = 20; // Minimum size of a rectangle object.
+const RESIZE_CONTROL_SIZE = 20;
 
 class Engine {
 
@@ -264,7 +264,7 @@ class Engine {
           y: y === 0 ? -this.resizeControlSize : obj_height,
           w: this.resizeControlSize,
           h: this.resizeControlSize,
-          fill: Colors.WHITE,
+          fill: Colors.CONTROL,
           stroke: Colors.BLACK,
           draggable: true,
         });
@@ -311,7 +311,7 @@ class Engine {
   }
 
   // Moves the element to the bottom of the list, so it renders on top.
-  swapToTop = (obj) => {
+  moveToTop = (obj) => {
     this.container.removeChild(obj);
     this.container.addChild(obj);
   }
@@ -323,7 +323,7 @@ class Engine {
     if (!obj.selectable) { return; }
 
     this.selectedObject = obj;
-    this.swapToTop(this.selectedObject);
+    this.moveToTop(this.selectedObject);
     this.selectedObject.tint = Colors.GREEN;
 
     this.createControls(obj);
@@ -345,7 +345,11 @@ class Engine {
       newPosition.y -= obj.offset.y;
 
       if (obj !== this.container) {
-        // Check bounds
+
+        newPosition.x = Math.floor(newPosition.x / this.gridSpacing) * this.gridSpacing;
+        newPosition.y = Math.floor(newPosition.y / this.gridSpacing) * this.gridSpacing;
+
+        // Check bounds and clamp
         if (newPosition.x < 0) {
           newPosition.x = 0;
         } else if (newPosition.x + obj.shape.width > this.container.bounds.x) {
@@ -374,9 +378,14 @@ class Engine {
         newPosition = { x: 0, y: 0 },
         newSize = { width: 0, height: 0 };
 
+    // Anchor to snap points.
+    dragPos.x = Math.floor(dragPos.x / this.gridSpacing) * this.gridSpacing;
+    dragPos.y = Math.floor(dragPos.y / this.gridSpacing) * this.gridSpacing;
+
     // Calculate new width.
     if (control.controlPosition.x === 0) {
       // This is a left-side control.
+      dragPos.x += control.width / 2; // Snap offset
       newPosition.x = dragPos.x + (control.width / 2);
 
       // Clamp to dragging bounds (prevents sliding element):
@@ -405,6 +414,7 @@ class Engine {
     // Calculate new height.
     if (control.controlPosition.y === 0) {
       // This is a top control.
+      dragPos.y += control.height / 2; // Snap offset.
       newPosition.y = dragPos.y + (control.height / 2);
 
       // Clamp to dragging bounds (prevents sliding element):
@@ -428,6 +438,7 @@ class Engine {
     }
     // Clamp to minimum height.
     if (newSize.height < this.rectMinSize) { newSize.height = this.rectMinSize; }
+
 
     obj.translate(newPosition.x, newPosition.y);
     obj.resize(newSize.width, newSize.height);
