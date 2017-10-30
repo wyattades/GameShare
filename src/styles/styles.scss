@@ -60,9 +60,12 @@ $primary: #EA3D4E;
   padding-right: 0.5em;
 }
 
-// TODO: The following css is only required in 'edit' and 'play'
+.grid-block, .object-settings, .level-block { display: none; }
 
-html, body, .edit-body { height: 100%; }
+// Mysterious CSS that makes the grid display- doesnt show up otherwise
+html, body, .edit-body, .ui  { height: 100%; }
+
+// TODO: The following css is only required in 'edit' and 'play'
 
 body {
   display: flex;

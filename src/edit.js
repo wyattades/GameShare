@@ -1,26 +1,14 @@
-import React from 'react';
-import { render } from 'react-dom';
-import { AppContainer } from 'react-hot-loader';
-
-// import logo from './assets/controller.png';
+import $ from 'jquery';
 import './styles/styles.scss';
-import App from './components/App';
 
-const _render = RootComponent => {
-  render((
-    <AppContainer>
-      <RootComponent/>
-    </AppContainer>
-  ), document.getElementById('root'));
-};
+import Engine, { generateGrid } from './utils/EditorEngine';
+import './components/Editor';
 
-_render(App);
+let app = new Engine($('#root').get(0));
+app.start();
 
-// Enable hot reloading
-if (process.env.NODE_ENV === 'development' && module.hot) {
-  module.hot.accept('./components/App', () => {
-    // eslint-disable-next-line global-require
-    const NextRootContainer = require('./components/App').default;
-    _render(NextRootContainer);
-  });
-}
+$('#new-object-button').click(function() {
+  // grid.addObject(createRect({
+  //   x: 500, y: 500, w: 80, h: 80, draggable: true, fill: 0xFFAABB, stroke: 0x000000,
+  // }));
+});
