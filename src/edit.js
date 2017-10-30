@@ -1,8 +1,8 @@
 import $ from 'jquery';
 import './styles/styles.scss';
 
-import Engine, { generateGrid } from './utils/EditorEngine';
-import './components/Editor';
+import Engine, { generateGrid } from './edit/EditorEngine';
+import './edit/Editor';
 
 let app = new Engine($('#root').get(0));
 app.start();

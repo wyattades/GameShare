@@ -1,6 +1,6 @@
 import $ from 'jquery';
 
-import typeTemplate from './type.pug';
+import typeTemplate from '../templates/type.pug';
 
 // Handles displaying content for object/grid tabs
 $('#object-tab').click(function() {
