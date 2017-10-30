@@ -26,7 +26,7 @@ class Engine {
     this.gridSize = GRID_SIZE;
     this.gridSpacing = GRID_SPACING;
     this.gridBorderSize = GRID_BORDER_SIZE;
-    this.container = this.generateGrid(this.gridSize, this.gridSize,
+    this.container = this.createGrid(this.gridSize, this.gridSize,
       this.gridSpacing, this.gridBorderSize, Colors.GRAY);
     this.app.stage.addChild(this.container);
 
@@ -49,22 +49,62 @@ class Engine {
         stroke: 0x000000 }),
     );
 
-    this.container.addObject(
-      this.createRect({
-        x: this.gridSpacing * 8,
-        y: this.gridSpacing * 8,
-        w: this.gridSpacing * 4,
-        h: this.gridSpacing * 4,
-        draggable: true,
-        selectable: true,
-        fill: Colors.WHITE,
-        stroke: Colors.BLACK }),
-    );
+    this.addWall();
 
+
+    let data = this.getLevelData();
+
+    console.log(data);
+    console.log(JSON.stringify(data));
 
   }
 
-  generateGrid = (width, height, snap, borderSize, lineColor) => {
+  // Return a JSON-friendly level data object, for saving and loading.
+  getLevelData = () => {
+    let data = {};
+
+    data.options = {
+      snap: 8,
+      backgroundColor: 0xDDEEDD,
+      maxBulletsPerPlayer: 4,
+      maxPlayers: 20,
+      bounds: {
+        x: 300,
+        y: 300,
+        w: 1000,
+        h: 1000,
+      },
+      bulletSpeed: 1000,
+      fireRate: 200,
+      playerSpeed: 500,
+      bulletHealth: 2,
+    };
+
+    data.groups = [
+      {
+        name: 'placeholder',
+        stroke: 0x00FFFF,
+        objects: [],
+      },
+    ];
+
+
+    data.objects = [];
+
+    for (let c of this.container.children) {
+      data.objects.push({
+        group: 0,
+        x: c.x,
+        y: c.y,
+        w: c.shape.width,
+        h: c.shape.height,
+      });
+    }
+
+    return data;
+  }
+
+  createGrid = (width, height, snap, borderSize, lineColor) => {
     let w = width + (borderSize * 2);
     let h = height + (borderSize * 2);
 
@@ -181,6 +221,21 @@ class Engine {
 
     return rect;
   };
+
+  // Add a new wall rectangle to the level.
+  addWall = () => {
+    this.container.addObject(
+      this.createRect({
+        x: this.gridSpacing * 8,
+        y: this.gridSpacing * 8,
+        w: this.gridSpacing * 4,
+        h: this.gridSpacing * 4,
+        draggable: true,
+        selectable: true,
+        fill: Colors.WHITE,
+        stroke: Colors.BLACK }),
+    );
+  }
 
   // Control manipulation is in the Engine class for easier
   // access to object creation functions.
