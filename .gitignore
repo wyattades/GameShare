@@ -66,3 +66,6 @@ typings/
 
 # Build folder
 .build
+
+# OSX system files
+.DS_Store
