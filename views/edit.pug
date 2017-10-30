@@ -8,9 +8,8 @@ block page_content
       cause React is still being used (its nesting the canvas in some divs)
 
   <div class="layers">
-    <div id="root" class="layer"></div>
     <div class="layer">
-      <div class="columns">
+      <div class="columns edit-body">
         <div class="column is-one-quarter sidebar">
           <div class="settings-panel panel">
             <p class="panel-heading">Settings</p>
@@ -97,6 +96,6 @@ block page_content
             </div>
           </div>
         </div>
-        <div class="column root-column" id="<%= rootId %>"></div>
+        <div class="column root-column" id="root"></div>
       </div>
     </div>
