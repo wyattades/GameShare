@@ -4,4 +4,27 @@ block page_content
 
   include ./templates/header
 
-  h1 Login
+  section.hero.is-fullheight
+    .hero-body
+      .container.has-text-centered
+        .column.is-4.is-offset-4
+          h3.title.has-text-grey Login
+          p.subtitle.has-text-grey Please login to proceed.
+          .box
+            form(action="/login")
+              .field
+                .control
+                  div.g-signin2(data-onsuccess="onSignIn" data-theme="dark")
+              .field
+                .control
+                  input.input.is-large(type="email" placeholder="Your Email" autofocus="" name="email")
+              .field
+                .control
+                  input.input.is-large(type="password" placeholder="Your Password" name="password")
+              input.button.is-fullwidth.is-info.is-large(type="submit" value="Login")
+          p.has-text-grey
+            a(href="/register") Sign Up
+            | &nbsp;·&nbsp;
+            a(href="/help") Forgot Password
+            | &nbsp;·&nbsp;
+            a(href="/help") Need Help?
