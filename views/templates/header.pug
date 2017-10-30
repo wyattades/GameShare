@@ -6,7 +6,9 @@ nav.navbar.has-shadow.is-dark
   .container
     .navbar-brand
       a.navbar-item(href="/")
-        img(src="https://cdn3.iconfinder.com/data/icons/black-easy/512/535112-game_512x512.png", alt="GameShare Icon", width="112", height="28")
+        h1.is-primary.is-size-4
+          strong GameShare
+        //- img(src="https://cdn3.iconfinder.com/data/icons/black-easy/512/535112-game_512x512.png", alt="GameShare Icon", width="112", height="28")
       .navbar-burger.burger(data-target="navbarMenu")
         span
         span
@@ -29,3 +31,7 @@ nav.navbar.has-shadow.is-dark
                 span.icon
                   i.fa.fa-user-plus
                 span Register
+        //- .navbar-item
+          label.checkbox
+            input#loggedIn(type="checkbox")
+            | Logged In
