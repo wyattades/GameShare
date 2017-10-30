@@ -41,6 +41,10 @@ const baseConfig = {
         }],
         include: PATHS.src,
       }, {
+        test: /\.pug$/,
+        loader: 'pug-loader',
+        include: PATHS.src,
+      }, {
         test: /\.s?css$/,
         loaders: ExtractTextPlugin.extract({ fallback: 'style-loader', use: ['css-loader', 'sass-loader'] }),
         include: PATHS.css,
