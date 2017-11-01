@@ -58,8 +58,8 @@ app.get('/', renderPage('index', 'Home'));
 app.get('/play', renderPage('play', 'Play', { script: true }));
 app.get('/edit', renderPage('edit', 'Edit', { script: true }));
 app.get('/games', renderPage('games', 'Games'));
-app.get('/login', renderPage('login', 'Login'));
-app.get('/register', renderPage('register', 'Register'));
+// app.get('/login', renderPage('login', 'Login'));
+// app.get('/register', renderPage('register', 'Register'));
 
 // 404 response
 app.use(renderPage('404', '404 Error', { status: 404 }));
