@@ -18,9 +18,18 @@ nav.navbar.has-shadow.is-dark
         each p in pageData
           a.navbar-item.is-tab(class=self.page === p[1] && 'is-active' href=p[2])
             = p[0]
-      //- .navbar-end
+      .navbar-end
         .navbar-item
           .field.is-grouped
+            p.control
+              a.button.is-primary(href="/edit")
+                span.icon
+                  i.fa.fa-plus
+                span Create
+            p.control
+              a#logout.button Logout (TEMP)
+
+          //- .field.is-grouped
             p.control
               a.bd-tw-button.button(href="/login")
                 span.icon
