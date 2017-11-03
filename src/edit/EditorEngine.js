@@ -30,19 +30,14 @@ class Engine {
       this.gridSpacing, this.gridBorderSize, Colors.GRAY);
     this.app.stage.addChild(this.container);
 
+    this.groups = []; // List of object/wall groups
+    this.addGroup();
+
     this.selectedObject = null; // The currently selected object.
     this.lockSelect = false; // When true, objects won't be selected.
 
     this.rectMinSize = RECT_MIN_SIZE;
     this.resizeControlSize = RESIZE_CONTROL_SIZE; // Size of resize control elements.
-
-    // Adding some test data
-    //this.addWall();
-    //this.addWall();
-
-    // Testing level data exporting
-    let data = this.getLevelData();
-    console.log(data);
   }
 
   // Return a JSON-friendly level data object, for saving and loading.
@@ -66,28 +61,19 @@ class Engine {
       bulletHealth: 2,
     };
 
-    data.groups = [
-      {
-        name: 'placeholder',
-        stroke: 0x00FFFF,
-        objects: [],
-      },
-    ];
-
+    data.groups = this.groups;
 
     data.objects = [];
-
     for (let i = 0, l = this.container.children.length; i < l; i++) {
       let c = this.container.children[i];
-      let placeholder_group = 0;
       data.objects.push({
-        group: placeholder_group,
+        group: c.group,
         x: c.x,
         y: c.y,
         w: c.shape.width,
         h: c.shape.height,
       });
-      data.groups[placeholder_group].objects.push(i);
+      data.groups[c.group].objects.push(i);
     }
 
     return data;
@@ -226,7 +212,7 @@ class Engine {
 
   // Add a new wall rectangle to the level.
   // Returns the wall object that was just added.
-  addWall = () => {
+  addWall = (group = 0) => {
     const wall = this.createRect({
       x: this.gridSpacing * 8,
       y: this.gridSpacing * 8,
@@ -236,8 +222,20 @@ class Engine {
       selectable: true,
       fill: Colors.WHITE,
       stroke: Colors.BLACK });
+    wall.group = group;
     this.container.addObject(wall);
     return wall;
+  }
+
+  // Add a new object group to the level.
+  // Returns updated group list.
+  addGroup = (name = `Group ${this.groups.length}`) => {
+    this.groups.push({
+      name,
+      stroke: 0xFFFFFF,
+      objects: [],
+    });
+    return this.groups;
   }
 
   // Control manipulation is in the Engine class for easier

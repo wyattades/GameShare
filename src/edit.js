@@ -8,5 +8,9 @@ let app = new Engine($('#root').get(0));
 app.start();
 
 $('#new-object-button').click(() => {
-  app.addWall();
+  console.log(app.addWall());
+});
+
+$('#new-type-button').click(() => {
+  console.log(app.addGroup());
 });
