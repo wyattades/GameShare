@@ -1,0 +1,17 @@
+div.object-block.panel-block
+  span.type-name
+    = name
+  input(
+    type="color"
+    name="type-color"
+    id="type-color"
+    value="#FFAABB"
+    style="margin-left: auto;"
+  )
+  div.field.has-addons
+    div.control
+      button.button.is-small(name="rename type")
+        i.fa.fa-pencil
+    div.control
+      button.button.is-small(name="delete type")
+        i.fa.fa-trash

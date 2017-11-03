@@ -1,0 +1,101 @@
+extends ./templates/boilerplate
+
+block page_content
+
+  include ./templates/header
+
+  //- YO! If you don't see the editor canvas, the reason is probably 
+      cause React is still being used (its nesting the canvas in some divs)
+
+  <div class="layers">
+    <div class="layer">
+      <div class="columns edit-body">
+        <div class="column is-one-quarter sidebar">
+          <div class="settings-panel panel">
+            <p class="panel-heading">Settings</p>
+            <p class="panel-tabs">
+              <a id="object-tab" class="is-active">Objects</a>
+              <a id="grid-tab">Grid</a>
+              <a id="level-tab">Level</a>
+            </p>
+
+            <div class="object-block panel-block">
+              <span class="type-name">default</span>
+              <input type="color" name="type color" id="type-color" value="#FFAABB" style="margin-left: auto;">
+              <div class="field has-addons">
+                <div class="control">
+                  <button class="button is-small" name="rename type">
+                    <i class="fa fa-pencil"></i>
+                  </button>
+                </div>
+                <div class="control">
+                  <button class="button is-small" name="delete type">
+                    <i class="fa fa-trash"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+
+            <div class="object-block panel-block">
+              <button class="object-button">
+                <div class="color-box"></div>
+                <span>x: 450, y: 450, w: 80, h: 100</span>
+              </button>
+            </div>
+
+
+            <div id="new-buttons" class="object-block panel-block">
+              <div class="field is-grouped is-centered">
+                <div class="control">
+                  <button id="new-type-button" class="button is-small">New Type</button>
+                </div>
+                <div class="control">
+                  <button id="new-object-button" class="button is-small">New Object</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="grid-block panel-block">
+              <div class="field">
+                <label class="label is-small" for="snap-input">Snap</label>
+                <div class="control">
+                  <input class="input is-small" id="snap-input" type="number" value="10" max="100" name="snap">
+                </div>
+              </div>
+            </div>
+            <div class="grid-block panel-block">
+              <div class="field">
+                <label class="label is-small" for="boundary-x">Width of Playable Area</label>
+                <div class="control">
+                  <input class="input is-small" id="boundary-x" type="number" value="7000" max="10000" name="boundary-x">
+                </div>
+              </div>
+            </div>
+            <div class="grid-block panel-block">
+              <div class="field">
+                <label class="label is-small" for="boundary-x">Height of Playable Area</label>
+                <div class="control">
+                  <input class="input is-small" id="boundary-y" type="number" value="7000" max="10000" name="boundary-y">
+                </div>
+              </div>
+            </div>
+
+            <div class="level-block panel-block">
+              <div class="field">
+                <label class="label is-small" for="background-color">Level Background Color</label>
+                <input type="color" name="background-color" id="type-color" value="#000000">
+              </div>
+            </div>
+          </div>
+          
+          <div class="object-settings panel">
+            <p class="panel-heading">Object Settings</p>
+            <div class="panel-block">
+
+            </div>
+          </div>
+        </div>
+        <div class="column root-column" id="root"></div>
+      </div>
+    </div>
