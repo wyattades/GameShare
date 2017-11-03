@@ -1,16 +1,16 @@
 import $ from 'jquery';
 
 // import modalTemplate from '../templates/modal.pug';
-import objectTemplate from '../templates/object.pug';
-import typeTemplate from '../templates/type.pug';
+// import objectTemplate from '../templates/object.pug';
+// import typeTemplate from '../templates/type.pug';
 
-let defaultTypeHTML = typeTemplate({ name: 'default' });
-$(defaultTypeHTML).insertBefore('#new-buttons');
+// let defaultTypeHTML = typeTemplate({ name: 'default' });
+// $(defaultTypeHTML).insertBefore('#new-buttons');
 
-let defaultObjectHTML = objectTemplate({
-  x: '450', y: '450', w: '80', h: '100',
-});
-$(defaultObjectHTML).insertBefore('#new-buttons');
+// let defaultObjectHTML = objectTemplate({
+//   x: '450', y: '450', w: '80', h: '100',
+// });
+// $(defaultObjectHTML).insertBefore('#new-buttons');
 
 // Handles displaying content for object/grid tabs
 $('#object-tab').click(() => {
@@ -51,13 +51,13 @@ $('.object-settings').blur(() => {
 
 // Handles adding type to sidebar
 
-$('#new-type-button').click(() => {
-  // let modalHTML = modalTemplate();
+// $('#new-type-button').click(() => {
+//   // let modalHTML = modalTemplate();
 
-  let typeName = prompt('Enter new object type name:');
-  let typeHTML = typeTemplate({ name: typeName });
-  $(typeHTML).insertBefore('#new-buttons');
-});
+//   let typeName = prompt('Enter new object type name:');
+//   let typeHTML = typeTemplate({ name: typeName });
+//   $(typeHTML).insertBefore('#new-buttons');
+// });
 
 
 // new object button next to each group

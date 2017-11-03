@@ -1,14 +1,17 @@
-.object-block.panel-block
-  span.type-name #{name}
-  button(
-    class="button is-small"
-    id="new-object-button"
-    name="add new object"
-    style="align"
-  )
-    span.icon
-      i.fa.fa-plus
-    span Add Object
+each group, index in groups
+  .object-block.panel-block.group(
+      id="type" + index
+      style="justify-content: space-between;"
+    )
+    span.type-name #{groups[index].name}
+    button(
+      class="button is-small is-pulled-right"
+      id="new-object-button"
+      name="add new object"
+    )
+      span.icon
+        i.fa.fa-plus
+      span Add Object
 
 
 
