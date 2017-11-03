@@ -93,8 +93,9 @@ class Engine {
     return data;
   }
 
+  // Add shaded rectangles over the unplayable region of the map.
   addBorderShading = (grid, borderSize, tint) => {
-    grid.lineStyle(1, tint, 1);
+    grid.lineStyle(0, tint, 0.08);
     grid.beginFill(tint, 0.08);
     grid.drawRect(0, 0, grid.width, borderSize);
     grid.drawRect(0, borderSize, borderSize, grid.height - (borderSize * 2));
