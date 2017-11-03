@@ -15,15 +15,19 @@ var provider = new firebase.auth.GoogleAuthProvider();
 firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL);
 const googleSignIn = e => {
 	//e.target.removeEventListener(e.type, googleSignIn);
-	firebase.auth().signInWithPopup(provider).then(function(result) {
-		console.log("Sign in success");
-	}, function(error) {
-		var errorCode = error.code;
-		var errorMessage = error.message;
-	});
+	var u = firebase.auth().currentUser;
+	if (u) {
+		console.log("Signed in already");
+	} else {
+		firebase.auth().signInWithPopup(provider).then(function(result) {
+			console.log("Sign in success");
+		}, function(error) {
+			var errorCode = error.code;
+			var errorMessage = error.message;
+		});
+	}
 	firebase.auth().onAuthStateChanged(function(user) {
 		if (user) {
-			console.log("Signed in already");
 			var exday = 1; //days until cookie expires
 			var d = new Date();
 			d.setTime(d.getTime() + (exday*24*60*60*1000));
