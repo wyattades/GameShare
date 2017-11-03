@@ -37,20 +37,8 @@ class Engine {
     this.resizeControlSize = RESIZE_CONTROL_SIZE; // Size of resize control elements.
 
     // Adding some test data
-    this.container.addObject(
-      this.createRect({
-        x: this.gridSpacing * 4,
-        y: this.gridSpacing * 4,
-        w: this.gridSpacing * 2,
-        h: this.gridSpacing * 2,
-        draggable: true,
-        selectable: true,
-        fill: 0xFFAABB,
-        stroke: 0x000000 }),
-    );
-
-    this.addWall();
-
+    //this.addWall();
+    //this.addWall();
 
     // Testing level data exporting
     let data = this.getLevelData();
