@@ -10,6 +10,7 @@ const DEV = process.env.NODE_ENV === 'development';
 // ---------- Setup express to send files
 
 const app = express();
+
 // Live reload express server when developing
 if (DEV) {
 
