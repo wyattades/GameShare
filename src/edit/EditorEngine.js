@@ -26,12 +26,18 @@ class Engine {
     this.gridSize = GRID_SIZE;
     this.gridSpacing = GRID_SPACING;
     this.gridBorderSize = GRID_BORDER_SIZE;
-    this.container = this.createGrid(this.gridSize, this.gridSize,
-      this.gridSpacing, this.gridBorderSize, Colors.GRAY);
+    this.gridLineColor = Colors.GRID;
+    this.gridBorderColor = Colors.BLACK;
+    this.container = this.createGrid();
     this.app.stage.addChild(this.container);
+    console.log(this.container);
 
     this.groups = []; // List of object/wall groups
     this.addGroup();
+
+    //testing grid resizing
+    this.gridSize = 400;
+    this.resizeGrid();
 
     this.selectedObject = null; // The currently selected object.
     this.lockSelect = false; // When true, objects won't be selected.
@@ -80,7 +86,7 @@ class Engine {
   }
 
   // Add shaded rectangles over the unplayable region of the map.
-  addBorderShading = (grid, borderSize, tint) => {
+  drawBorderShading = (grid = this.container, borderSize = this.gridBorderSize, tint = this.gridBorderColor) => {
     grid.lineStyle(0, tint, 0.08);
     grid.beginFill(tint, 0.08);
     grid.drawRect(0, 0, grid.width, borderSize);
@@ -88,30 +94,53 @@ class Engine {
     grid.drawRect(grid.width - borderSize - 2, borderSize, borderSize, grid.height - (borderSize * 2));
     grid.drawRect(0, grid.height - borderSize, grid.width - 2, borderSize);
   }
-  createGrid = (width, height, snap, borderSize, lineColor) => {
-    let w = width + (borderSize * 2);
-    let h = height + (borderSize * 2);
+  // Add gridline primitives to grid object.
+  drawGridlines = (grid = this.container, tint = this.gridLineColor) => {
+    let w = grid.w,
+        h = grid.h;
 
-    let grid = this.createObject({
-      x: 0, y: 0, w, h, draggable: true, container: true,
-    });
-
-    grid.lineStyle(1, lineColor, 1);
-    for (let x = 0; x < w; x += snap) {
-      grid.lineStyle(x % 100 === 0 ? 2 : 1, lineColor, 1);
+    grid.lineStyle(1, tint, 1);
+    for (let x = 0; x < w; x += this.gridSpacing) {
+      grid.lineStyle(x % 100 === 0 ? 2 : 1, tint, 1);
       grid.moveTo(x, 0);
       grid.lineTo(x, w);
     }
-    for (let y = 0; y < h; y += snap) {
-      grid.lineStyle(y % 100 === 0 ? 2 : 1, lineColor, 1);
+    for (let y = 0; y < h; y += this.gridSpacing) {
+      grid.lineStyle(y % 100 === 0 ? 2 : 1, tint, 1);
       grid.moveTo(0, y);
       grid.lineTo(h, y);
     }
 
-    this.addBorderShading(grid, borderSize, Colors.BLACK);
+  }
+  // Generate the grid container. Width and height define the playable area.
+  createGrid = (width = this.gridSize, height = this.gridSize) => {
+    let w = width + (this.gridBorderSize * 2),
+        h = height + (this.gridBorderSize * 2);
+
+    let grid = this.createObject({
+      x: 0, y: 0, w, h, draggable: true, container: true,
+    });
+    grid.bounds = { x: w, y: h };
+
+    this.drawGridlines(grid);
+    this.drawBorderShading(grid);
+    return grid;
+  }
+  // Resize the grid to the given size. Currently only makes squares.
+  resizeGrid = (newSize = this.gridSize, grid = this.container) => {
+    this.gridSize = newSize;
+    let w = this.gridSize + (this.gridBorderSize * 2),
+        h = this.gridSize + (this.gridBorderSize * 2);
+
+    grid.graphicsData.length = 0;
+    grid.x = 0;
+    grid.y = 0;
+    grid.w = w;
+    grid.h = h;
 
     grid.bounds = { x: w, y: h };
-    return grid;
+    this.drawGridlines(grid);
+    this.drawBorderShading(grid);
   }
 
   addUpdate = fn => {
