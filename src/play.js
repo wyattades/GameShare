@@ -1,5 +1,5 @@
 import './styles/styles.scss';
-import * as _client from './utils/client';
+import * as _client from './play/client';
 
 let client = _client;
 
@@ -25,9 +25,9 @@ init(client);
 
 // Enable hot reloading
 if (process.env.NODE_ENV === 'development' && module.hot) {
-  module.hot.accept('./utils/client', () => {
+  module.hot.accept('./play/client', () => {
     client.destroy();
-    client = require('./utils/client');
+    client = require('./play/client');
     init();
   });
 }
