@@ -20,6 +20,7 @@ const textures = {};
 let input,
     player,
     bullets,
+    boundary,
     players;
 
 // Game options
@@ -27,7 +28,8 @@ let options;
 
 // Player weapon variables
 let nextFire = 0,
-    bulletsShot = 0;
+    bulletsShot = 0,
+    respawn_timer = 4000;
 
 const GUN_LENGTH = 48;
 const GUN_BODY_RATIO = 0.25;
@@ -176,7 +178,9 @@ const create = (focusX, focusY) => {
   
   game.world.setBounds(0, 0, w + (x * 2), h + (y * 2));
   
-  physics.enablePhysics(createRect({ x, y, w, h, stroke: 0x00FFFF }), 'boundary');
+  boundary = createRect({ x, y, w, h, stroke: 0x00FFFF });
+  physics.enablePhysics(boundary, 'boundary');
+
 
   game.camera.focusOnXY(focusX, focusY);
   
@@ -235,7 +239,7 @@ export const updatePlayer = (id, data) => {
     plyr.body.velocity.y = data.vy;
     plyr.body.angularVelocity = data.vangle;
     plyr.turret.rotation = data.turret;
-
+    plyr.score = data.score;
   } else {
     console.log(`Invalid updatePlayer: ${id}`);
   }
@@ -260,6 +264,7 @@ export const initUser = id => {
         bullet.kill();
         sendHit({
           index: i,
+          player: collider.id,
         });
       } else if (collider.name === 'bullet') {
         // We don't immediately kill the bullet here because we want to make sure
@@ -315,6 +320,22 @@ export const addBullet = (id, data) => {
   bullet.body.thrust(speed);
 };
 
+export const despawnPlayer = ({index, player: id}) => {
+  const plyr = playerMap[id];
+  if (plyr) {
+    plyr.kill();
+    game.time.events.add(respawn_timer, respawn, this, id).autoDestroy = true;
+  } else {
+    console.log(`Invalid despawnPlayer: ${id}`);
+  }
+};
+ 
+ 
+function respawn(id) {
+  const plyr = playerMap[id];
+  plyr.reset(boundary.left + Math.random() * boundary.width, boundary.top + Math.random() * boundary.height);
+}
+
 export const createGroup = () => {
 
   // TODO: do something with group data?
@@ -366,7 +387,7 @@ const render = DEV ? () => {
     for (let i = 0, ids = Object.keys(playerMap); i < ids.length; i++) {
       const id = ids[i],
             plyr = playerMap[id];
-      game.debug.line(`${i + 1}) id=${id}, x=${Math.round(plyr.x)}, y=${Math.round(plyr.y)}`);
+      game.debug.line(`${i + 1}) id=${id}, x=${Math.round(plyr.x)}, y=${Math.round(plyr.y)} score = ${plyr.score}`);
     }
     game.debug.line();
     game.debug.line(`Bullets Shot: ${bulletsShot}`);
@@ -435,6 +456,7 @@ const update = () => {
     angle: player.rotation,
     vangle: player.body.angularVelocity,
     turret: player.turret.rotation,
+    score: player.score,
   });
 };
 
@@ -456,5 +478,4 @@ export const setup = (gameOptions, focusX, focusY) => new Promise((resolve, reje
   game.state.start('Play');
 
   options = gameOptions;
-
 });

@@ -26,6 +26,7 @@ class Engine {
     this.gridSize = GRID_SIZE;
     this.gridSpacing = GRID_SPACING;
     this.gridBorderSize = GRID_BORDER_SIZE;
+
     this.container = this.createGrid(this.gridSize, this.gridSize,
       this.gridSpacing, this.gridBorderSize, Colors.GRAY);
     this.app.stage.addChild(this.container);
@@ -103,6 +104,7 @@ class Engine {
     grid.drawRect(0, grid.height - borderSize, grid.width - 2, borderSize);
   }
   createGrid = (width, height, snap, borderSize, lineColor) => {
+
     let w = width + (borderSize * 2);
     let h = height + (borderSize * 2);
 
@@ -314,6 +316,7 @@ class Engine {
 
     this.selectedObject = obj;
     this.moveToTop(this.selectedObject);
+
     this.selectedObject.tint = Colors.GREEN;
 
     this.createControls(obj);
@@ -335,7 +338,6 @@ class Engine {
       newPosition.y -= obj.offset.y;
 
       if (obj !== this.container) {
-
         newPosition.x = Math.floor(newPosition.x / this.gridSpacing) * this.gridSpacing;
         newPosition.y = Math.floor(newPosition.y / this.gridSpacing) * this.gridSpacing;
 
