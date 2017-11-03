@@ -6,35 +6,8 @@
 @import '~bulma/sass/utilities/initial-variables';
 
 $primary: #EA3D4E;
-// $dark: #202436;
-// $light: #F2F5EF;
-// $info: #FFBAAA;
-
-// $section-padding: 1rem 0rem;
-// $content-pre-padding: 1rem 1rem; 
-
-// $panel-heading-size: 1em;
-
 // Then import rest of bulma so variable changes propogate
 @import '~bulma/bulma';
-
-// .header-background, .site-header { background-color: $dark; }
-// .site-header { padding: $content-pre-padding; }
-
-// .site-name {
-//   margin: 0rem 1rem;
-//   margin-bottom: 0!important;
-//   color: $light;
-//   font-size: 1.5rem;
-// }
-
-// .tabs-list {
-//   border-bottom: none;
-//   font-size: 1rem;
-
-//   li a { color: $light; }
-//   li a:hover { color: $info; }
-// }
 
 // TODO: the following css is only required in 'edit'
 

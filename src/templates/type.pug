@@ -1,17 +1,30 @@
-div.object-block.panel-block
-  span.type-name
-    = name
-  input(
-    type="color"
-    name="type-color"
-    id="type-color"
-    value="#FFAABB"
-    style="margin-left: auto;"
+.object-block.panel-block
+  span.type-name #{name}
+  button(
+    class="button is-small"
+    id="new-object-button"
+    name="add new object"
+    style="align"
   )
-  div.field.has-addons
-    div.control
-      button.button.is-small(name="rename type")
-        i.fa.fa-pencil
-    div.control
-      button.button.is-small(name="delete type")
-        i.fa.fa-trash
+    span.icon
+      i.fa.fa-plus
+    span Add Object
+
+
+
+
+
+        //- input(
+    //-   type="color"
+    //-   name="type-color"
+    //-   id="type-color"
+    //-   value="#FFAABB"
+    //-   style="margin-left: auto;"
+    //- )
+    //- .control
+    //-   button.button.is-small(name="rename type")
+    //-     i.fa.fa-pencil
+    //- .control
+    //-   button.button.is-small(name="delete type")
+    //-     i.fa.fa-trash
+    //- .control
