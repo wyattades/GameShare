@@ -177,8 +177,10 @@ const create = (focusX, focusY) => {
   const { x, y, w, h } = options.bounds;
   
   game.world.setBounds(0, 0, w + (x * 2), h + (y * 2));
+  
   boundary = createRect({ x, y, w, h, stroke: 0x00FFFF });
   physics.enablePhysics(boundary, 'boundary');
+
 
   game.camera.focusOnXY(focusX, focusY);
   
@@ -238,7 +240,6 @@ export const updatePlayer = (id, data) => {
     plyr.body.angularVelocity = data.vangle;
     plyr.turret.rotation = data.turret;
     plyr.score = data.score;
-
   } else {
     console.log(`Invalid updatePlayer: ${id}`);
   }
@@ -477,5 +478,4 @@ export const setup = (gameOptions, focusX, focusY) => new Promise((resolve, reje
   game.state.start('Play');
 
   options = gameOptions;
-
 });
