@@ -1,7 +1,8 @@
 import $ from 'jquery';
 
-import typeTemplate from '../templates/type.pug';
+// import modalTemplate from '../templates/modal.pug';
 import objectTemplate from '../templates/object.pug';
+import typeTemplate from '../templates/type.pug';
 
 let defaultTypeHTML = typeTemplate({ name: 'default' });
 $(defaultTypeHTML).insertBefore('#new-buttons');
@@ -44,16 +45,19 @@ $('.object-button').click(() => {
   $('.object-settings').css('display', 'block');
 });
 
-$(document).click((event) => {
-  if ($(event.target).attr('class') !== 'object-button' && $('.object-settings').css('display') === 'block') {
-    $('.object-settings').css('display', 'none');
-  }
+$('.object-settings').blur(() => {
+  $('.object-settings').css('display', 'none');
 });
 
 // Handles adding type to sidebar
 $('#new-type-button').click(() => {
-  // TODO: make it a modal
+  // let modalHTML = modalTemplate();
   let typeName = prompt('Enter new object type name:');
   let typeHTML = typeTemplate({ name: typeName });
   $(typeHTML).insertBefore('#new-buttons');
 });
+
+
+
+
+// new object button next to each group
