@@ -1,12 +1,12 @@
 import * as Pixi from 'pixi.js';
 import Colors from './Colors';
 
-const GRID_SIZE = 401;
+const GRID_SIZE = 500;
 const GRID_SPACING = 20; // SNAP
-const GRID_BORDER_SIZE = 0; // Size of the border around the playable area (one side)
+const GRID_BORDER_SIZE = 100; // Size of the border around the playable area (one side)
 
-const RECT_MIN_SIZE = 10; // Minimum size of a rectangle object.
-const RESIZE_CONTROL_SIZE = 10;
+const RECT_MIN_SIZE = 20; // Minimum size of a rectangle object.
+const RESIZE_CONTROL_SIZE = 20;
 
 class Engine {
 
@@ -26,7 +26,7 @@ class Engine {
     this.gridSize = GRID_SIZE;
     this.gridSpacing = GRID_SPACING;
     this.gridBorderSize = GRID_BORDER_SIZE;
-    this.container = this.generateGrid(this.gridSize, this.gridSize,
+    this.container = this.createGrid(this.gridSize, this.gridSize,
       this.gridSpacing, this.gridBorderSize, Colors.GRAY);
     this.app.stage.addChild(this.container);
 
@@ -37,40 +37,79 @@ class Engine {
     this.resizeControlSize = RESIZE_CONTROL_SIZE; // Size of resize control elements.
 
     // Adding some test data
-    this.container.addObject(
-      this.createRect({
-        x: this.gridSpacing * 4,
-        y: this.gridSpacing * 4,
-        w: this.gridSpacing * 2,
-        h: this.gridSpacing * 2,
-        draggable: true,
-        selectable: true,
-        fill: 0xFFAABB,
-        stroke: 0x000000 }),
-    );
+    //this.addWall();
+    //this.addWall();
 
-    this.container.addObject(
-      this.createRect({
-        x: this.gridSpacing * 8,
-        y: this.gridSpacing * 8,
-        w: this.gridSpacing * 4,
-        h: this.gridSpacing * 4,
-        draggable: true,
-        selectable: true,
-        fill: Colors.WHITE,
-        stroke: Colors.BLACK }),
-    );
-
-
+    // Testing level data exporting
+    let data = this.getLevelData();
+    console.log(data);
   }
 
-  generateGrid = (width, height, snap, borderSize, lineColor) => {
+  // Return a JSON-friendly level data object, for saving and loading.
+  getLevelData = () => {
+    let data = {};
+
+    data.options = {
+      snap: 8,
+      backgroundColor: 0xDDEEDD,
+      maxBulletsPerPlayer: 4,
+      maxPlayers: 20,
+      bounds: {
+        x: this.gridBorderSize,
+        y: this.gridBorderSize,
+        w: this.gridSize - this.gridBorderSize,
+        h: this.gridSize - this.gridBorderSize,
+      },
+      bulletSpeed: 1000,
+      fireRate: 200,
+      playerSpeed: 500,
+      bulletHealth: 2,
+    };
+
+    data.groups = [
+      {
+        name: 'placeholder',
+        stroke: 0x00FFFF,
+        objects: [],
+      },
+    ];
+
+
+    data.objects = [];
+
+    for (let i = 0, l = this.container.children.length; i < l; i++) {
+      let c = this.container.children[i];
+      let placeholder_group = 0;
+      data.objects.push({
+        group: placeholder_group,
+        x: c.x,
+        y: c.y,
+        w: c.shape.width,
+        h: c.shape.height,
+      });
+      data.groups[placeholder_group].objects.push(i);
+    }
+
+    return data;
+  }
+
+  // Add shaded rectangles over the unplayable region of the map.
+  addBorderShading = (grid, borderSize, tint) => {
+    grid.lineStyle(0, tint, 0.08);
+    grid.beginFill(tint, 0.08);
+    grid.drawRect(0, 0, grid.width, borderSize);
+    grid.drawRect(0, borderSize, borderSize, grid.height - (borderSize * 2));
+    grid.drawRect(grid.width - borderSize - 2, borderSize, borderSize, grid.height - (borderSize * 2));
+    grid.drawRect(0, grid.height - borderSize, grid.width - 2, borderSize);
+  }
+  createGrid = (width, height, snap, borderSize, lineColor) => {
     let w = width + (borderSize * 2);
     let h = height + (borderSize * 2);
 
     let grid = this.createObject({
       x: 0, y: 0, w, h, draggable: true, container: true,
     });
+
     grid.lineStyle(1, lineColor, 1);
     for (let x = 0; x < w; x += snap) {
       grid.lineStyle(x % 100 === 0 ? 2 : 1, lineColor, 1);
@@ -82,7 +121,10 @@ class Engine {
       grid.moveTo(0, y);
       grid.lineTo(h, y);
     }
-    grid.bounds = { x: width, y: height };
+
+    this.addBorderShading(grid, borderSize, Colors.BLACK);
+
+    grid.bounds = { x: w, y: h };
     return grid;
   }
 
@@ -182,6 +224,22 @@ class Engine {
     return rect;
   };
 
+  // Add a new wall rectangle to the level.
+  // Returns the wall object that was just added.
+  addWall = () => {
+    const wall = this.createRect({
+      x: this.gridSpacing * 8,
+      y: this.gridSpacing * 8,
+      w: this.gridSpacing * 4,
+      h: this.gridSpacing * 4,
+      draggable: true,
+      selectable: true,
+      fill: Colors.WHITE,
+      stroke: Colors.BLACK });
+    this.container.addObject(wall);
+    return wall;
+  }
+
   // Control manipulation is in the Engine class for easier
   // access to object creation functions.
   createControls = (obj) => {
@@ -196,7 +254,7 @@ class Engine {
           y: y === 0 ? -this.resizeControlSize : obj_height,
           w: this.resizeControlSize,
           h: this.resizeControlSize,
-          fill: Colors.WHITE,
+          fill: Colors.CONTROL,
           stroke: Colors.BLACK,
           draggable: true,
         });
@@ -242,6 +300,12 @@ class Engine {
     this.selectedObject = null;
   }
 
+  // Moves the element to the bottom of the list, so it renders on top.
+  moveToTop = (obj) => {
+    this.container.removeChild(obj);
+    this.container.addChild(obj);
+  }
+
   // Clear the current selection, then select the given object.
   selectObject = (obj) => {
     if (obj.isControl) { return; }
@@ -249,6 +313,7 @@ class Engine {
     if (!obj.selectable) { return; }
 
     this.selectedObject = obj;
+    this.moveToTop(this.selectedObject);
     this.selectedObject.tint = Colors.GREEN;
 
     this.createControls(obj);
@@ -270,7 +335,11 @@ class Engine {
       newPosition.y -= obj.offset.y;
 
       if (obj !== this.container) {
-        // Check bounds
+
+        newPosition.x = Math.floor(newPosition.x / this.gridSpacing) * this.gridSpacing;
+        newPosition.y = Math.floor(newPosition.y / this.gridSpacing) * this.gridSpacing;
+
+        // Check bounds and clamp
         if (newPosition.x < 0) {
           newPosition.x = 0;
         } else if (newPosition.x + obj.shape.width > this.container.bounds.x) {
@@ -299,9 +368,14 @@ class Engine {
         newPosition = { x: 0, y: 0 },
         newSize = { width: 0, height: 0 };
 
+    // Anchor to snap points.
+    dragPos.x = Math.floor(dragPos.x / this.gridSpacing) * this.gridSpacing;
+    dragPos.y = Math.floor(dragPos.y / this.gridSpacing) * this.gridSpacing;
+
     // Calculate new width.
     if (control.controlPosition.x === 0) {
       // This is a left-side control.
+      dragPos.x += control.width / 2; // Snap offset
       newPosition.x = dragPos.x + (control.width / 2);
 
       // Clamp to dragging bounds (prevents sliding element):
@@ -330,6 +404,7 @@ class Engine {
     // Calculate new height.
     if (control.controlPosition.y === 0) {
       // This is a top control.
+      dragPos.y += control.height / 2; // Snap offset.
       newPosition.y = dragPos.y + (control.height / 2);
 
       // Clamp to dragging bounds (prevents sliding element):
@@ -353,6 +428,7 @@ class Engine {
     }
     // Clamp to minimum height.
     if (newSize.height < this.rectMinSize) { newSize.height = this.rectMinSize; }
+
 
     obj.translate(newPosition.x, newPosition.y);
     obj.resize(newSize.width, newSize.height);

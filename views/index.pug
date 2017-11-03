@@ -4,12 +4,30 @@ block page_content
 
   include ./templates/header
 
-  section.section.hero
+  //- section.section.hero
     .hero-body
       .container
         h1.title GameShare
         h2.subtitle Its a thing
         p
           | Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum
-
-  section
+        
+  section.section.hero.is-fullheight
+    .hero-body
+      .container.has-text-centered
+        .column.is-4.is-offset-4
+          h3.title.has-text-grey Join GameShare
+          p.subtitle.has-text-grey Please sign in to proceed.
+          //- .box
+          .field
+            .control
+              button#google-sign-in.button.is-large.is-fullwidth
+                span.icon
+                  i.fa.fa-google
+                span Sign In with Google
+          .field
+            .control
+              button#github-sign-in.button.is-large.is-fullwidth
+                span.icon
+                  i.fa.fa-github
+                span Sign In with GitHub

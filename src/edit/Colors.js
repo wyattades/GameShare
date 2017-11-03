@@ -6,6 +6,7 @@ const Colors = {
   GREEN: 0x00FF00,
   BLUE: 0x0000FF,
   GRAY: 0xAAAAAA,
+  CONTROL: 0xCCCCFF,
 };
 
 export default Colors;
