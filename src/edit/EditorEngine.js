@@ -225,18 +225,19 @@ class Engine {
   };
 
   // Add a new wall rectangle to the level.
+  // Returns the wall object that was just added.
   addWall = () => {
-    this.container.addObject(
-      this.createRect({
-        x: this.gridSpacing * 8,
-        y: this.gridSpacing * 8,
-        w: this.gridSpacing * 4,
-        h: this.gridSpacing * 4,
-        draggable: true,
-        selectable: true,
-        fill: Colors.WHITE,
-        stroke: Colors.BLACK }),
-    );
+    const wall = this.createRect({
+      x: this.gridSpacing * 8,
+      y: this.gridSpacing * 8,
+      w: this.gridSpacing * 4,
+      h: this.gridSpacing * 4,
+      draggable: true,
+      selectable: true,
+      fill: Colors.WHITE,
+      stroke: Colors.BLACK });
+    this.container.addObject(wall);
+    return wall;
   }
 
   // Control manipulation is in the Engine class for easier
