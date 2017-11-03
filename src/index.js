@@ -14,7 +14,7 @@ var database = firebase.database();
 var provider = new firebase.auth.GoogleAuthProvider();
 firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL);
 const googleSignIn = e => {
-	e.target.removeEventListener(e.type, googleSignIn);
+	//e.target.removeEventListener(e.type, googleSignIn);
 	firebase.auth().signInWithPopup(provider).then(function(result) {
 		console.log("Sign in success");
 	}, function(error) {
