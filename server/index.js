@@ -10,7 +10,6 @@ const DEV = process.env.NODE_ENV === 'development';
 // ---------- Setup express to send files
 
 const app = express();
-
 // Live reload express server when developing
 if (DEV) {
 
@@ -54,7 +53,8 @@ const renderPage = (page, title, options = {}) => {
   return (req, res) => res.render(page, compiled);
 };
 
-app.get('/', renderPage('index', 'Home'));
+//app.get('/', renderPage('index', 'Home'));
+app.get('/', renderPage('index', 'Home', { script: true }));
 app.get('/play', renderPage('play', 'Play', { script: true }));
 app.get('/edit', renderPage('edit', 'Edit', { script: true }));
 app.get('/games', renderPage('games', 'Games'));
