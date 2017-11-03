@@ -18,23 +18,21 @@ $primary: #EA3D4E;
 // Then import rest of bulma so variable changes propogate
 @import '~bulma/bulma';
 
-// .header-background, .site-header { background-color: $dark; }
-// .site-header { padding: $content-pre-padding; }
-
-// .site-name {
-//   margin: 0rem 1rem;
-//   margin-bottom: 0!important;
-//   color: $light;
-//   font-size: 1.5rem;
-// }
-
-// .tabs-list {
-//   border-bottom: none;
-//   font-size: 1rem;
-
-//   li a { color: $light; }
-//   li a:hover { color: $info; }
-// }
+// Loading indicator on a div
+div.is-loading {
+  position: relative;
+  pointer-events: none;
+  opacity: 0.5;
+  &:after {
+    @include loader;
+    position: absolute;
+    top: calc(50% - 2.5em);
+    left: calc(50% - 2.5em);
+    width: 5em;
+    height: 5em;
+    border-width: 0.25em;
+  }
+}
 
 // TODO: the following css is only required in 'edit'
 
@@ -63,7 +61,7 @@ $primary: #EA3D4E;
 .grid-block, .object-settings, .level-block { display: none; }
 
 // Mysterious CSS that makes the grid display- doesnt show up otherwise
-html, body, .edit-body, .ui  { height: 100%; }
+html, body, .edit-body  { height: 100%; }
 
 // TODO: The following css is only required in 'edit' and 'play'
 

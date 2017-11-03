@@ -36,13 +36,13 @@ app.locals.rootId = 'root';
 
 // Helper function for generating pug variables
 const renderPage = (page, title, options = {}) => {
-  if (options.script) {
-    delete options.script;
-    // FIXME: production and development require different file paths
-    options.scripts = [{ src: DEV ? `/public/${page}.js` : `/${page}.js`, inject: 'body' }];
-  } else {
-    options.scripts = DEV ? [{ src: '/public/loadStyles.js', inject: 'body' }] : [];
-  }
+  // if (options.script) {
+  // delete options.script;
+  // FIXME: production and development require different file paths
+  options.scripts = [{ src: DEV ? `/public/${page}.js` : `/${page}.js`, inject: 'body' }];
+  // } else {
+  //   options.scripts = DEV ? [{ src: '/public/loadStyles.js', inject: 'body' }] : [];
+  // }
 
   const compiled = Object.assign({
     page,
@@ -53,10 +53,9 @@ const renderPage = (page, title, options = {}) => {
   return (req, res) => res.render(page, compiled);
 };
 
-//app.get('/', renderPage('index', 'Home'));
-app.get('/', renderPage('index', 'Home', { script: true }));
-app.get('/play', renderPage('play', 'Play', { script: true }));
-app.get('/edit', renderPage('edit', 'Edit', { script: true }));
+app.get('/', renderPage('index', 'Home'));
+app.get('/play', renderPage('play', 'Play'));
+app.get('/edit', renderPage('edit', 'Edit'));
 app.get('/games', renderPage('games', 'Games'));
 // app.get('/login', renderPage('login', 'Login'));
 // app.get('/register', renderPage('register', 'Register'));
