@@ -43,6 +43,9 @@ const baseConfig = {
       }, {
         test: /\.pug$/,
         loader: 'pug-loader',
+        options: {
+          self: true,
+        },
         include: PATHS.src,
       }, {
         test: /\.s?css$/,

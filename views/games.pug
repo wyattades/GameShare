@@ -10,13 +10,21 @@ block page_content
         h1.title My Games
         h4.subtitle View and manage your games
       p.control.is-pulled-right
-        a#logout.button Logout (TEMP)    
+        a#logout.button
+          span
+            i.fa.fa-sign-out
+          span Logout
   section
-    #games_content.container
-      .is-loading
+    .container
+      table.table.is-fullwidth
+        thead
+          tr
+            th Name
+            th Created On
+            th Status
+            th Actions
+        tbody#games_content
   section.section
     .container
       p.control
-        a#new_game.button NewGame (TEMP)
-      
-              
+        a#new_game.button NewGame (TEMP)   

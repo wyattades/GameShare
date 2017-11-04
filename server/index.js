@@ -38,8 +38,11 @@ app.locals.rootId = 'root';
 const renderPage = (page, title, options = {}) => {
   // if (options.script) {
   // delete options.script;
+
+  const script = options.script || page;
+
   // FIXME: production and development require different file paths
-  options.scripts = [{ src: DEV ? `/public/${page}.js` : `/${page}.js`, inject: 'body' }];
+  options.scripts = [{ src: DEV ? `/public/${script}.js` : `/${script}.js`, inject: 'body' }];
   // } else {
   //   options.scripts = DEV ? [{ src: '/public/loadStyles.js', inject: 'body' }] : [];
   // }
@@ -54,14 +57,14 @@ const renderPage = (page, title, options = {}) => {
 };
 
 app.get('/', renderPage('index', 'Home'));
+app.get('/play/:game_id', renderPage('play', 'Play'));
 app.get('/play', renderPage('play', 'Play'));
+app.get('/edit/:game_id', renderPage('edit', 'Edit'));
 app.get('/edit', renderPage('edit', 'Edit'));
 app.get('/games', renderPage('games', 'Games'));
-// app.get('/login', renderPage('login', 'Login'));
-// app.get('/register', renderPage('register', 'Register'));
 
 // 404 response
-app.use(renderPage('404', '404 Error', { status: 404 }));
+app.use(renderPage('404', '404 Error', { status: 404, script: 'loadStyles' }));
 
 
 // ---------- Listen on http server

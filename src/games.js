@@ -1,41 +1,57 @@
 import $ from 'jquery';
 
 import './styles/styles.scss';
-import { isLoggedIn, fetchUser, logout, __createGame } from './utils/db';
-import gamesTableTemplate from './templates/gamesTable.pug';
+import { assertLoggedIn, fetchGames, logout, createGame, deleteGame } from './utils/db';
+import gameEntry from './templates/gameEntry.pug';
 
-isLoggedIn()
-.then(fetchUser)
-.then(res => {
-  const games = res.games || {};
-  const gameList = Object.keys(games).map(id => {
-    const game = games[id];
-    return { ...game, id };
+const parent = $('#games_content');
+
+const addEntry = data => {
+
+  const html = gameEntry(data);
+  const $el = $(html).prependTo(parent);
+
+  const actions = $el.find('a');
+  const id = data.id;
+  
+  // Publish/unpublish button
+  actions.eq(0).click(() => {
+    document.location.assign(`/play/${id}`);
   });
-  console.log('Games', gameList);
 
-  // Set content on page
-  $('#games_content').html(gamesTableTemplate({
-    games: gameList,
-  }));
-})
+  // Edit button
+  actions.eq(1).click(() => {
+    document.location.assign(`/edit/${id}`);
+  });
+
+  // Delete button
+  actions.eq(2).click(() => {
+    actions.eq(2).addClass('is-loading');
+    deleteGame(id)
+    .then(() => {
+      $el.remove();
+    })
+    .catch(console.error);
+  });
+};
+
+assertLoggedIn()
+.then(fetchGames)
+.then(games => games.forEach(addEntry))
 .catch(err => {
-  console.log(err);
+  console.log('Games Page Error:', err);
 });
 
 // TEMP
-const onLogout = e => {
-  // e.target.removeEventListener(e.type, logout);
-
+$('#logout').click(() => {
   logout()
   .then(() => {
     document.location.assign('/');
   });
-};
-document.getElementById('logout').addEventListener('click', onLogout);
+});
 
 // TEMP
-const onNewGame = e => {
-  __createGame();
-};
-document.getElementById('new_game').addEventListener('click', onNewGame);
+$('#new_game').click(() => {
+  createGame({ test: Math.random() })
+  .then(addEntry);
+});
