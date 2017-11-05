@@ -1,0 +1,22 @@
+extends ./templates/boilerplate
+
+block page_content
+
+  include ./templates/header
+
+  section.section
+    .container
+      h1.title Active Games
+      h4.subtitle Other people's games
+  section.section
+    .container
+      table.table.is-fullwidth
+        thead
+          tr
+            th Name
+            th Last Modified
+            th Created On
+            th Owner
+            th Play
+        tbody#games_content
+      

@@ -19,7 +19,8 @@ auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
 // User authentication providers
 const providers = {
   google: new firebase.auth.GoogleAuthProvider(),
-  github: new firebase.auth.GithubAuthProvider(),
+  // github: new firebase.auth.GithubAuthProvider(),
+  // facebook: new firebase.auth.FacebookAuthProvider(),
 };
 
 export const assertLoggedIn = () => new Promise((resolve, reject) => {
@@ -74,7 +75,7 @@ export const createGame = (data, status) => {
   const uid = auth.currentUser.uid;
 
   // Set a reference to the owner of the game
-  data.uid = uid;
+  data.owner = uid;
 
   // Push new game data
   return db.ref('/games').push(data)
@@ -86,12 +87,12 @@ export const createGame = (data, status) => {
       created_on,
       last_modified: created_on,
       status: status || 'stopped',
+      owner: uid,
     };
 
-    // Register user as owner of game
-    db.ref(`/users/${uid}/games`).child(id).set(info);
-
-    return { id, ...info };
+    return db.ref(`/users/${uid}/games/${id}`).set(true) // Register user as owner of game    
+    .then(() => db.ref(`/games_info/${id}`).set(info)) // Create public game info
+    .then(() => ({ id, ...info })); // Return game-info
   });
 };
 
@@ -102,16 +103,32 @@ export const updateGame = (id, data, status) => data ? db.ref(`/games/${id}`).se
   if (data) update.last_modified = Date.now();
   if (status) update.status = status;
 
-  return db.ref(`/users/${auth.currentUser.uid}/games/${id}`).update(update);
+  return db.ref(`/games_info/${id}`).update(update);
 });
 
 // Delete game
-export const deleteGame = id => db.ref(`/games/${id}`).remove()
+export const deleteGame = id => db.ref(`/games_info/${id}`).remove()
+.then(() => db.ref(`/games/${id}`).remove())
 .then(() => db.ref(`/users/${auth.currentUser.uid}/games/${id}`).remove());
 
 // Fetch user's games
 export const fetchGames = () => db
-.ref(`/users/${auth.currentUser.uid}/games`)
+.ref('/games_info')
+.orderByChild('owner')
+.equalTo(auth.currentUser.uid)
+.once('value')
+.then(snapshot => {
+  const games = snapshot.val() || {};
+  
+  return Object.keys(games).map(id => ({ id, ...games[id] }));
+})
+.then(games => games.sort((a, b) => a.last_modified > b.last_modified)); // Sort by last_modified time
+
+// Fetch all games with status=running
+export const fetchActiveGames = () => db
+.ref('/games_info')
+.orderByChild('status')
+.equalTo('running')
 .once('value')
 .then(snapshot => {
   const games = snapshot.val() || {};
