@@ -97,10 +97,13 @@ export const createGame = (data, status) => {
 
 // Update game data/status
 export const updateGame = (id, data, status) => data ? db.ref(`/games/${id}`).set(data) : Promise.resolve()
-.then(() => status ? db.ref(`/users/${auth.currentUser.uid}/games/${id}`).update({
-  status,
-  last_modified: Date.now(),
-}) : Promise.resolve());
+.then(() => {
+  const update = {};
+  if (data) update.last_modified = Date.now();
+  if (status) update.status = status;
+
+  return db.ref(`/users/${auth.currentUser.uid}/games/${id}`).update(update);
+});
 
 // Delete game
 export const deleteGame = id => db.ref(`/games/${id}`).remove()

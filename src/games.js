@@ -1,7 +1,7 @@
 import $ from 'jquery';
 
 import './styles/styles.scss';
-import { assertLoggedIn, fetchGames, logout, createGame, deleteGame } from './utils/db';
+import { assertLoggedIn, fetchGames, logout, createGame, deleteGame, updateGame } from './utils/db';
 import gameEntry from './templates/gameEntry.pug';
 
 const parent = $('#games_content');
@@ -13,10 +13,25 @@ const addEntry = data => {
 
   const actions = $el.find('a');
   const id = data.id;
+
+  const $publish = $el.find('.game-publish');
   
   // Publish/unpublish button
   actions.eq(0).click(() => {
-    document.location.assign(`/play/${id}`);
+    const running = $publish.hasClass('fa-stop');
+    actions.eq(0).addClass('is-loading');
+
+    updateGame(id, undefined, running ? 'stopped' : 'running')
+    .then(() => {
+      actions.eq(0).removeClass('is-loading');
+      $publish.toggleClass('fa-stop fa-play');
+      
+      $el.find('.game-status').text(running ? 'stopped' : 'running');      
+
+      if (!running) {
+        document.location.assign(`/play/${id}`);
+      }
+    });
   });
 
   // Edit button
@@ -42,7 +57,6 @@ assertLoggedIn()
   console.log('Games Page Error:', err);
 });
 
-// TEMP
 $('#logout').click(() => {
   logout()
   .then(() => {
