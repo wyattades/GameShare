@@ -58,6 +58,7 @@ const bindHandlers = () => {
 
   socket.on('bullet_hit', (id, data) => {
     engine.removeBullet(id, data);
+    engine.despawnPlayer(data);
   });
 
   return Promise.resolve();
@@ -119,3 +120,4 @@ export const destroy = () => {
   disconnect();
   engine.destroy();
 };
+
