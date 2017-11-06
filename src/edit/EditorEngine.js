@@ -1,7 +1,7 @@
 import * as Pixi from 'pixi.js';
 import Colors from './Colors';
 
-const GRID_SIZE = { w: 250, h: 250 };
+const GRID_SIZE = { w: 260, h: 260 };
 const GRID_SPACING = 20; // SNAP
 const GRID_BORDER_SIZE = 100; // Size of the border around the playable area (one side)
 
