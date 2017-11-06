@@ -1,8 +1,4 @@
--
-  // [ label, filename, path ]
-  const pageData =  [ ['Home','index','/'], ['Games', 'games', '/games'], ['Edit','edit','/edit'], ['Play','play','/play'] ];
-
-nav.navbar.has-shadow.is-dark
+nav.navbar.is-primary(role="navigation")
   .container
     .navbar-brand
       a.navbar-item(href="/")
@@ -15,17 +11,24 @@ nav.navbar.has-shadow.is-dark
         span
     .navbar-menu#navbarMenu
       .navbar-start
-        each p in pageData
-          a.navbar-item.is-tab(class=self.page === p[1] && 'is-active' href=p[2])
-            = p[0]
-      .navbar-end
+        a.navbar-item.logged-in(class=(self.page === 'games') && 'is-active' href="/games")
+          span My Games
+        a.navbar-item(class=(self.page === 'activeGames') && 'is-active' href="/play")
+          span Browse Games
+        
+      .logged-in.navbar-end
         .navbar-item
-          .field.is-grouped
-            p.control
-              a.button.is-primary(href="/edit")
-                span.icon
-                  i.fa.fa-plus
-                span Create
+          .control
+            a.button.is-warning(href="/edit")
+              span.icon
+                i.fa.fa-plus
+              span Create
+        a.navbar-item(href="/account")
+          span Account
+      .logged-out.navbar-end
+        .navbar-item
+          a.button.is-primary.is-inverted.is-outlined(href="/")
+            span Sign In
 
           //- .field.is-grouped
             p.control
