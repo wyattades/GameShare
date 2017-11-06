@@ -1,7 +1,7 @@
 import * as Pixi from 'pixi.js';
 import Colors from './Colors';
 
-const GRID_SIZE = 500;
+const GRID_SIZE = { w: 250, h: 250 };
 const GRID_SPACING = 20; // SNAP
 const GRID_BORDER_SIZE = 100; // Size of the border around the playable area (one side)
 
@@ -30,14 +30,9 @@ class Engine {
     this.gridBorderColor = Colors.BLACK;
     this.container = this.createGrid();
     this.app.stage.addChild(this.container);
-    console.log(this.container);
 
-    this.groups = []; // List of object/wall groups
-    this.addGroup();
-
-    //testing grid resizing
-    this.gridSize = 400;
-    this.resizeGrid();
+    this.groups = []; // List of object/wall groups.
+    this.addGroup(); // Add default group.
 
     this.selectedObject = null; // The currently selected object.
     this.lockSelect = false; // When true, objects won't be selected.
@@ -58,8 +53,8 @@ class Engine {
       bounds: {
         x: this.gridBorderSize,
         y: this.gridBorderSize,
-        w: this.gridSize - this.gridBorderSize,
-        h: this.gridSize - this.gridBorderSize,
+        w: this.gridSize.w - this.gridBorderSize,
+        h: this.gridSize.h - this.gridBorderSize,
       },
       bulletSpeed: 1000,
       fireRate: 200,
@@ -96,8 +91,10 @@ class Engine {
   }
   // Add gridline primitives to grid object.
   drawGridlines = (grid = this.container, tint = this.gridLineColor) => {
-    let w = grid.w,
-        h = grid.h;
+    // This is a hacky way to fix the grid drawing when w != h
+    // TODO: Fix grid drawing for non-square level sizes.
+    let w = Math.max(grid.w, grid.h),
+        h = Math.max(grid.w, grid.h);
 
     grid.lineStyle(1, tint, 1);
     for (let x = 0; x < w; x += this.gridSpacing) {
@@ -113,7 +110,7 @@ class Engine {
 
   }
   // Generate the grid container. Width and height define the playable area.
-  createGrid = (width = this.gridSize, height = this.gridSize) => {
+  createGrid = (width = this.gridSize.w, height = this.gridSize.h) => {
     let w = width + (this.gridBorderSize * 2),
         h = height + (this.gridBorderSize * 2);
 
@@ -127,10 +124,10 @@ class Engine {
     return grid;
   }
   // Resize the grid to the given size. Currently only makes squares.
-  resizeGrid = (newSize = this.gridSize, grid = this.container) => {
-    this.gridSize = newSize;
-    let w = this.gridSize + (this.gridBorderSize * 2),
-        h = this.gridSize + (this.gridBorderSize * 2);
+  resizeGrid = (width = this.gridSize.w, height = this.gridSize.h, grid = this.container) => {
+    this.gridSize = { w: width, h: height };
+    let w = this.gridSize.w + (this.gridBorderSize * 2),
+        h = this.gridSize.h + (this.gridBorderSize * 2);
 
     grid.graphicsData.length = 0;
     grid.x = 0;
