@@ -56,7 +56,15 @@ class Game {
 
   stop() {
     this.gameLoop.stop();
-    this.io.close();
+
+    // this.io.close();
+    const connectedSockets = this.io.connected;
+    Object.keys(connectedSockets).forEach(socketId => {
+      connectedSockets[socketId].disconnect(); // Disconnect each socket
+    });
+    this.io.removeAllListeners(); // Remove all Listeners for the event emitter
+    delete io.nsps[`/${this.id}`]; // Remove from the server namespaces
+
     connections -= this.connections;
   }
 
@@ -184,6 +192,8 @@ module.exports = server => {
   io = socketIO(server);
   connections = 0;
 
+  // TODO: handle connection to invalid game id
+
   games = {};
 
   const app = {};
@@ -192,19 +202,21 @@ module.exports = server => {
 
   app.create = (id, gameData) => {
     if (games.hasOwnProperty(id)) {
-      throw new Error(`A game with id ${id} already exists`);
+      console.log(`A game with id ${id} already exists`);
     } else {
       games[id] = new Game(id, gameData);
       games[id].start();
+      console.log('Created game', Object.keys(games));
     }
   };
 
-  app.remove = id => {
+  app.destroy = id => {
     if (games.hasOwnProperty(id)) {
       games[id].stop();
       delete games[id];
+      console.log('Destroyed game', Object.keys(games));
     } else {
-      throw new Error(`A game with id ${id} does not exist`);
+      console.log(`A game with id ${id} does not exist`);
     }
   };
 

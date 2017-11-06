@@ -65,7 +65,8 @@ $('#logout').click(() => {
 });
 
 // TEMP
+const testData = require('./utils/testData.js');
 $('#new_game').click(() => {
-  createGame({ test: Math.random() })
+  createGame(testData)
   .then(addEntry);
 });

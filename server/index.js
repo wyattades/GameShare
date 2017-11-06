@@ -2,7 +2,9 @@ const webpack = require('webpack');
 const express = require('express');
 const path = require('path');
 const http = require('http');
+
 const gameServer = require('./gameServer');
+const gameDatabase = require('./gameDatabase');
 
 const PORT = 3000;
 const DEV = process.env.NODE_ENV === 'development';
@@ -10,6 +12,7 @@ const DEV = process.env.NODE_ENV === 'development';
 // ---------- Setup express to send files
 
 const app = express();
+
 // Live reload express server when developing
 if (DEV) {
 
@@ -36,16 +39,11 @@ app.locals.rootId = 'root';
 
 // Helper function for generating pug variables
 const renderPage = (page, title, options = {}) => {
-  // if (options.script) {
-  // delete options.script;
 
   const script = options.script || page;
 
   // FIXME: production and development require different file paths
   options.scripts = [{ src: DEV ? `/public/${script}.js` : `/${script}.js`, inject: 'body' }];
-  // } else {
-  //   options.scripts = DEV ? [{ src: '/public/loadStyles.js', inject: 'body' }] : [];
-  // }
 
   const compiled = Object.assign({
     page,
@@ -80,7 +78,4 @@ server.listen(PORT, () => {
 
 const games = gameServer(server);
 
-// TEMP: Start new game
-const testData = require('./testData');
-games.create('my_test_game', testData);
-
+gameDatabase(games.create, games.destroy);
