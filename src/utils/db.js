@@ -28,6 +28,8 @@ export const assertLoggedIn = () => new Promise((resolve, reject) => {
     if (user) { // Logged in
       console.log('Logged in to firebase');
 
+      document.querySelectorAll('.logged-in, .logged-out').forEach(el => el.classList.toggle('logged-in') || el.classList.toggle('logged-out'));
+      
       resolve();
     } else { // Logged out
 

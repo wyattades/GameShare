@@ -2,22 +2,38 @@ extends ./templates/boilerplate
 
 block page_content
 
-  include ./templates/header
+  //- include ./templates/header
 
-  //- section.section.hero
-    .hero-body
-      .container
-        h1.title GameShare
-        h2.subtitle Its a thing
-        p
-          | Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum
-        
-  section.section.hero.is-fullheight
+  nav.navbar.is-primary.home-navbar(role="navigation")
+    .container
+      .navbar-brand
+        a.navbar-item(href="/")
+          h1.is-primary.is-size-4
+            strong GameShare
+          //- img(src="https://cdn3.iconfinder.com/data/icons/black-easy/512/535112-game_512x512.png", alt="GameShare Icon", width="112", height="28")
+        .navbar-burger.burger(data-target="navbarMenu")
+          span
+          span
+          span
+      .navbar-menu#navbarMenu
+        //- .navbar-start
+        //-   each p in pageData
+        //-     a.navbar-item.is-tab(class=self.page === p[1] && 'is-active' href=p[2])
+        //-       = p[0]
+        .navbar-end
+          a.navbar-item(href="")
+            span.icon
+              i.fa.fa-github.fa-lg
+            //- a.icon.is-primary.is-inverted.is-outlined(href="/") Github
+          .navbar-item
+            a.button.is-primary.is-outlined.is-inverted(href="/play") Browse Games
+
+  section.section.hero.is-fullheight.is-primary
     .hero-body
       .container.has-text-centered
         .column.is-4.is-offset-4
-          h3.title.has-text-grey Join GameShare
-          p.subtitle.has-text-grey Please sign in to proceed.
+          h3.title Join GameShare
+          p.subtitle Please sign in to proceed.
           //- .box
           .field
             .control

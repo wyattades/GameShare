@@ -1,6 +1,6 @@
 const admin = require('firebase-admin');
 
-const cert = require('./GameShare-772634e884e8.json');
+const cert = require('./db-credentials.json');
 
 admin.initializeApp({
   credential: admin.credential.cert(cert),

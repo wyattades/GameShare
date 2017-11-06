@@ -5,9 +5,24 @@
 // First import the variables
 @import '~bulma/sass/utilities/initial-variables';
 
-$primary: #EA3D4E;
+$primary: #279AF1;
+$warning: #FFE74C;
+$danger: #FF5964;
+$link: #38618C;
+$navbar-height: 3.5em;
+$navbar-tab-active-border-bottom-color: none;
+
 // Then import rest of bulma so variable changes propogate
 @import '~bulma/bulma';
+
+// Navbar
+.home-navbar {
+  border-bottom: 1px solid rgb(111, 188, 236);
+}
+
+.logged-in {
+  display: none;
+}
 
 // Loading indicator on a div
 div.is-loading {
