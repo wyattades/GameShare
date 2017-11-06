@@ -1,16 +1,16 @@
-import $ from 'jquery';
-
 import './styles/styles.scss';
-import { fetchActiveGames } from './utils/db';
+import { fetchActiveGames, assertLoggedIn } from './utils/db';
 import gameEntry from './templates/gameEntry.pug';
 
-const parent = $('#games_content');
+const parent = document.getElementById('games_content');
 
-fetchActiveGames()
+assertLoggedIn(false)
+.catch(() => Promise.resolve())
+.then(fetchActiveGames)
 .then(games => {
   for (let game of games) {
-    game.active = true; // Set active flag so gameEntry.pug knows to display correct info
-    parent.append(gameEntry(game));
+    game.active = true; // Set active flag so gameEntry.pug knows to display activeGames info
+    parent.insertAdjacentHTML('beforeend', gameEntry(game));
   }
 })
 .catch(console.error);

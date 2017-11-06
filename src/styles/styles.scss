@@ -1,26 +1,14 @@
 // FontAwesome icons
-// TODO: import via local file
-@import url('https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css');
-
-// First import the variables
-@import '~bulma/sass/utilities/initial-variables';
-
-$primary: #279AF1;
-$warning: #FFE74C;
-$danger: #FF5964;
-$link: #38618C;
-$navbar-height: 3.5em;
-$navbar-tab-active-border-bottom-color: none;
-
-// Then import rest of bulma so variable changes propogate
-@import '~bulma/bulma';
+@import '~font-awesome/css/font-awesome.min.css';
+// Bulma css framework
+@import './bulma';
 
 // Navbar
-.home-navbar {
-  border-bottom: 1px solid rgb(111, 188, 236);
+.home-body {
+  border-top: 1px solid rgb(111, 188, 236);
 }
 
-.logged-in {
+.logged-out {
   display: none;
 }
 
@@ -39,9 +27,6 @@ div.is-loading {
     border-width: 0.25em;
   }
 }
-
-// TODO: the following css is only required in 'edit'
-
 .sidebar {
   display: block!important;
   margin: 0.75em;
@@ -67,9 +52,9 @@ div.is-loading {
 .grid-block, .object-settings, .level-block { display: none; }
 
 // Mysterious CSS that makes the grid display- doesnt show up otherwise
-html, body, .edit-body  { height: 100%; }
+html, body, .edit-body { height: 100%; }
 
-// TODO: The following css is only required in 'edit' and 'play'
+// TODO: The following css is required in 'edit' and 'play'
 
 body {
   display: flex;
@@ -91,17 +76,5 @@ html {
     right: 0;
     bottom: 0;
     top: 0;
-  }
-}
-
-#loading {
-  background-color: white;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-
-  & > * {
-    text-align: center;
-    flex: 0.6;
   }
 }

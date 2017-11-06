@@ -23,18 +23,23 @@ const providers = {
   // facebook: new firebase.auth.FacebookAuthProvider(),
 };
 
-export const assertLoggedIn = () => new Promise((resolve, reject) => {
+export const assertLoggedIn = (redirect = true) => new Promise((resolve, reject) => {
   auth.onAuthStateChanged(user => {
     if (user) { // Logged in
       console.log('Logged in to firebase');
-
-      document.querySelectorAll('.logged-in, .logged-out').forEach(el => el.classList.toggle('logged-in') || el.classList.toggle('logged-out'));
       
       resolve();
     } else { // Logged out
 
       // Redirect to home page
-      document.location.replace('/');
+      if (redirect) {
+        document.location.replace('/');
+      } else {
+        document.querySelectorAll('.logged-in, .logged-out').forEach(el => {
+          el.classList.toggle('logged-in');
+          el.classList.toggle('logged-out');
+        });
+      }
 
       reject();
     }
@@ -99,7 +104,7 @@ export const createGame = (data, status) => {
 };
 
 // Update game data/status
-export const updateGame = (id, data, status) => data ? db.ref(`/games/${id}`).set(data) : Promise.resolve()
+export const updateGame = (id, data, status) => (data ? db.ref(`/games/${id}`).update(data) : Promise.resolve())
 .then(() => {
   const update = {};
   if (data) update.last_modified = Date.now();

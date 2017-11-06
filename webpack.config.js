@@ -52,21 +52,21 @@ const baseConfig = {
         loaders: ExtractTextPlugin.extract({ fallback: 'style-loader', use: ['css-loader', 'sass-loader'] }),
         include: PATHS.css,
       }, {
-        test: /\.(gif|jpe?g|png|svg)$/,
+        test: /\.(gif|jpe?g|png|svg)(\?\w+=[\d.]+)?$/,
         loader: 'url-loader',
         options: {
           name: PATHS.assetName,
           limit: 10000,
         },
-        include: PATHS.assets,
+        // include: PATHS.assets,
       }, {
-        test: /\.ttf$/,
+        test: /\.(ttf|eot|woff|woff2)(\?\w+=[\d.]+)?$/,
         loader: 'url-loader',
         options: {
           name: PATHS.assetName,
           limit: 10000,
         },
-        include: PATHS.assets,
+        // include: PATHS.assets,
       },
     ],
   },

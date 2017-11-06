@@ -62,7 +62,7 @@ app.get('/edit', renderPage('edit', 'Edit'));
 app.get('/games', renderPage('games', 'Games'));
 
 // 404 response
-app.use(renderPage('404', '404 Error', { status: 404, script: 'loadStyles' }));
+app.use(renderPage('404', '404 Error', { status: 404 }));
 
 
 // ---------- Listen on http server
