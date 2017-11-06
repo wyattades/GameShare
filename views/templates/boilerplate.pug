@@ -8,6 +8,7 @@
   self.lang = self.lang || 'en';
 
   self.scripts = self.scripts || [];
+  if (self.script) self.scripts.push(self.script);
   for (item of self.scripts) {
     if (typeof item === 'string')  {
       item = { src: item, type: 'text/javascript' };

@@ -6,15 +6,9 @@ block page_content
 
   section.section
     .container
-      .is-pulled-left
-        h1.title My Games
-        h4.subtitle View and manage your games
-      p.control.is-pulled-right
-        a#logout.button
-          span
-            i.fa.fa-sign-out
-          span Logout
-  section
+      h1.title Active Games
+      h4.subtitle Other people's games
+  section.section
     .container
       table.table.is-fullwidth
         thead
@@ -22,6 +16,7 @@ block page_content
             th Name
             th Last Modified
             th Created On
-            th Status
-            th Actions
+            th Owner
+            th Play
         tbody#games_content
+      
