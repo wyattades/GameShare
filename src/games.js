@@ -63,10 +63,3 @@ $('#logout').click(() => {
     document.location.assign('/');
   });
 });
-
-// TEMP
-const testData = require('./utils/testData.js');
-$('#new_game').click(() => {
-  createGame(testData)
-  .then(addEntry);
-});
