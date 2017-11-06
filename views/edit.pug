@@ -14,10 +14,11 @@ block page_content
               a#object-tab.is-active Objects
               a#grid-tab Grid
               a#level-tab Level
-            .object-block.panel-block#new-buttons
-              .field.is-grouped.is-centered
-                .control
-                  button.button.is-small#new-type-button New Type
+            .object-block.panel-block(
+              id="new-buttons"
+              style="justify-content: center;"
+            )
+              button.button.is-small#new-type-button New Type
             .grid-block.panel-block
               .field
                 label(
