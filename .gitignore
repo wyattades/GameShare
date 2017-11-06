@@ -3,6 +3,7 @@ dist/
 public/
 package-lock.json
 .DS_Store
+db-credentials.json
 
 # Logs
 logs

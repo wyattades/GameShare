@@ -1,7 +1,7 @@
 import $ from 'jquery';
 
 import './styles/styles.scss';
-import { assertLoggedIn, fetchGames, logout, createGame, deleteGame, updateGame } from './utils/db';
+import { assertLoggedIn, fetchGames, logout, deleteGame, updateGame } from './utils/db';
 import gameEntry from './templates/gameEntry.pug';
 
 const parent = $('#games_content');
@@ -26,7 +26,7 @@ const addEntry = data => {
       actions.eq(0).removeClass('is-loading');
       $publish.toggleClass('fa-stop fa-play');
       
-      $el.find('.game-status').text(running ? 'stopped' : 'running');      
+      $el.find('.game-status').text(running ? 'stopped' : 'running');
 
       if (!running) {
         document.location.assign(`/play/${id}`);
@@ -42,11 +42,18 @@ const addEntry = data => {
   // Delete button
   actions.eq(2).click(() => {
     actions.eq(2).addClass('is-loading');
-    deleteGame(id)
-    .then(() => {
-      $el.remove();
-    })
-    .catch(console.error);
+    
+    // TODO: use modal
+    if (window.confirm('Are you sure?')) {
+      deleteGame(id)
+      .then(() => $el.remove())
+      .catch(err => {
+        actions.eq(2).removeClass('is-loading');
+        console.error(err);
+      });
+    } else {
+      actions.eq(2).removeClass('is-loading');
+    }
   });
 };
 

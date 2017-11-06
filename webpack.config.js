@@ -54,7 +54,7 @@ const baseConfig = {
       }, {
         test: /\.(gif|jpe?g|png|svg)$/,
         loader: 'url-loader',
-        query: {
+        options: {
           name: PATHS.assetName,
           limit: 10000,
         },
@@ -62,7 +62,7 @@ const baseConfig = {
       }, {
         test: /\.ttf$/,
         loader: 'url-loader',
-        query: {
+        options: {
           name: PATHS.assetName,
           limit: 10000,
         },
