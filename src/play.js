@@ -1,8 +1,9 @@
 import './styles/styles.scss';
 import * as _client from './play/client';
 
+// Get gameId from url
 const urlMatch = window.location.pathname.match(/[^/]+/g);
-const gameId = urlMatch[urlMatch.length - 1];
+const gameId = urlMatch && urlMatch.length > 1 && urlMatch[1];
 
 console.log('Connecting to game:', gameId);
 

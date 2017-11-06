@@ -4,20 +4,24 @@ import * as engine from './engine';
 let socket,
     userId;
 
-const createLevel = (groups, objects) => Promise.all(groups.map(groupData => new Promise(resolve => {
+const createLevel = (groups = [], objects = []) => Promise.all(groups.map(groupData => new Promise(resolve => {
   const group = engine.createGroup(groupData);
 
-  let i = 0;
-  const interval = setInterval(() => {
-    const objData = objects[groupData.objects[i]];
-    
-    group.add(Object.assign(groupData, objData));
+  if (groupData.objects && groupData.objects.length > 0) {
+    let i = 0;
+    const interval = setInterval(() => {
+      const objData = objects[groupData.objects[i]];
+      
+      group.add(Object.assign(groupData, objData));
 
-    if (++i >= groupData.objects.length) {
-      clearInterval(interval);
-      resolve();
-    }
-  }, 2000 / groupData.objects.length); // Take 2 seconds to spawn all the objects
+      if (++i >= groupData.objects.length) {
+        clearInterval(interval);
+        resolve();
+      }
+    }, 2000 / groupData.objects.length); // Take 2 seconds to spawn all the objects
+  } else {
+    resolve();
+  }
 })));
 
 const addPlayers = players => {

@@ -10,7 +10,7 @@ const RESIZE_CONTROL_SIZE = 20;
 
 class Engine {
 
-  constructor(parent, options = {}) {
+  constructor(parent, initialData) {
 
     this.width = parent.clientWidth;
     this.height = parent.clientHeight;
@@ -18,7 +18,7 @@ class Engine {
     this.app = new Pixi.Application({
       width: this.width,
       height: this.height,
-      transparent: !options.background,
+      transparent: true,
     });
 
     parent.appendChild(this.app.view);
@@ -38,12 +38,12 @@ class Engine {
     this.resizeControlSize = RESIZE_CONTROL_SIZE; // Size of resize control elements.
 
     // Adding some test data
-    //this.addWall();
-    //this.addWall();
+    // this.addWall();
+    // this.addWall();
 
     // Testing level data exporting
-    let data = this.getLevelData();
-    console.log(data);
+    // let data = this.getLevelData();
+    // console.log(data);
   }
 
   // Return a JSON-friendly level data object, for saving and loading.

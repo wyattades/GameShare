@@ -57,7 +57,4 @@ $('#new-type-button').click(() => {
   $(typeHTML).insertBefore('#new-buttons');
 });
 
-
-
-
 // new object button next to each group

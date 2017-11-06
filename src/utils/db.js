@@ -92,7 +92,7 @@ export const createGame = (data, status) => {
 
     return db.ref(`/users/${uid}/games/${id}`).set(true) // Register user as owner of game    
     .then(() => db.ref(`/games_info/${id}`).set(info)) // Create public game info
-    .then(() => ({ id, ...info })); // Return game-info
+    .then(() => id); // Return new game's id
   });
 };
 
@@ -136,3 +136,8 @@ export const fetchActiveGames = () => db
   return Object.keys(games).map(id => ({ id, ...games[id] }));
 })
 .then(games => games.sort((a, b) => a.last_modified > b.last_modified)); // Sort by last_modified time
+
+export const fetchGame = id => db
+.ref(`/games/${id}`)
+.once('value')
+.then(snapshot => snapshot.val());
