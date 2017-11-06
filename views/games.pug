@@ -6,26 +6,26 @@ block page_content
 
   section.section
     .container
-      h1.title My Games
-      h4.subtitle View and manage your games
+      .is-pulled-left
+        h1.title My Games
+        h4.subtitle View and manage your games
+      p.control.is-pulled-right
+        a#logout.button
+          span
+            i.fa.fa-sign-out
+          span Logout
   section
     .container
-      if !self.games || self.games.length === 0
-        p You don't have any games!
-      else
-        table.table.is-fullwidth
-          thead
-            tr
-              th Number
-              th Name
-              th Status
-              th Publish
-          tbody
-            each game, index in self.games
-              tr
-                th= index + 1
-                td= game.name || 'Unknown'
-                td= game.status || 'Inactive'
-                td
-                  a.button Publish
-              
+      table.table.is-fullwidth
+        thead
+          tr
+            th Name
+            th Last Modified
+            th Created On
+            th Status
+            th Actions
+        tbody#games_content
+  section.section
+    .container
+      p.control
+        a#new_game.button NewGame (TEMP)   

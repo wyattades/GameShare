@@ -1,6 +1,11 @@
 import './styles/styles.scss';
 import * as _client from './play/client';
 
+const urlMatch = window.location.pathname.match(/[^/]+/g);
+const gameId = urlMatch[urlMatch.length - 1];
+
+console.log('Connecting to game:', gameId);
+
 let client = _client;
 
 const loadingScreen = document.getElementById('loading');
@@ -12,7 +17,7 @@ const progress = val => {
   }
 };
 
-const init = () => client.connect('my_test_game', progress)
+const init = () => client.connect(gameId, progress)
 .then(() => {
   loadingScreen.remove();
 })
