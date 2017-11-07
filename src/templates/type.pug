@@ -1,21 +1,14 @@
-each group, index in groups
-  .object-block.panel-block.group(
-      id="type" + index
-      style="justify-content: space-between;"
-    )
-    span.type-name #{groups[index].name}
-    button(
-      class="button is-small"
-      id="new-object-button"
-      name="add new object"
-    )
-      span.icon
-        i.fa.fa-plus
-      span Add Object
-
-
-
-
+.object-block.panel-block
+  span.type-name #{self.name}
+  button(
+    class="button is-small"
+    id="new-object-button"
+    name="add new object"
+    style="align"
+  )
+    span.icon
+      i.fa.fa-plus
+    span Add Object
 
         //- input(
     //-   type="color"

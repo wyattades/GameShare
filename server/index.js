@@ -2,7 +2,9 @@ const webpack = require('webpack');
 const express = require('express');
 const path = require('path');
 const http = require('http');
+
 const gameServer = require('./gameServer');
+const gameDatabase = require('./gameDatabase');
 
 const PORT = 3000;
 const DEV = process.env.NODE_ENV === 'development';
@@ -37,13 +39,11 @@ app.locals.rootId = 'root';
 
 // Helper function for generating pug variables
 const renderPage = (page, title, options = {}) => {
-  if (options.script) {
-    delete options.script;
-    // FIXME: production and development require different file paths
-    options.scripts = [{ src: DEV ? `/public/${page}.js` : `/${page}.js`, inject: 'body' }];
-  } else {
-    options.scripts = DEV ? [{ src: '/public/loadStyles.js', inject: 'body' }] : [];
-  }
+
+  const script = options.script || page;
+
+  // FIXME: production and development require different file paths
+  options.scripts = [{ src: DEV ? `/public/${script}.js` : `/${script}.js`, inject: 'body' }];
 
   const compiled = Object.assign({
     page,
@@ -54,16 +54,15 @@ const renderPage = (page, title, options = {}) => {
   return (req, res) => res.render(page, compiled);
 };
 
-//app.get('/', renderPage('index', 'Home'));
-app.get('/', renderPage('index', 'Home', { script: true }));
-app.get('/play', renderPage('play', 'Play', { script: true }));
-app.get('/edit', renderPage('edit', 'Edit', { script: true }));
+app.get('/', renderPage('index', 'Home'));
+app.get('/play/:game_id', renderPage('play', 'Play'));
+app.get('/play', renderPage('activeGames', 'Active Games'));
+app.get('/edit/:game_id', renderPage('edit', 'Edit'));
+app.get('/edit', renderPage('edit', 'Edit'));
 app.get('/games', renderPage('games', 'Games'));
-// app.get('/login', renderPage('login', 'Login'));
-// app.get('/register', renderPage('register', 'Register'));
 
 // 404 response
-app.use(renderPage('404', '404 Error', { status: 404 }));
+app.use(renderPage('404', '404 Error', { status: 404, script: 'loadStyles' }));
 
 
 // ---------- Listen on http server
@@ -79,7 +78,4 @@ server.listen(PORT, () => {
 
 const games = gameServer(server);
 
-// TEMP: Start new game
-const testData = require('./testData');
-games.create('my_test_game', testData);
-
+gameDatabase(games.create, games.destroy);

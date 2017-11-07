@@ -56,7 +56,15 @@ class Game {
 
   stop() {
     this.gameLoop.stop();
-    this.io.close();
+
+    // this.io.close();
+    const connectedSockets = this.io.connected;
+    Object.keys(connectedSockets).forEach(socketId => {
+      connectedSockets[socketId].disconnect(); // Disconnect each socket
+    });
+    this.io.removeAllListeners(); // Remove all Listeners for the event emitter
+    delete io.nsps[`/${this.id}`]; // Remove from the server namespaces
+
     connections -= this.connections;
   }
 
@@ -78,6 +86,7 @@ class Game {
         angle: user.angle,
         vangle: user.vangle,
         turret: user.turret,
+        score: user.score,
       };
     }
 
@@ -106,6 +115,7 @@ class Game {
       angle: 0,
       turret: 0,
       color: Math.random() * 0xFFFFFF << 0,
+      score: 0,
     };
 
     const bounds = this.gameData.options.bounds;
@@ -169,7 +179,22 @@ class Game {
 
     socket.on('bullet_hit', (id, data) => {
       this.io.emit('bullet_hit', id, data);
-    });
+      const user = this.users[id];
+      const hit = this.users[data.player];
+ 
+      if(!user) {
+        console.warn('Invalid id: ${id}');
+        return;
+      }
+ 
+      if(hit) {
+        if(hit == user){
+          Object.assign(user, {score: user.score - 1})
+          //console.log(user.score);
+        } else {
+          Object.assign(user, {score: user.score + 1})
+          //console.log(user.score);
+        }}});
     
   }
 
@@ -184,6 +209,8 @@ module.exports = server => {
   io = socketIO(server);
   connections = 0;
 
+  // TODO: handle connection to invalid game id
+
   games = {};
 
   const app = {};
@@ -192,19 +219,21 @@ module.exports = server => {
 
   app.create = (id, gameData) => {
     if (games.hasOwnProperty(id)) {
-      throw new Error(`A game with id ${id} already exists`);
+      console.log(`A game with id ${id} already exists`);
     } else {
       games[id] = new Game(id, gameData);
       games[id].start();
+      console.log('Created game', Object.keys(games));
     }
   };
 
-  app.remove = id => {
+  app.destroy = id => {
     if (games.hasOwnProperty(id)) {
       games[id].stop();
       delete games[id];
+      console.log('Destroyed game', Object.keys(games));
     } else {
-      throw new Error(`A game with id ${id} does not exist`);
+      console.log(`A game with id ${id} does not exist`);
     }
   };
 

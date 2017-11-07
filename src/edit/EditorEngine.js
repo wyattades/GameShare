@@ -10,7 +10,7 @@ const RESIZE_CONTROL_SIZE = 20;
 
 class Engine {
 
-  constructor(parent, options = {}) {
+  constructor(parent, initialData) {
 
     this.width = parent.clientWidth;
     this.height = parent.clientHeight;
@@ -18,7 +18,7 @@ class Engine {
     this.app = new Pixi.Application({
       width: this.width,
       height: this.height,
-      transparent: !options.background,
+      transparent: true,
     });
 
     parent.appendChild(this.app.view);
@@ -338,6 +338,7 @@ class Engine {
 
     this.selectedObject = obj;
     this.moveToTop(this.selectedObject);
+
     this.selectedObject.tint = Colors.GREEN;
 
     this.createControls(obj);
@@ -359,7 +360,6 @@ class Engine {
       newPosition.y -= obj.offset.y;
 
       if (obj !== this.container) {
-
         newPosition.x = Math.floor(newPosition.x / this.gridSpacing) * this.gridSpacing;
         newPosition.y = Math.floor(newPosition.y / this.gridSpacing) * this.gridSpacing;
 
