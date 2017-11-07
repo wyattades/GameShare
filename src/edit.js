@@ -5,6 +5,9 @@ import { updateGame, createGame, assertLoggedIn, fetchGame } from './utils/db';
 import Engine from './edit/EditorEngine';
 import './edit/Editor';
 
+import typeTemplate from './templates/type.pug';
+import objectTemplate from './templates/object.pug';
+
 // Get gameId from url
 const urlMatch = window.location.pathname.match(/[^/]+/g);
 const gameId = urlMatch && urlMatch.length > 1 && urlMatch[1];
@@ -51,6 +54,9 @@ assertLoggedIn()
   const app = new Engine($('#root').get(0), initialData);
   app.start();
 
+  let typesHTML = typeTemplate({ groups: app.groups });
+  $(typesHTML).insertBefore('#new-buttons');
+
   // Save new game data to database
   const saveGame = newStatus => e => {
     $(e.target).addClass('is-loading');
@@ -79,9 +85,43 @@ assertLoggedIn()
   $('#save').click(saveGame());
 
   $('#new-object-button').click(() => {
-    app.addWall();
+    let newObj = app.addWall();
+    let objectHTML = objectTemplate({
+      x: newObj.hitArea.x,
+      y: newObj.hitArea.y,
+      w: newObj.hitArea.width,
+      h: newObj.hitArea.height,
+    });
 
+    let groupID = `type${newObj.group}`;
+    $(objectHTML).insertAfter(`#${groupID}`);
+
+    $('.object-button').click(() => {
+      if ($('.object-settings').css('display') === 'none') {
+        // TODO: if another object-button is green, make it white (when have unique id's)
+        $('.object-button').parent().css('background-color', '#50e283');
+        $('.object-settings').css('display', 'block');
+      } else {
+        $('.object-button').parent().css('background-color', 'white');
+        $('.object-settings').css('display', 'none');
+      }
+    });
   });
+
+  $('#new-type-button').click(() => {
+    let typeName = prompt('Enter new object type name:');
+
+    if (typeName) {
+      app.addGroup(typeName);
+    } else {
+      app.addGroup();
+    }
+
+    $('.group').remove();
+    typesHTML = typeTemplate({ groups: app.groups });
+    $(typesHTML).insertBefore('#new-buttons');
+  });
+
 
 })
 .catch(console.error);
