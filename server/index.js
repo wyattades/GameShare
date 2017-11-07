@@ -56,7 +56,7 @@ const renderPage = (page, title, options = {}) => {
 
 app.get('/', renderPage('index', 'Home'));
 app.get('/play/:game_id', renderPage('play', 'Play'));
-app.get('/play', renderPage('activeGames', 'Active Games'));
+app.get('/play', renderPage('browse', 'Browse Games'));
 app.get('/edit/:game_id', renderPage('edit', 'Edit'));
 app.get('/edit', renderPage('edit', 'Edit'));
 app.get('/games', renderPage('games', 'Games'));
