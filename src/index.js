@@ -1,5 +1,6 @@
 import './styles/styles.scss';
 import { login } from './utils/db';
+import './assets/gameshare.png';
 
 const googleSignIn = e => {
   // e.target.removeEventListener(e.type, googleSignIn);
