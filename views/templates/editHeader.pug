@@ -14,7 +14,11 @@ block headerContent
         a.navbar-item(class=(self.page === 'account') && 'is-active' href="/account")
           span Account
     .navbar-item
-      input#game-name.input(type="text" placeholder="Game Name" required maxlength=32)
+      //- .field.has-addons
+      //-   .control
+      //-     a.button.is-static Name
+      .control
+        input#game-name.input(type="text" placeholder="Game Name" required maxlength=32)
     
   .navbar-end
     .navbar-item

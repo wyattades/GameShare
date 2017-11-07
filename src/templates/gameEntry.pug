@@ -1,6 +1,10 @@
 - const running = self.status === 'running';
 tr
-  th= 'No Name'
+  th
+    if (self.name)
+      = self.name
+    else
+      i NA
   td= new Date(self.last_modified).toLocaleString()
   td= new Date(self.created_on).toLocaleString()
   if (self.active)

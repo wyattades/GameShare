@@ -64,14 +64,21 @@ assertLoggedIn()
     const name = $name.val();
 
     if (name.length === 0) {
-      alert('Please provide a name for your game');
+      window.alert('Please provide a name for your game');
       return;
     }
 
+    // Update game and info data with new name
     gameData.name = name;
+    const infoData = {
+      name,
+    };
+    if (newStatus) infoData.status = newStatus;
 
-    (gameId ? updateGame(gameId, gameData, newStatus) : createGame(gameData, newStatus))
+    // Send data to firebase
+    (gameId ? updateGame(gameId, gameData, infoData) : createGame(gameData, infoData))
     .then(id => {
+
       $(e.target).removeClass('is-loading');
       console.log('Game saved.');
 

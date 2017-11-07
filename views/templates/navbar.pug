@@ -19,7 +19,7 @@ script.
 
   });
 
-nav.navbar.is-primary.has-shadow(role="navigation" aria-label="dropdown navigation")
+nav.navbar.is-primary(class=(self.page !== 'index') && 'has-shadow' role="navigation" aria-label="dropdown navigation")
   .container
     .navbar-brand
       a.navbar-item(href="/")

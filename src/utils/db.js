@@ -77,8 +77,8 @@ export const logout = () => auth.signOut();
 export const login = provider => auth.signInWithPopup(providers[provider])
 .then(fetchUser);
 
-// Create a new game with the given data and status
-export const createGame = (data, status) => {
+// Create a new game with the given data and info
+export const createGame = (data, info) => {
   const uid = auth.currentUser.uid;
 
   // Set a reference to the owner of the game
@@ -89,13 +89,10 @@ export const createGame = (data, status) => {
   .then(res => {
     const id = res.key;
 
-    const created_on = Date.now();
-    const info = {
-      created_on,
-      last_modified: created_on,
-      status: status || 'stopped',
-      owner: uid,
-    };
+    info.created_on = Date.now();
+    info.last_modified = info.created_on;
+    info.status = info.status || 'stopped';
+    info.owner = uid;
 
     return db.ref(`/users/${uid}/games/${id}`).set(true) // Register user as owner of game    
     .then(() => db.ref(`/games_info/${id}`).set(info)) // Create public game info
@@ -103,14 +100,12 @@ export const createGame = (data, status) => {
   });
 };
 
-// Update game data/status
-export const updateGame = (id, data, status) => (data ? db.ref(`/games/${id}`).update(data) : Promise.resolve())
+// Update game data/info
+export const updateGame = (id, data, info) => (data ? db.ref(`/games/${id}`).update(data) : Promise.resolve())
 .then(() => {
-  const update = {};
-  if (data) update.last_modified = Date.now();
-  if (status) update.status = status;
+  if (data) info.last_modified = Date.now();
 
-  return db.ref(`/games_info/${id}`).update(update);
+  return db.ref(`/games_info/${id}`).update(info);
 });
 
 // Delete game

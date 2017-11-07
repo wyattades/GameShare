@@ -12,6 +12,17 @@
   display: none;
 }
 
+#game-name {
+  font-weight: bold;  
+  &:not(:hover):not(:focus) {
+    background-color: transparent;
+    color: white;
+    &::placeholder {
+      color: rgba(255, 255, 255, 0.5)
+    }
+  }
+}
+
 // Loading indicator on a div
 div.is-loading {
   position: relative;

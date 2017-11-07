@@ -21,7 +21,7 @@ const addEntry = data => {
     const running = $publish.hasClass('fa-stop');
     actions.eq(0).addClass('is-loading');
 
-    updateGame(id, undefined, running ? 'stopped' : 'running')
+    updateGame(id, undefined, { status: running ? 'stopped' : 'running' })
     .then(() => {
       actions.eq(0).removeClass('is-loading');
       $publish.toggleClass('fa-stop fa-play');
