@@ -14,7 +14,9 @@ block headerContent
           span.icon
             i.fa.fa-plus
           span Create
-    a.navbar-item(href="/account")
+    a.navbar-item(class=(self.page === 'browse') && 'is-active' href="/account")
+      span.icon
+        i.fa.fa-user-circle
       span Account
   .logged-out.navbar-end
     .navbar-item

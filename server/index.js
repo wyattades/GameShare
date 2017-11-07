@@ -60,6 +60,7 @@ app.get('/play', renderPage('browse', 'Browse Games'));
 app.get('/edit/:game_id', renderPage('edit', 'Edit'));
 app.get('/edit', renderPage('edit', 'Edit'));
 app.get('/games', renderPage('games', 'Games'));
+app.get('/account', renderPage('account', 'Account'));
 
 // 404 response
 app.use(renderPage('404', '404 Error', { status: 404 }));
