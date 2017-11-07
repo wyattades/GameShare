@@ -19,8 +19,7 @@ auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
 // User authentication providers
 const providers = {
   google: new firebase.auth.GoogleAuthProvider(),
-  // github: new firebase.auth.GithubAuthProvider(),
-  // facebook: new firebase.auth.FacebookAuthProvider(),
+  facebook: new firebase.auth.FacebookAuthProvider(),
 };
 
 export const assertLoggedIn = (redirect = true) => new Promise((resolve, reject) => {

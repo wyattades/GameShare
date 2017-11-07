@@ -3,6 +3,27 @@
 // Bulma css framework
 @import './bulma';
 
+#google-sign-in {
+  font-weight: bold;
+  color: #888;
+  i {
+    width: 24px;
+    height: 24px;
+    background-image: url(https://cdn4.iconfinder.com/data/icons/new-google-logo-2015/400/new-google-favicon-512.png);
+    background-size: 24px 24px;
+    background-repeat: no-repeat;
+  }
+}
+
+#facebook-sign-in {
+  font-weight: bold;
+  background-color: #3B5998;
+  color: white;
+  &:not(:hover) {
+    border-color: #3B5998;
+  }
+}
+
 // Navbar
 .home-body {
   border-top: 1px solid rgb(111, 188, 236);
