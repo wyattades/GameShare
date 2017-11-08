@@ -97,13 +97,14 @@ if (process.env.NODE_ENV === 'production') {
     output: {
       path: PATHS.dist,
       filename: '[name].js',
-      publicPath: '/',
+      publicPath: '/public/',
     },
 
     plugins: [
-      ...sharedPlugins,
 
       new CleanWebpackPlugin([ 'public' ]),
+
+      ...sharedPlugins,
             
       new webpack.optimize.OccurrenceOrderPlugin(),
 
