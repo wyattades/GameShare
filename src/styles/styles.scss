@@ -64,7 +64,7 @@ div.is-loading {
   padding-right: 0.5em;
 }
 
-.grid-block, .object-settings, .level-block { display: none; }
+.grid-block, .object-settings, .level-block, .type-settings { display: none; }
 
 // Mysterious CSS that makes the grid display- doesnt show up otherwise
 html, body, .edit-body  { height: 100%; }

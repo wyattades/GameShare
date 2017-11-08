@@ -19,10 +19,32 @@ module.exports = (app) => {
 
   $(document).on('click', '.object-button', (event) => {
     $('.object-button').parent().css('background-color', 'white');
-    $(event.currentTarget).parent().css('background-color', '#50e283');
+    $('.group').css('background-color', 'white');
 
+    $(event.currentTarget).parent().css('background-color', '#50e283');
     $('.object-settings').css('display', 'block');
-    // TODO: make settings box go away at some point
+    
+    $(event.currentTarget)
+    .parent()
+    .prevAll('.group')
+    .first()
+    .css('background-color', '#bdf4d0');
+
+    if ($('.type-settings').css('display') === 'block') {
+      $('.type-settings').css('display', 'none');
+    }
+  });
+
+  $(document).on('click', '.group', (event) => {
+    $('.group').css('background-color', 'white');
+    $('.object-button').parent().css('background-color', 'white');
+
+    $('.type-settings').css('display', 'block');
+    $(event.currentTarget).css('background-color', '#50e283');
+
+    if ($('.object-settings').css('display') === 'block') {
+      $('.object-settings').css('display', 'none');
+    }
   });
 
   $('#new-type-button').click(() => {
