@@ -1,5 +1,7 @@
 import './styles/styles.scss';
-import { login } from './utils/db';
+import { login, assertLoggedIn } from './utils/db';
+
+assertLoggedIn(false).catch(() => {});
 
 const authLogin = provider => () => {
   login(provider)
@@ -9,8 +11,11 @@ const authLogin = provider => () => {
     document.location.assign('/games');
   })
   .catch(err => {
-    console.log('login error', err);
-    alert('Failed to login. You are probably already registered with another provider');
+    if (err.code === 'auth/account-exists-with-different-credential') {
+      alert(err.message);
+    } else if (err.code !== 'auth/popup-closed-by-user' && err.code !== 'auth/cancelled-popup-request') {
+      console.error('login error', err);
+    }
   });
 };
 document.getElementById('google-sign-in').addEventListener('click', authLogin('google'));
