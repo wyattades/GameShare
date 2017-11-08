@@ -1,7 +1,7 @@
 import * as Pixi from 'pixi.js';
 import Colors from './Colors';
 
-const GRID_SIZE = 500;
+const GRID_SIZE = { w: 260, h: 260 };
 const GRID_SPACING = 20; // SNAP
 const GRID_BORDER_SIZE = 100; // Size of the border around the playable area (one side)
 
@@ -26,24 +26,19 @@ class Engine {
     this.gridSize = GRID_SIZE;
     this.gridSpacing = GRID_SPACING;
     this.gridBorderSize = GRID_BORDER_SIZE;
-
-    this.container = this.createGrid(this.gridSize, this.gridSize,
-      this.gridSpacing, this.gridBorderSize, Colors.GRAY);
+    this.gridLineColor = Colors.GRID;
+    this.gridBorderColor = Colors.BLACK;
+    this.container = this.createGrid();
     this.app.stage.addChild(this.container);
+
+    this.groups = []; // List of object/wall groups.
+    this.addGroup(); // Add default group.
 
     this.selectedObject = null; // The currently selected object.
     this.lockSelect = false; // When true, objects won't be selected.
 
     this.rectMinSize = RECT_MIN_SIZE;
     this.resizeControlSize = RESIZE_CONTROL_SIZE; // Size of resize control elements.
-
-    // Adding some test data
-    // this.addWall();
-    // this.addWall();
-
-    // Testing level data exporting
-    // let data = this.getLevelData();
-    // console.log(data);
   }
 
   // Return a JSON-friendly level data object, for saving and loading.
@@ -58,8 +53,8 @@ class Engine {
       bounds: {
         x: this.gridBorderSize,
         y: this.gridBorderSize,
-        w: this.gridSize - this.gridBorderSize,
-        h: this.gridSize - this.gridBorderSize,
+        w: this.gridSize.w - this.gridBorderSize,
+        h: this.gridSize.h - this.gridBorderSize,
       },
       bulletSpeed: 1000,
       fireRate: 200,
@@ -67,35 +62,26 @@ class Engine {
       bulletHealth: 2,
     };
 
-    data.groups = [
-      {
-        name: 'placeholder',
-        stroke: 0x00FFFF,
-        objects: [],
-      },
-    ];
-
+    data.groups = this.groups;
 
     data.objects = [];
-
     for (let i = 0, l = this.container.children.length; i < l; i++) {
       let c = this.container.children[i];
-      let placeholder_group = 0;
       data.objects.push({
-        group: placeholder_group,
+        group: c.group,
         x: c.x,
         y: c.y,
         w: c.shape.width,
         h: c.shape.height,
       });
-      data.groups[placeholder_group].objects.push(i);
+      data.groups[c.group].objects.push(i);
     }
 
     return data;
   }
 
   // Add shaded rectangles over the unplayable region of the map.
-  addBorderShading = (grid, borderSize, tint) => {
+  drawBorderShading = (grid = this.container, borderSize = this.gridBorderSize, tint = this.gridBorderColor) => {
     grid.lineStyle(0, tint, 0.08);
     grid.beginFill(tint, 0.08);
     grid.drawRect(0, 0, grid.width, borderSize);
@@ -103,31 +89,55 @@ class Engine {
     grid.drawRect(grid.width - borderSize - 2, borderSize, borderSize, grid.height - (borderSize * 2));
     grid.drawRect(0, grid.height - borderSize, grid.width - 2, borderSize);
   }
-  createGrid = (width, height, snap, borderSize, lineColor) => {
+  // Add gridline primitives to grid object.
+  drawGridlines = (grid = this.container, tint = this.gridLineColor) => {
+    // This is a hacky way to fix the grid drawing when w != h
+    // TODO: Fix grid drawing for non-square level sizes.
+    let w = Math.max(grid.w, grid.h),
+        h = Math.max(grid.w, grid.h);
 
-    let w = width + (borderSize * 2);
-    let h = height + (borderSize * 2);
-
-    let grid = this.createObject({
-      x: 0, y: 0, w, h, draggable: true, container: true,
-    });
-
-    grid.lineStyle(1, lineColor, 1);
-    for (let x = 0; x < w; x += snap) {
-      grid.lineStyle(x % 100 === 0 ? 2 : 1, lineColor, 1);
+    grid.lineStyle(1, tint, 1);
+    for (let x = 0; x < w; x += this.gridSpacing) {
+      grid.lineStyle(x % 100 === 0 ? 2 : 1, tint, 1);
       grid.moveTo(x, 0);
       grid.lineTo(x, w);
     }
-    for (let y = 0; y < h; y += snap) {
-      grid.lineStyle(y % 100 === 0 ? 2 : 1, lineColor, 1);
+    for (let y = 0; y < h; y += this.gridSpacing) {
+      grid.lineStyle(y % 100 === 0 ? 2 : 1, tint, 1);
       grid.moveTo(0, y);
       grid.lineTo(h, y);
     }
 
-    this.addBorderShading(grid, borderSize, Colors.BLACK);
+  }
+  // Generate the grid container. Width and height define the playable area.
+  createGrid = (width = this.gridSize.w, height = this.gridSize.h) => {
+    let w = width + (this.gridBorderSize * 2),
+        h = height + (this.gridBorderSize * 2);
+
+    let grid = this.createObject({
+      x: 0, y: 0, w, h, draggable: true, container: true,
+    });
+    grid.bounds = { x: w, y: h };
+
+    this.drawGridlines(grid);
+    this.drawBorderShading(grid);
+    return grid;
+  }
+  // Resize the grid to the given size. Currently only makes squares.
+  resizeGrid = (width = this.gridSize.w, height = this.gridSize.h, grid = this.container) => {
+    this.gridSize = { w: width, h: height };
+    let w = this.gridSize.w + (this.gridBorderSize * 2),
+        h = this.gridSize.h + (this.gridBorderSize * 2);
+
+    grid.graphicsData.length = 0;
+    grid.x = 0;
+    grid.y = 0;
+    grid.w = w;
+    grid.h = h;
 
     grid.bounds = { x: w, y: h };
-    return grid;
+    this.drawGridlines(grid);
+    this.drawBorderShading(grid);
   }
 
   addUpdate = fn => {
@@ -228,7 +238,7 @@ class Engine {
 
   // Add a new wall rectangle to the level.
   // Returns the wall object that was just added.
-  addWall = () => {
+  addWall = (group = 0) => {
     const wall = this.createRect({
       x: this.gridSpacing * 8,
       y: this.gridSpacing * 8,
@@ -238,8 +248,20 @@ class Engine {
       selectable: true,
       fill: Colors.WHITE,
       stroke: Colors.BLACK });
+    wall.group = group;
     this.container.addObject(wall);
     return wall;
+  }
+
+  // Add a new object group to the level.
+  // Returns updated group list.
+  addGroup = (name = `Group ${this.groups.length}`) => {
+    this.groups.push({
+      name,
+      stroke: 0xFFFFFF,
+      objects: [],
+    });
+    return this.groups;
   }
 
   // Control manipulation is in the Engine class for easier
