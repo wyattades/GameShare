@@ -17,15 +17,12 @@ module.exports = (app) => {
     $(objectHTML).insertAfter(`#${objGroup}`);
   });
 
-  $(document).on('click', '.object-button', () => {
-    if ($('.object-settings').css('display') === 'none') {
-      // TODO: if another object-button is green, make it white (when have unique id's)
-      $('.object-button').parent().css('background-color', '#50e283');
-      $('.object-settings').css('display', 'block');
-    } else {
-      $('.object-button').parent().css('background-color', 'white');
-      $('.object-settings').css('display', 'none');
-    }
+  $(document).on('click', '.object-button', (event) => {
+    $('.object-button').parent().css('background-color', 'white');
+    $(event.currentTarget).parent().css('background-color', '#50e283');
+
+    $('.object-settings').css('display', 'block');
+    // TODO: make settings box go away at some point
   });
 
   $('#new-type-button').click(() => {
