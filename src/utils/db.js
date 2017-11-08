@@ -34,7 +34,7 @@ export const assertLoggedIn = (redirect = true) => new Promise((resolve, reject)
 
       // Redirect to home page
       if (redirect) {
-        document.location.replace('/');
+        window.location.replace('/');
       } else {
         document.querySelectorAll('.logged-in, .logged-out').forEach(el => {
           el.classList.toggle('logged-in');
@@ -145,14 +145,12 @@ export const fetchGame = id => db
 .once('value')
 .then(snapshot => snapshot.val());
 
-export const deleteUser = () => window.confirm(
-  'Are you sure you want to delete your account, along with all of your data? (this cannot be undone)',
-) && db
-  .ref(`/users/${auth.currentUser.uid}`)
-  .remove()
-  .then(() => auth.currentUser.delete())
-  .then(() => {
-    console.log('User deleted');
-    window.location.assign('/');
-  })
-  .catch(console.error);
+export const deleteUser = () => db
+.ref(`/users/${auth.currentUser.uid}`)
+.remove()
+.then(() => auth.currentUser.delete())
+.then(() => {
+  console.log('User successfully deleted');
+  window.location.assign('/');
+})
+.catch(console.error);
