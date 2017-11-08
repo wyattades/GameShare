@@ -1,6 +1,5 @@
 import './styles/styles.scss';
 import { login } from './utils/db';
-import './assets/gameshare.png';
 
 const authLogin = provider => () => {
   login(provider)
