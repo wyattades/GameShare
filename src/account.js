@@ -1,12 +1,12 @@
 import './styles/styles.scss';
-import { assertLoggedIn, fetchUser, logout } from './utils/db';
+import { assertLoggedIn, fetchUser, logout, deleteUser } from './utils/db';
 
 assertLoggedIn()
 .then(fetchUser)
 .then(data => {
 
   document.getElementById('logout').onclick = () => logout();
-  document.getElementById('delete').onclick = () => alert('Deleting accounts not yet implemented.');
+  document.getElementById('delete').onclick = () => deleteUser();
 
   const $el = document.getElementById('user-info');
   const cap = str => str.charAt(0).toUpperCase() + str.slice(1);

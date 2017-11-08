@@ -144,3 +144,15 @@ export const fetchGame = id => db
 .ref(`/games/${id}`)
 .once('value')
 .then(snapshot => snapshot.val());
+
+export const deleteUser = () => window.confirm(
+  'Are you sure you want to delete your account, along with all of your data? (this cannot be undone)',
+) && db
+  .ref(`/users/${auth.currentUser.uid}`)
+  .remove()
+  .then(() => auth.currentUser.delete())
+  .then(() => {
+    console.log('User deleted');
+    window.location.assign('/');
+  })
+  .catch(console.error);
