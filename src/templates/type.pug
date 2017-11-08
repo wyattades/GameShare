@@ -1,19 +1,19 @@
-- const { groups } = self;
-each group, index in self.groups
-  .object-block.panel-block.group(
-    id="type"+index
-    style="justify-content:space-between;"
+- const { name, id } = self;
+//- each group, index in self.groups
+.object-block.panel-block.group(
+  style="justify-content:space-between;"
+  id=id
+)
+  span.type-name #{name}
+  button(
+    class="button is-small"
+    id="new-object-button"
+    name="add new object"
+    style="align"
   )
-    span.type-name #{group.name}
-    button(
-      class="button is-small"
-      id="new-object-button"
-      name="add new object"
-      style="align"
-    )
-      span.icon
-        i.fa.fa-plus
-      span Add Object
+    span.icon
+      i.fa.fa-plus
+    span Add Object
 
         //- input(
     //-   type="color"
@@ -29,3 +29,6 @@ each group, index in self.groups
     //-   button.button.is-small(name="delete type")
     //-     i.fa.fa-trash
     //- .control
+
+
+//- #{group.name}
