@@ -1,14 +1,19 @@
-.object-block.panel-block
-  span.type-name #{self.name}
-  button(
-    class="button is-small"
-    id="new-object-button"
-    name="add new object"
-    style="align"
+- const { groups } = self;
+each group, index in self.groups
+  .object-block.panel-block.group(
+    id="type"+index
+    style="justify-content:space-between;"
   )
-    span.icon
-      i.fa.fa-plus
-    span Add Object
+    span.type-name #{group.name}
+    button(
+      class="button is-small"
+      id="new-object-button"
+      name="add new object"
+      style="align"
+    )
+      span.icon
+        i.fa.fa-plus
+      span Add Object
 
         //- input(
     //-   type="color"
