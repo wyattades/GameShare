@@ -12,12 +12,12 @@
 }
 
 #google-sign-in {
-  font-weight: bold;
+  font-weight: bold;  
   color: #888;
   i {
     width: 24px;
     height: 24px;
-    background-image: url(../assets/google.svg); //url(https://cdn4.iconfinder.com/data/icons/new-google-logo-2015/400/new-google-favicon-512.png);
+    background-image: url(../assets/google.svg);
     background-size: contain;
     background-repeat: no-repeat;
   }
@@ -25,7 +25,7 @@
 
 $facebook-color: #3B5998;
 #facebook-sign-in {
-  font-weight: bold;
+  font-weight: bold;  
   background-color: $facebook-color;
   color: white;
   &:not(:hover) {

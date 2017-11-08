@@ -6,22 +6,23 @@ block page_content
 
   section.section.hero.is-fullheight.is-primary.home-body
     .hero-body
-      .container.has-text-centered
-        .column.is-4.is-offset-4
-          .gameshare-logo.is-inline-block
-          h3.title Join GameShare
-          p.subtitle Please sign in to proceed.
-          //- .box
-          .field
-            .control
-              //- #google-sign-in
-              button#google-sign-in.button.is-large.is-fullwidth
-                span.icon
-                  i
-                span Sign In with Google
-          .field
-            .control
-              button#facebook-sign-in.button.is-large.is-fullwidth
-                span.icon
-                  i.fa.fa-facebook
-                span Sign In with Facebook
+      .container
+        .columns.is-centered
+          .column.is-one-third-desktop.is-half-tablet.has-text-centered
+          
+            .gameshare-logo.is-inline-block
+            h3.title Join GameShare
+            p.subtitle Please sign in to proceed.
+
+            .field
+              .control
+                button#google-sign-in.button.is-large.is-fullwidth
+                  span.icon
+                    i
+                  span Sign In with Google
+            .field
+              .control
+                button#facebook-sign-in.button.is-large.is-fullwidth
+                  span.icon
+                    i.fa.fa-facebook
+                  span Sign In with Facebook
