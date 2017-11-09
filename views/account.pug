@@ -4,14 +4,15 @@ block page_content
   
   include ./templates/header
 
-  section.section
-    .container
-      .is-pulled-left
-        h1.title Account
-        h4.subtitle Account things and stuff
-      .is-pulled-right
-        .control
-          a#logout.button Logout
+  section.hero.is-warning.is-bold
+    .hero-body
+      .container
+        .is-pulled-left
+          h1.title Account
+          h4.subtitle Account things and stuff
+        .is-pulled-right
+          .control
+            a#logout.button.is-inverted.is-outlined.is-warning Logout
 
   section.section
     .container

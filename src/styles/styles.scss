@@ -3,6 +3,39 @@
 // Bulma css framework
 @import './bulma';
 
+// Assert that cards are equal height
+.card {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  .card-footer {
+    margin-top: auto;
+  }
+}
+
+// Hover behavior on status button
+.card-header-icon {
+  &:hover {
+    cursor: default;
+  }
+  .game-publish {
+    &.is-loading {
+      pointer-events: none;
+    }
+    &:hover {
+      cursor: pointer;
+    }
+    &.is-success:hover {
+      background-color: darken($success, 5%);
+    }
+  }
+}
+
+// Fix issue with status button margin-bottom
+.game-status-block {
+  margin-bottom: -8px !important;
+}
+
 .gameshare-logo {
   width: 250px;
   height: 250px;
@@ -29,7 +62,7 @@ $facebook-color: #3B5998;
   background-color: $facebook-color;
   color: white;
   &:not(:hover) {
-    border-color: $facebook-color;
+    border-color: lighten($facebook-color, 10%);
   }
 }
 

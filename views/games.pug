@@ -4,19 +4,12 @@ block page_content
 
   include ./templates/header
 
+  section.hero.is-warning.is-bold
+    .hero-body
+      .container
+        h1.title My Games
+        h4.subtitle View and manage your games
+      
   section.section
     .container
-      h1.title My Games
-      h4.subtitle View and manage your games
-      
-  section
-    .container
-      table.table.is-fullwidth
-        thead
-          tr
-            th Name
-            th Last Modified
-            th Created On
-            th Status
-            th Actions
-        tbody#games_content
+      #games_content.columns.is-multiline

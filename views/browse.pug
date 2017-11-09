@@ -4,19 +4,13 @@ block page_content
 
   include ./templates/header
 
+  section.hero.is-primary.is-bold
+    .hero-body
+      .container
+        h1.title Active Games
+        h4.subtitle Other people's games
+
   section.section
     .container
-      h1.title Active Games
-      h4.subtitle Other people's games
-  section.section
-    .container
-      table.table.is-fullwidth
-        thead
-          tr
-            th Name
-            th Last Modified
-            th Created On
-            th Owner
-            th Play
-        tbody#games_content
+      #games_content.columns.is-multiline
       
