@@ -16,6 +16,7 @@ const addEntry = data => {
   const $delete = $el.find('.game-delete');
   const $publish = $el.find('.game-publish');
   const $statusBlocks = $el.find('.game-status-block');
+  const $play = $el.find('.game-play');
 
   $publish.click(() => {
     $publish.addClass('is-loading');
@@ -24,6 +25,7 @@ const addEntry = data => {
     .then(() => {
       $publish.removeClass('is-loading');
       running = !running;
+      $play.toggleClass('is-disabled');
       
       $statusBlocks.toggle();
     });

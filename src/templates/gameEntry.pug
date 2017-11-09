@@ -35,7 +35,7 @@
         | Owner: 
         span.has-text-grey= self.owner
     footer.card-footer
-      a.card-footer-item.game-play(title="Play" href=`/play/${self.id}`)
+      a.card-footer-item.game-play(title="Play" href=`/play/${self.id}` class=!running && 'is-disabled')
         i.fa.fa-play-circle
       if (!self.active)
         a.card-footer-item.game-edit(title="Edit" href=`/edit/${self.id}`)

@@ -14,3 +14,16 @@ $navbar-height: 3.5em;
 .navbar.has-shadow {
   box-shadow: 0 2px 3px rgba($black, 0.25);
 }
+
+// Disabled card-footer-item
+.card-footer-item.is-disabled {
+  pointer-events: none;
+  background-color: $button-disabled-background-color;
+  opacity: $button-disabled-opacity;
+  i {
+    color: $grey;
+  }
+  &:hover {
+    cursor: no-drop;
+  }
+}
