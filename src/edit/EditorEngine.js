@@ -261,7 +261,8 @@ class Engine {
       stroke: 0xFFFFFF,
       objects: [],
     });
-    return this.groups;
+    // return this.groups;
+    return this.groups[this.groups.length - 1];
   }
 
   // Control manipulation is in the Engine class for easier
