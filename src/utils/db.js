@@ -1,4 +1,6 @@
-import * as firebase from 'firebase';
+import firebase from 'firebase/app';
+import 'firebase/database';
+import 'firebase/auth';
 
 // Initialize firebase
 let config = {
@@ -19,22 +21,26 @@ auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
 // User authentication providers
 const providers = {
   google: new firebase.auth.GoogleAuthProvider(),
-  // github: new firebase.auth.GithubAuthProvider(),
-  // facebook: new firebase.auth.FacebookAuthProvider(),
+  facebook: new firebase.auth.FacebookAuthProvider(),
 };
 
-export const assertLoggedIn = () => new Promise((resolve, reject) => {
+export const assertLoggedIn = (redirect = true) => new Promise((resolve, reject) => {
   auth.onAuthStateChanged(user => {
     if (user) { // Logged in
       console.log('Logged in to firebase');
-
-      document.querySelectorAll('.logged-in, .logged-out').forEach(el => el.classList.toggle('logged-in') || el.classList.toggle('logged-out'));
       
       resolve();
     } else { // Logged out
 
       // Redirect to home page
-      document.location.replace('/');
+      if (redirect) {
+        window.location.replace('/');
+      } else {
+        document.querySelectorAll('.logged-in, .logged-out').forEach(el => {
+          el.classList.toggle('logged-in');
+          el.classList.toggle('logged-out');
+        });
+      }
 
       reject();
     }
@@ -72,8 +78,8 @@ export const logout = () => auth.signOut();
 export const login = provider => auth.signInWithPopup(providers[provider])
 .then(fetchUser);
 
-// Create a new game with the given data and status
-export const createGame = (data, status) => {
+// Create a new game with the given data and info
+export const createGame = (data, info) => {
   const uid = auth.currentUser.uid;
 
   // Set a reference to the owner of the game
@@ -84,13 +90,10 @@ export const createGame = (data, status) => {
   .then(res => {
     const id = res.key;
 
-    const created_on = Date.now();
-    const info = {
-      created_on,
-      last_modified: created_on,
-      status: status || 'stopped',
-      owner: uid,
-    };
+    info.created_on = Date.now();
+    info.last_modified = info.created_on;
+    info.status = info.status || 'stopped';
+    info.owner = uid;
 
     return db.ref(`/users/${uid}/games/${id}`).set(true) // Register user as owner of game    
     .then(() => db.ref(`/games_info/${id}`).set(info)) // Create public game info
@@ -98,14 +101,12 @@ export const createGame = (data, status) => {
   });
 };
 
-// Update game data/status
-export const updateGame = (id, data, status) => data ? db.ref(`/games/${id}`).set(data) : Promise.resolve()
+// Update game data/info
+export const updateGame = (id, data, info) => (data ? db.ref(`/games/${id}`).update(data) : Promise.resolve())
 .then(() => {
-  const update = {};
-  if (data) update.last_modified = Date.now();
-  if (status) update.status = status;
+  if (data) info.last_modified = Date.now();
 
-  return db.ref(`/games_info/${id}`).update(update);
+  return db.ref(`/games_info/${id}`).update(info);
 });
 
 // Delete game
@@ -143,3 +144,13 @@ export const fetchGame = id => db
 .ref(`/games/${id}`)
 .once('value')
 .then(snapshot => snapshot.val());
+
+export const deleteUser = () => db
+.ref(`/users/${auth.currentUser.uid}`)
+.remove()
+.then(() => auth.currentUser.delete())
+.then(() => {
+  console.log('User successfully deleted');
+  window.location.assign('/');
+})
+.catch(console.error);

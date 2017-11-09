@@ -1,47 +1,24 @@
-nav.navbar.is-primary(role="navigation")
-  .container
-    .navbar-brand
-      a.navbar-item(href="/")
-        h1.is-primary.is-size-4
-          strong GameShare
-        //- img(src="https://cdn3.iconfinder.com/data/icons/black-easy/512/535112-game_512x512.png", alt="GameShare Icon", width="112", height="28")
-      .navbar-burger.burger(data-target="navbarMenu")
-        span
-        span
-        span
-    .navbar-menu#navbarMenu
-      .navbar-start
-        a.navbar-item.logged-in(class=(self.page === 'games') && 'is-active' href="/games")
-          span My Games
-        a.navbar-item(class=(self.page === 'activeGames') && 'is-active' href="/play")
-          span Browse Games
-        
-      .logged-in.navbar-end
-        .navbar-item
-          .control
-            a.button.is-warning(href="/edit")
-              span.icon
-                i.fa.fa-plus
-              span Create
-        a.navbar-item(href="/account")
-          span Account
-      .logged-out.navbar-end
-        .navbar-item
-          a.button.is-primary.is-inverted.is-outlined(href="/")
-            span Sign In
+extends ./navbar
 
-          //- .field.is-grouped
-            p.control
-              a.bd-tw-button.button(href="/login")
-                span.icon
-                  i.fa.fa-sign-in
-                span Login
-            p.control
-              a.button.is-primary(href="/register")
-                span.icon
-                  i.fa.fa-user-plus
-                span Register
-        //- .navbar-item
-          label.checkbox
-            input#loggedIn(type="checkbox")
-            | Logged In
+block headerContent
+  .navbar-start
+    a.navbar-item.logged-in(class=(self.page === 'games') && 'is-active' href="/games")
+      span My Games
+    a.navbar-item(class=(self.page === 'browse') && 'is-active' href="/play")
+      span Browse Games
+    
+  .logged-in.navbar-end
+    .navbar-item
+      .control
+        a.button.is-warning(href="/edit")
+          span.icon
+            i.fa.fa-plus
+          span Create
+    a.navbar-item(class=(self.page === 'account') && 'is-active' href="/account")
+      span.icon
+        i.fa.fa-user-circle
+      span Account
+  .logged-out.navbar-end
+    .navbar-item
+      a.button.is-primary.is-inverted.is-outlined(href="/")
+        span Sign In

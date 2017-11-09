@@ -2,17 +2,12 @@ extends ./templates/boilerplate
 
 block page_content
 
-  include ./templates/header
+  include ./templates/editHeader
 
   .layers
     .layer
       .columns.edit-body
         .column.is-one-quarter.sidebar
-          .field.has-addons
-            .control
-              button.button#save Save
-            .control
-              button.button.is-success#publish Publish
           .settings-panel.panel
             p.panel-heading Settings
             p.panel-tabs

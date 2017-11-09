@@ -223,7 +223,7 @@ module.exports = server => {
     } else {
       games[id] = new Game(id, gameData);
       games[id].start();
-      console.log('Created game', Object.keys(games));
+      console.log(`Created game: ${id}`);
     }
   };
 
@@ -231,7 +231,7 @@ module.exports = server => {
     if (games.hasOwnProperty(id)) {
       games[id].stop();
       delete games[id];
-      console.log('Destroyed game', Object.keys(games));
+      console.log(`Destroyed game: ${id}`);
     } else {
       console.log(`A game with id ${id} does not exist`);
     }

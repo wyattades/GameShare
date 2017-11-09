@@ -28,8 +28,7 @@ if (DEV) {
   app.use(require('webpack-hot-middleware')(compiler));
 }
 
-app.use(express.static(path.resolve(__dirname, '../public')));
-app.use(express.static(path.resolve(__dirname, '../assets')));
+app.use('/public', express.static(path.resolve(__dirname, '../public')));
 
 app.set('view engine', 'pug');
 app.locals.self = true; // Access variables in pug files from 'self' object e.g. self.title
@@ -42,13 +41,11 @@ const renderPage = (page, title, options = {}) => {
 
   const script = options.script || page;
 
-  // FIXME: production and development require different file paths
-  options.scripts = [{ src: DEV ? `/public/${script}.js` : `/${script}.js`, inject: 'body' }];
-
   const compiled = Object.assign({
     page,
     title,
-    css: DEV ? [] : ['/style.css'],
+    css: DEV ? [] : ['/public/style.css'], // Only need to import css in production
+    scripts: [{ src: `/public/${script}.js`, inject: 'body' }],
   }, options);
 
   return (req, res) => res.render(page, compiled);
@@ -56,13 +53,14 @@ const renderPage = (page, title, options = {}) => {
 
 app.get('/', renderPage('index', 'Home'));
 app.get('/play/:game_id', renderPage('play', 'Play'));
-app.get('/play', renderPage('activeGames', 'Active Games'));
+app.get('/play', renderPage('browse', 'Browse Games'));
 app.get('/edit/:game_id', renderPage('edit', 'Edit'));
 app.get('/edit', renderPage('edit', 'Edit'));
 app.get('/games', renderPage('games', 'Games'));
+app.get('/account', renderPage('account', 'Account'));
 
 // 404 response
-app.use(renderPage('404', '404 Error', { status: 404, script: 'loadStyles' }));
+app.use(renderPage('404', '404 Error', { status: 404 }));
 
 
 // ---------- Listen on http server

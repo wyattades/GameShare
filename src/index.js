@@ -1,15 +1,22 @@
 import './styles/styles.scss';
-import { login } from './utils/db';
+import { login, assertLoggedIn } from './utils/db';
 
-const googleSignIn = e => {
-  // e.target.removeEventListener(e.type, googleSignIn);
+assertLoggedIn(false).catch(() => {});
 
-  login('google')
+const authLogin = provider => () => {
+  login(provider)
   .then(res => {
     console.log('logged in', res);
     // Go to games dashboard
     document.location.assign('/games');
   })
-  .catch(err => console.log('login error', err));
+  .catch(err => {
+    if (err.code === 'auth/account-exists-with-different-credential') {
+      alert(err.message);
+    } else if (err.code !== 'auth/popup-closed-by-user' && err.code !== 'auth/cancelled-popup-request') {
+      console.error('login error', err);
+    }
+  });
 };
-document.getElementById('google-sign-in').addEventListener('click', googleSignIn);
+document.getElementById('google-sign-in').addEventListener('click', authLogin('google'));
+document.getElementById('facebook-sign-in').addEventListener('click', authLogin('facebook'));

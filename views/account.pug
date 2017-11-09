@@ -1,0 +1,26 @@
+extends ./templates/boilerplate
+
+block page_content
+  
+  include ./templates/header
+
+  section.hero.is-warning.is-bold
+    .hero-body
+      .container
+        .is-pulled-left
+          h1.title Account
+          h4.subtitle Account things and stuff
+        .is-pulled-right
+          .control
+            a#logout.button.is-inverted.is-outlined.is-warning Logout
+
+  section.section
+    .container
+      article.message
+        #user-info.message-body
+
+  section.section
+    .container
+      .control
+        a#delete.button.is-danger Delete GameShare Account
+      
