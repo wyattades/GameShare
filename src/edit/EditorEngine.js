@@ -1,8 +1,9 @@
 import * as Pixi from 'pixi.js';
 import Colors from './Colors';
 
-const GRID_SIZE = { w: 260, h: 260 };
+
 const GRID_SPACING = 20; // SNAP
+const GRID_SIZE = { w: GRID_SPACING * 35, h: GRID_SPACING * 25 };
 const GRID_BORDER_SIZE = 100; // Size of the border around the playable area (one side)
 
 const RECT_MIN_SIZE = 20; // Minimum size of a rectangle object.
@@ -91,21 +92,19 @@ class Engine {
   }
   // Add gridline primitives to grid object.
   drawGridlines = (grid = this.container, tint = this.gridLineColor) => {
-    // This is a hacky way to fix the grid drawing when w != h
-    // TODO: Fix grid drawing for non-square level sizes.
-    let w = Math.max(grid.w, grid.h),
-        h = Math.max(grid.w, grid.h);
+    let w = grid.w,
+        h = grid.h;
 
     grid.lineStyle(1, tint, 1);
-    for (let x = 0; x < w; x += this.gridSpacing) {
-      grid.lineStyle(x % 100 === 0 ? 2 : 1, tint, 1);
+    for (let x = 0; x <= w; x += this.gridSpacing) {
+      grid.lineStyle(x % 100 === 0 || x === w ? 2 : 1, tint, 1);
       grid.moveTo(x, 0);
-      grid.lineTo(x, w);
+      grid.lineTo(x, h);
     }
-    for (let y = 0; y < h; y += this.gridSpacing) {
-      grid.lineStyle(y % 100 === 0 ? 2 : 1, tint, 1);
+    for (let y = 0; y <= h; y += this.gridSpacing) {
+      grid.lineStyle(y % 100 === 0 || y === h ? 2 : 1, tint, 1);
       grid.moveTo(0, y);
-      grid.lineTo(h, y);
+      grid.lineTo(w, y);
     }
 
   }
