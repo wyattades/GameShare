@@ -7,52 +7,44 @@ import gameEntry from './templates/gameEntry.pug';
 const parent = $('#games_content');
 
 const addEntry = data => {
+  const id = data.id;
+  let running = data.status === 'running';
 
   const html = gameEntry(data);
   const $el = $(html).prependTo(parent);
 
-  const actions = $el.find('a');
-  const id = data.id;
-
+  const $delete = $el.find('.game-delete');
   const $publish = $el.find('.game-publish');
-  
-  // Publish/unpublish button
-  actions.eq(0).click(() => {
-    const running = $publish.hasClass('fa-stop');
-    actions.eq(0).addClass('is-loading');
+  const $statusBlocks = $el.find('.game-status-block');
+  const $play = $el.find('.game-play');
 
-    updateGame(id, undefined, running ? 'stopped' : 'running')
+  $publish.click(() => {
+    $publish.addClass('is-loading');
+
+    updateGame(id, undefined, { status: running ? 'stopped' : 'running' })
     .then(() => {
-      actions.eq(0).removeClass('is-loading');
-      $publish.toggleClass('fa-stop fa-play');
+      $publish.removeClass('is-loading');
+      running = !running;
+      $play.toggleClass('is-disabled');
       
-      $el.find('.game-status').text(running ? 'stopped' : 'running');
-
-      if (!running) {
-        document.location.assign(`/play/${id}`);
-      }
+      $statusBlocks.toggle();
     });
   });
 
-  // Edit button
-  actions.eq(1).click(() => {
-    document.location.assign(`/edit/${id}`);
-  });
-
   // Delete button
-  actions.eq(2).click(() => {
-    actions.eq(2).addClass('is-loading');
+  $delete.click(() => {
+    $delete.addClass('is-loading');
     
     // TODO: use modal
     if (window.confirm('Are you sure?')) {
       deleteGame(id)
       .then(() => $el.remove())
       .catch(err => {
-        actions.eq(2).removeClass('is-loading');
+        $delete.removeClass('is-loading');
         console.error(err);
       });
     } else {
-      actions.eq(2).removeClass('is-loading');
+      $delete.removeClass('is-loading');
     }
   });
 };

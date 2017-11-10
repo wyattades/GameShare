@@ -1,30 +1,44 @@
-- const running = self.status === 'running';
-tr
-  th= 'No Name'
-  td= new Date(self.last_modified).toLocaleString()
-  td= new Date(self.created_on).toLocaleString()
-  if (self.active)
-    td= self.owner
-    td
-      .control
-        a.button(href=`/play/${self.id}`)
-          span.icon.is-small
-            i.fa.fa-play
-  else
-    td.game-status= self.status
-    td
-      .game-actions.field.has-addons
-        .control
-          a.button
-            span.icon.is-small
-              i.game-publish.fa(class=running ? 'fa-stop' : 'fa-play')
-        .control
-          a.button
-            span.icon.is-small
-              i.fa.fa-pencil
-            //- span Edit
-        .control
-          a.button
-            span.icon.is-small
-              i.fa.fa-trash
-            //- span Delete
+-
+  const running = self.status === 'running';
+  const created_on = new Date(self.created_on).toLocaleString();
+  const last_modified = new Date(self.last_modified).toLocaleString();
+
+.column.is-one-third-desktop.is-half-tablet
+  .card
+    header.card-header
+      p.card-header-title
+        if self.name
+          = self.name
+        else
+          i NA
+      span.card-header-icon
+        .game-status-block.tags.has-addons(style={ display: running ? 'flex': 'none' })
+          span.tag.is-success Running
+          if (!self.active)
+            span.tag.game-publish.is-delete
+            //- span.tag.game-publish.is-success
+              i.fa.fa-stop
+        .game-status-block.tags.has-addons(style={ display: running ? 'none': 'flex' })
+          span.tag.is-light Stopped
+          if (!self.active)
+            span.tag.game-publish.is-success
+              i.fa.fa-play
+    .card-content 
+      p
+        | Last Modified: 
+        span.has-text-grey= last_modified
+      p
+        | Created On: 
+        span.has-text-grey= created_on
+      if (self.active)
+        br
+        | Owner: 
+        span.has-text-grey= self.owner
+    footer.card-footer
+      a.card-footer-item.game-play(title="Play" href=`/play/${self.id}` class=!running && 'is-disabled')
+        i.fa.fa-play-circle
+      if (!self.active)
+        a.card-footer-item.game-edit(title="Edit" href=`/edit/${self.id}`)
+          i.fa.fa-edit
+        a.card-footer-item.game-delete(title="Delete")
+          i.fa.fa-trash

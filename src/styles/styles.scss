@@ -1,27 +1,89 @@
 // FontAwesome icons
-// TODO: import via local file
-@import url('https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css');
+@import '~font-awesome/css/font-awesome.min.css';
+// Bulma css framework
+@import './bulma';
 
-// First import the variables
-@import '~bulma/sass/utilities/initial-variables';
-
-$primary: #279AF1;
-$warning: #FFE74C;
-$danger: #FF5964;
-$link: #38618C;
-$navbar-height: 3.5em;
-$navbar-tab-active-border-bottom-color: none;
-
-// Then import rest of bulma so variable changes propogate
-@import '~bulma/bulma';
-
-// Navbar
-.home-navbar {
-  border-bottom: 1px solid rgb(111, 188, 236);
+// Assert that cards are equal height
+.card {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  .card-footer {
+    margin-top: auto;
+  }
 }
 
-.logged-in {
+// Hover behavior on status button
+.card-header-icon {
+  &:hover {
+    cursor: default;
+  }
+  .game-publish {
+    &.is-loading {
+      pointer-events: none;
+    }
+    &:hover {
+      cursor: pointer;
+    }
+    &.is-success:hover {
+      background-color: darken($success, 5%);
+    }
+  }
+}
+
+// Fix issue with status button margin-bottom
+.game-status-block {
+  margin-bottom: -8px !important;
+}
+
+.gameshare-logo {
+  width: 250px;
+  height: 250px;
+  background-image: url(../assets/gameshare.png);
+  background-size: contain;  
+  background-repeat: no-repeat;  
+}
+
+#google-sign-in {
+  font-weight: bold;  
+  color: #888;
+  i {
+    width: 24px;
+    height: 24px;
+    background-image: url(../assets/google.svg);
+    background-size: contain;
+    background-repeat: no-repeat;
+  }
+}
+
+$facebook-color: #3B5998;
+#facebook-sign-in {
+  font-weight: bold;  
+  background-color: $facebook-color;
+  color: white;
+  &:not(:hover) {
+    border-color: lighten($facebook-color, 10%);
+  }
+}
+
+// Navbar
+.home-body {
+  border-top: 1px solid rgb(111, 188, 236);
+}
+
+.logged-out {
   display: none;
+}
+
+#game-name {
+  font-weight: bold;  
+  &:not(:hover):not(:focus) {
+    background-color: transparent;
+    color: white;
+    &::placeholder {
+      color: rgba(255, 255, 255, 0.5)
+    }
+  }
 }
 
 // Loading indicator on a div
@@ -39,9 +101,6 @@ div.is-loading {
     border-width: 0.25em;
   }
 }
-
-// TODO: the following css is only required in 'edit'
-
 .sidebar {
   display: block!important;
   margin: 0.75em;
@@ -67,9 +126,9 @@ div.is-loading {
 .grid-block, .object-settings, .level-block { display: none; }
 
 // Mysterious CSS that makes the grid display- doesnt show up otherwise
-html, body, .edit-body  { height: 100%; }
+html, body, .edit-body { height: 100%; }
 
-// TODO: The following css is only required in 'edit' and 'play'
+// TODO: The following css is required in 'edit' and 'play'
 
 body {
   display: flex;
@@ -91,17 +150,5 @@ html {
     right: 0;
     bottom: 0;
     top: 0;
-  }
-}
-
-#loading {
-  background-color: white;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-
-  & > * {
-    text-align: center;
-    flex: 0.6;
   }
 }

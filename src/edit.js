@@ -50,6 +50,9 @@ assertLoggedIn()
 })
 .then(initialData => {
 
+  const $name = $('#game-name');
+  $name.val(initialData.name || '');
+
   // Initiate object editor view
   const app = new Engine($('#root').get(0), initialData);
   app.start();
@@ -62,10 +65,26 @@ assertLoggedIn()
     $(e.target).addClass('is-loading');
 
     const gameData = app.getLevelData();
-    console.log(gameData);
+    
+    // Get game name from header input
+    const name = $name.val();
 
-    (gameId ? updateGame(gameId, gameData, newStatus) : createGame(gameData, newStatus))
+    if (name.length === 0) {
+      window.alert('Please provide a name for your game');
+      return;
+    }
+
+    // Update game and info data with new name
+    gameData.name = name;
+    const infoData = {
+      name,
+    };
+    if (newStatus) infoData.status = newStatus;
+
+    // Send data to firebase
+    (gameId ? updateGame(gameId, gameData, infoData) : createGame(gameData, infoData))
     .then(id => {
+
       $(e.target).removeClass('is-loading');
       console.log('Game saved.');
 

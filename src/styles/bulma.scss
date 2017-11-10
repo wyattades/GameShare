@@ -1,0 +1,29 @@
+// First import the variables
+@import '~bulma/sass/utilities/initial-variables';
+
+$primary: #279AF1;
+$success: #00C16E;
+$warning: #FFE74C;
+$danger: #FF5964;
+$link: #38618C;
+$navbar-height: 3.5em;
+
+// Then import rest of bulma so variable changes propogate
+@import '~bulma/bulma';
+
+.navbar.has-shadow {
+  box-shadow: 0 2px 3px rgba($black, 0.25);
+}
+
+// Disabled card-footer-item
+.card-footer-item.is-disabled {
+  pointer-events: none;
+  background-color: $button-disabled-background-color;
+  opacity: $button-disabled-opacity;
+  i {
+    color: $grey;
+  }
+  &:hover {
+    cursor: no-drop;
+  }
+}
