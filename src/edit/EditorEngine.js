@@ -123,8 +123,11 @@ class Engine {
     return grid;
   }
   // Resize the grid to the given size.
-  resizeGrid = (width = this.gridSize.w, height = this.gridSize.h, grid = this.container) => {
+  resizeGrid = (width = this.gridSize.w, height = this.gridSize.h,
+    spacing = this.gridSpacing, grid = this.container) => {
+
     this.gridSize = { w: +width, h: +height };
+    this.gridSpacing = +spacing;
     let w = this.gridSize.w + (this.gridBorderSize * 2),
         h = this.gridSize.h + (this.gridBorderSize * 2);
 
@@ -243,9 +246,12 @@ class Engine {
   // Add a new wall rectangle to the level.
   // Returns the wall object that was just added.
   addWall = (group = 0) => {
+    let x = this.getSnapPosition(-this.container.x + (this.width / 2)),
+        y = this.getSnapPosition(-this.container.y + (this.height / 2));
+
     const wall = this.createRect({
-      x: this.gridSpacing * 8,
-      y: this.gridSpacing * 8,
+      x,
+      y,
       w: this.gridSpacing * 4,
       h: this.gridSpacing * 4,
       draggable: true,
@@ -256,16 +262,16 @@ class Engine {
     this.container.addObject(wall);
     return wall;
   }
+  getSnapPosition = (pos) => Math.floor(pos / this.gridSpacing) * this.gridSpacing;
 
   // Add a new object group to the level.
-  // Returns updated group list.
+  // Returns the group object that was just added.
   addGroup = (name = `Group ${this.groups.length}`) => {
     this.groups.push({
       name,
       stroke: 0xFFFFFF,
       objects: [],
     });
-    // return this.groups;
     return this.groups[this.groups.length - 1];
   }
 
@@ -397,9 +403,8 @@ class Engine {
         newPosition = { x: 0, y: 0 },
         newSize = { width: 0, height: 0 };
 
-    // Anchor to snap points.
-    dragPos.x = Math.floor(dragPos.x / this.gridSpacing) * this.gridSpacing;
-    dragPos.y = Math.floor(dragPos.y / this.gridSpacing) * this.gridSpacing;
+    dragPos.x = this.getSnapPosition(dragPos.x);
+    dragPos.y = this.getSnapPosition(dragPos.y);
 
     // Calculate new width.
     if (control.controlPosition.x === 0) {
