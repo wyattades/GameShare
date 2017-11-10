@@ -31,7 +31,7 @@ class Engine {
     this.gridBorderColor = Colors.BLACK;
     this.container = this.createGrid();
     this.app.stage.addChild(this.container);
-    
+
     this.groups = []; // List of object/wall groups.
     this.addGroup(); // Add default group.
 
@@ -88,7 +88,7 @@ class Engine {
     grid.drawRect(0, 0, grid.width, borderSize);
     grid.drawRect(0, borderSize, borderSize, grid.height - (borderSize * 2));
     grid.drawRect(grid.width - borderSize - 2, borderSize, borderSize, grid.height - (borderSize * 2));
-    grid.drawRect(0, grid.height - borderSize, grid.width - 2, borderSize);
+    grid.drawRect(0, grid.height - borderSize - 2, grid.width - 2, borderSize);
   }
   // Add gridline primitives to grid object.
   drawGridlines = (grid = this.container, tint = this.gridLineColor) => {
@@ -124,7 +124,7 @@ class Engine {
   }
   // Resize the grid to the given size.
   resizeGrid = (width = this.gridSize.w, height = this.gridSize.h, grid = this.container) => {
-    this.gridSize = { w: width, h: height };
+    this.gridSize = { w: +width, h: +height };
     let w = this.gridSize.w + (this.gridBorderSize * 2),
         h = this.gridSize.h + (this.gridBorderSize * 2);
 
@@ -135,7 +135,11 @@ class Engine {
     grid.hitArea = new Pixi.Rectangle(0, 0, w, h);
     grid.bounds = { x: w, y: h };
 
-    grid.graphicsData.length = 0; // Clear gridline primitives
+    // Clear gridline primitives
+    grid.graphicsData.length = 0;
+    grid.dirty++;
+    grid.clearDirty++;
+
     this.drawGridlines(grid);
     this.drawBorderShading(grid);
   }
