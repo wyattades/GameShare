@@ -31,7 +31,7 @@ class Engine {
     this.gridBorderColor = Colors.BLACK;
     this.container = this.createGrid();
     this.app.stage.addChild(this.container);
-
+    
     this.groups = []; // List of object/wall groups.
     this.addGroup(); // Add default group.
 
@@ -122,19 +122,20 @@ class Engine {
     this.drawBorderShading(grid);
     return grid;
   }
-  // Resize the grid to the given size. Currently only makes squares.
+  // Resize the grid to the given size.
   resizeGrid = (width = this.gridSize.w, height = this.gridSize.h, grid = this.container) => {
     this.gridSize = { w: width, h: height };
     let w = this.gridSize.w + (this.gridBorderSize * 2),
         h = this.gridSize.h + (this.gridBorderSize * 2);
 
-    grid.graphicsData.length = 0;
     grid.x = 0;
     grid.y = 0;
     grid.w = w;
     grid.h = h;
-
+    grid.hitArea = new Pixi.Rectangle(0, 0, w, h);
     grid.bounds = { x: w, y: h };
+
+    grid.graphicsData.length = 0; // Clear gridline primitives
     this.drawGridlines(grid);
     this.drawBorderShading(grid);
   }
