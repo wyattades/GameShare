@@ -2,19 +2,19 @@ import * as Pixi from 'pixi.js';
 import Colors from './Colors';
 
 // Defaults
-const GRID_SPACING = 20; // SNAP
-const GRID_SIZE = { w: GRID_SPACING * 35, h: GRID_SPACING * 25 };
-const GRID_BORDER_SIZE = 100; // Size of the border around the playable area (one side)
+const DEFAULT_GRID_SPACING = 20; // SNAP
+const DEFAULT_GRID_SIZE = { w: DEFAULT_GRID_SPACING * 35, h: DEFAULT_GRID_SPACING * 25 };
+const DEFAULT_BORDER_SIZE = 100; // Size of the border around the playable area (one side)
 const DEFAULT_OPTIONS = {
   snap: 8,
   backgroundColor: 0xDDEEDD,
   maxBulletsPerPlayer: 4,
   maxPlayers: 20,
   bounds: {
-    x: GRID_BORDER_SIZE,
-    y: GRID_BORDER_SIZE,
-    w: GRID_SIZE.w - GRID_BORDER_SIZE,
-    h: GRID_SIZE.h - GRID_BORDER_SIZE,
+    x: DEFAULT_BORDER_SIZE,
+    y: DEFAULT_BORDER_SIZE,
+    w: DEFAULT_GRID_SIZE.w - DEFAULT_BORDER_SIZE,
+    h: DEFAULT_GRID_SIZE.h - DEFAULT_BORDER_SIZE,
   },
   bulletSpeed: 1000,
   fireRate: 200,
@@ -43,8 +43,8 @@ class Engine {
     parent.appendChild(this.app.view);
 
     this.options = DEFAULT_OPTIONS;
-    this.gridSpacing = GRID_SPACING;
-    this.gridBorderSize = GRID_BORDER_SIZE;
+    this.gridSpacing = DEFAULT_GRID_SPACING;
+    this.gridBorderSize = DEFAULT_BORDER_SIZE;
     this.gridLineColor = Colors.GRID;
     this.gridBorderColor = Colors.BLACK;
     this.container = this.createGrid();
