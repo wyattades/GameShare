@@ -21,6 +21,7 @@ const DEFAULT_OPTIONS = {
   playerSpeed: 500,
   bulletHealth: 2,
 };
+const DEFAULT_RECT_SIZE = DEFAULT_GRID_SPACING * 2;
 
 // Constraints
 const RECT_MIN_SIZE = 20; // Minimum size of a rectangle object.
@@ -29,7 +30,7 @@ const RESIZE_CONTROL_SIZE = 20;
 
 class Engine {
 
-  constructor(parent, initialData) {
+  constructor(parent, initialData = null) {
 
     this.width = parent.clientWidth;
     this.height = parent.clientHeight;
@@ -58,13 +59,14 @@ class Engine {
 
     this.rectMinSize = RECT_MIN_SIZE;
     this.resizeControlSize = RESIZE_CONTROL_SIZE; // Size of resize control elements.
+
+    if (initialData) this.loadLevelData(initialData);
   }
 
   // Catch-all for modifying game options.
   setOptions = (opt) => {
     this.options = Object.assign(this.options, opt);
   }
-
   // Return a JSON-friendly level data object, for saving and loading.
   getLevelData = () => {
     let data = {};
@@ -90,7 +92,12 @@ class Engine {
     this.resizeGrid(this.options.bounds.w, this.options.bounds.h);
 
     this.groups = data.groups;
-    this.container.children = data.objects;
+
+    this.container.removeChildren();
+    for (let i = 0, l = data.objects.length; i < l; i++) {
+      let obj = data.objects[i];
+      this.addWall(obj);
+    }
   }
 
 
@@ -260,18 +267,19 @@ class Engine {
 
   // Add a new wall rectangle to the level.
   // Returns the wall object that was just added.
-  addWall = (group = 0) => {
-    let x = this.getSnapPosition(-this.container.x + (this.width / 2)),
-        y = this.getSnapPosition(-this.container.y + (this.height / 2));
+  addWall = ({ group = 0, x = null, y = null,
+    w = DEFAULT_RECT_SIZE, h = DEFAULT_RECT_SIZE }) => {
+    x = x || this.getSnapPosition(-this.container.x + (this.width / 2));
+    y = y || this.getSnapPosition(-this.container.y + (this.height / 2));
 
     const wall = this.createRect({
       x,
       y,
-      w: this.gridSpacing * 4,
-      h: this.gridSpacing * 4,
+      w,
+      h,
       draggable: true,
       selectable: true,
-      fill: Colors.WHITE,
+      fill: Colors.WHITE, // TODO: get color from group
       stroke: Colors.BLACK });
     wall.group = group;
     this.container.addObject(wall);
