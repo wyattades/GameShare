@@ -42,7 +42,7 @@ class Engine {
 
     parent.appendChild(this.app.view);
 
-    this.gridSize = GRID_SIZE;
+    this.options = DEFAULT_OPTIONS;
     this.gridSpacing = GRID_SPACING;
     this.gridBorderSize = GRID_BORDER_SIZE;
     this.gridLineColor = Colors.GRID;
@@ -52,8 +52,6 @@ class Engine {
 
     this.groups = []; // List of object/wall groups.
     this.addGroup(); // Add default group.
-
-    this.options = DEFAULT_OPTIONS;
 
     this.selectedObject = null; // The currently selected object.
     this.lockSelect = false; // When true, objects won't be selected.
@@ -83,6 +81,8 @@ class Engine {
   }
   loadLevelData = (data) => {
     this.options = data.options;
+    this.resizeGrid(this.options.bounds.w, this.options.bounds.h);
+
     this.groups = data.groups;
     this.container.children = data.objects;
   }
@@ -116,7 +116,7 @@ class Engine {
 
   }
   // Generate the grid container. Width and height define the playable area.
-  createGrid = (width = this.gridSize.w, height = this.gridSize.h) => {
+  createGrid = (width = this.options.bounds.w, height = this.options.bounds.h) => {
     let w = width + (this.gridBorderSize * 2),
         h = height + (this.gridBorderSize * 2);
 
@@ -129,14 +129,16 @@ class Engine {
     this.drawBorderShading(grid);
     return grid;
   }
-  // Resize the grid to the given size.
-  resizeGrid = (width = this.gridSize.w, height = this.gridSize.h,
+  // Resize the grid to the given parameters. Adds border region to given values.
+  resizeGrid = (width = this.options.bounds.w, height = this.options.bounds.h,
     spacing = this.gridSpacing, grid = this.container) => {
 
-    this.gridSize = { w: +width, h: +height };
+    this.options.bounds.w = +width;
+    this.options.bounds.h = +height;
     this.gridSpacing = +spacing;
-    let w = this.gridSize.w + (this.gridBorderSize * 2),
-        h = this.gridSize.h + (this.gridBorderSize * 2);
+
+    let w = this.options.bounds.w + (this.gridBorderSize * 2),
+        h = this.options.bounds.h + (this.gridBorderSize * 2);
 
     grid.x = 0;
     grid.y = 0;
