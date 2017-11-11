@@ -7,7 +7,7 @@ module.exports = (app) => {
 
   $(document).on('click', '#new-object-button', (event) => {
     let objGroup = $(event.currentTarget).parent().prop('id');
-    let newObj = app.addWall(objGroup);
+    let newObj = app.addWall({ group: objGroup });
     let objectHTML = objectTemplate({
       x: newObj.hitArea.x,
       y: newObj.hitArea.y,
@@ -23,7 +23,7 @@ module.exports = (app) => {
 
     $(event.currentTarget).parent().css('background-color', '#50e283');
     $('.object-settings').css('display', 'block');
-    
+
     $(event.currentTarget)
     .parent()
     .prevAll('.group')
@@ -80,6 +80,20 @@ module.exports = (app) => {
     $('.object-block').css('display', 'none');
     $('.grid-block').css('display', 'flex');
     $('.level-block').css('display', 'none');
+  });
+
+  function resizeGrid() {
+    let boundary_x = $('#boundary-x').val(),
+        boundary_y = $('#boundary-y').val(),
+        snap_input = $('#snap-input').val();
+    app.resizeGrid(boundary_x, boundary_y, snap_input);
+  }
+  $('#snap-input').change(resizeGrid);
+  $('#boundary-x').change(resizeGrid);
+  $('#boundary-y').change(resizeGrid);
+
+  $('#background-color').change(() => {
+    app.setOptions({ backgroundColor: $('#background-color').val() });
   });
 
   $('#level-tab').click(() => {
