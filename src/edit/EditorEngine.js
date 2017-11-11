@@ -1,16 +1,36 @@
 import * as Pixi from 'pixi.js';
 import Colors from './Colors';
 
-const GRID_SIZE = { w: 260, h: 260 };
-const GRID_SPACING = 20; // SNAP
-const GRID_BORDER_SIZE = 100; // Size of the border around the playable area (one side)
+// Defaults
+const DEFAULT_GRID_SPACING = 20; // SNAP
+const DEFAULT_GRID_SIZE = { w: DEFAULT_GRID_SPACING * 35, h: DEFAULT_GRID_SPACING * 25 };
+const DEFAULT_BORDER_SIZE = 100; // Size of the border around the playable area (one side)
+const DEFAULT_OPTIONS = {
+  snap: 8,
+  backgroundColor: 0xDDEEDD,
+  maxBulletsPerPlayer: 4,
+  maxPlayers: 20,
+  bounds: {
+    x: DEFAULT_BORDER_SIZE,
+    y: DEFAULT_BORDER_SIZE,
+    w: DEFAULT_GRID_SIZE.w - DEFAULT_BORDER_SIZE,
+    h: DEFAULT_GRID_SIZE.h - DEFAULT_BORDER_SIZE,
+  },
+  bulletSpeed: 1000,
+  fireRate: 200,
+  playerSpeed: 500,
+  bulletHealth: 2,
+};
+const DEFAULT_RECT_SIZE = DEFAULT_GRID_SPACING * 2;
 
+// Constraints
 const RECT_MIN_SIZE = 20; // Minimum size of a rectangle object.
 const RESIZE_CONTROL_SIZE = 20;
 
+
 class Engine {
 
-  constructor(parent, initialData) {
+  constructor(parent, initialData = null) {
 
     this.width = parent.clientWidth;
     this.height = parent.clientHeight;
@@ -23,9 +43,9 @@ class Engine {
 
     parent.appendChild(this.app.view);
 
-    this.gridSize = GRID_SIZE;
-    this.gridSpacing = GRID_SPACING;
-    this.gridBorderSize = GRID_BORDER_SIZE;
+    this.options = DEFAULT_OPTIONS;
+    this.gridSpacing = DEFAULT_GRID_SPACING;
+    this.gridBorderSize = DEFAULT_BORDER_SIZE;
     this.gridLineColor = Colors.GRID;
     this.gridBorderColor = Colors.BLACK;
     this.container = this.createGrid();
@@ -39,31 +59,19 @@ class Engine {
 
     this.rectMinSize = RECT_MIN_SIZE;
     this.resizeControlSize = RESIZE_CONTROL_SIZE; // Size of resize control elements.
+
+    if (initialData) this.loadLevelData(initialData);
   }
 
+  // Catch-all for modifying game options.
+  setOptions = (opt) => {
+    this.options = Object.assign(this.options, opt);
+  }
   // Return a JSON-friendly level data object, for saving and loading.
   getLevelData = () => {
     let data = {};
-
-    data.options = {
-      snap: 8,
-      backgroundColor: 0xDDEEDD,
-      maxBulletsPerPlayer: 4,
-      maxPlayers: 20,
-      bounds: {
-        x: this.gridBorderSize,
-        y: this.gridBorderSize,
-        w: this.gridSize.w - this.gridBorderSize,
-        h: this.gridSize.h - this.gridBorderSize,
-      },
-      bulletSpeed: 1000,
-      fireRate: 200,
-      playerSpeed: 500,
-      bulletHealth: 2,
-    };
-
+    data.options = this.options;
     data.groups = this.groups;
-
     data.objects = [];
     for (let i = 0, l = this.container.children.length; i < l; i++) {
       let c = this.container.children[i];
@@ -76,9 +84,22 @@ class Engine {
       });
       data.groups[c.group].objects.push(i);
     }
-
     return data;
   }
+  // Match level settings to given options.
+  loadLevelData = (data) => {
+    this.options = data.options;
+    this.resizeGrid(this.options.bounds.w, this.options.bounds.h);
+
+    this.groups = data.groups;
+
+    this.container.removeChildren();
+    for (let i = 0, l = data.objects.length; i < l; i++) {
+      let obj = data.objects[i];
+      this.addWall(obj);
+    }
+  }
+
 
   // Add shaded rectangles over the unplayable region of the map.
   drawBorderShading = (grid = this.container, borderSize = this.gridBorderSize, tint = this.gridBorderColor) => {
@@ -87,30 +108,28 @@ class Engine {
     grid.drawRect(0, 0, grid.width, borderSize);
     grid.drawRect(0, borderSize, borderSize, grid.height - (borderSize * 2));
     grid.drawRect(grid.width - borderSize - 2, borderSize, borderSize, grid.height - (borderSize * 2));
-    grid.drawRect(0, grid.height - borderSize, grid.width - 2, borderSize);
+    grid.drawRect(0, grid.height - borderSize - 2, grid.width - 2, borderSize);
   }
   // Add gridline primitives to grid object.
   drawGridlines = (grid = this.container, tint = this.gridLineColor) => {
-    // This is a hacky way to fix the grid drawing when w != h
-    // TODO: Fix grid drawing for non-square level sizes.
-    let w = Math.max(grid.w, grid.h),
-        h = Math.max(grid.w, grid.h);
+    let w = grid.w,
+        h = grid.h;
 
     grid.lineStyle(1, tint, 1);
-    for (let x = 0; x < w; x += this.gridSpacing) {
-      grid.lineStyle(x % 100 === 0 ? 2 : 1, tint, 1);
+    for (let x = 0; x <= w; x += this.gridSpacing) {
+      grid.lineStyle(x % 100 === 0 || x === w ? 2 : 1, tint, 1);
       grid.moveTo(x, 0);
-      grid.lineTo(x, w);
+      grid.lineTo(x, h);
     }
-    for (let y = 0; y < h; y += this.gridSpacing) {
-      grid.lineStyle(y % 100 === 0 ? 2 : 1, tint, 1);
+    for (let y = 0; y <= h; y += this.gridSpacing) {
+      grid.lineStyle(y % 100 === 0 || y === h ? 2 : 1, tint, 1);
       grid.moveTo(0, y);
-      grid.lineTo(h, y);
+      grid.lineTo(w, y);
     }
 
   }
   // Generate the grid container. Width and height define the playable area.
-  createGrid = (width = this.gridSize.w, height = this.gridSize.h) => {
+  createGrid = (width = this.options.bounds.w, height = this.options.bounds.h) => {
     let w = width + (this.gridBorderSize * 2),
         h = height + (this.gridBorderSize * 2);
 
@@ -123,19 +142,29 @@ class Engine {
     this.drawBorderShading(grid);
     return grid;
   }
-  // Resize the grid to the given size. Currently only makes squares.
-  resizeGrid = (width = this.gridSize.w, height = this.gridSize.h, grid = this.container) => {
-    this.gridSize = { w: width, h: height };
-    let w = this.gridSize.w + (this.gridBorderSize * 2),
-        h = this.gridSize.h + (this.gridBorderSize * 2);
+  // Resize the grid to the given parameters. Adds border region to given values.
+  resizeGrid = (width = this.options.bounds.w, height = this.options.bounds.h,
+    spacing = this.gridSpacing, grid = this.container) => {
 
-    grid.graphicsData.length = 0;
+    this.options.bounds.w = +width;
+    this.options.bounds.h = +height;
+    this.gridSpacing = +spacing;
+
+    let w = this.options.bounds.w + (this.gridBorderSize * 2),
+        h = this.options.bounds.h + (this.gridBorderSize * 2);
+
     grid.x = 0;
     grid.y = 0;
     grid.w = w;
     grid.h = h;
-
+    grid.hitArea = new Pixi.Rectangle(0, 0, w, h);
     grid.bounds = { x: w, y: h };
+
+    // Clear gridline primitives
+    grid.graphicsData.length = 0;
+    grid.dirty++;
+    grid.clearDirty++;
+
     this.drawGridlines(grid);
     this.drawBorderShading(grid);
   }
@@ -238,35 +267,38 @@ class Engine {
 
   // Add a new wall rectangle to the level.
   // Returns the wall object that was just added.
-  addWall = (group = 0) => {
+  addWall = ({ group = 0, x = null, y = null,
+    w = DEFAULT_RECT_SIZE, h = DEFAULT_RECT_SIZE }) => {
+    x = x || this.getSnapPosition(-this.container.x + (this.width / 2));
+    y = y || this.getSnapPosition(-this.container.y + (this.height / 2));
+
     const wall = this.createRect({
-      x: this.gridSpacing * 8,
-      y: this.gridSpacing * 8,
-      w: this.gridSpacing * 4,
-      h: this.gridSpacing * 4,
+      x,
+      y,
+      w,
+      h,
       draggable: true,
       selectable: true,
-      fill: Colors.WHITE,
+      fill: Colors.WHITE, // TODO: get color from group
       stroke: Colors.BLACK });
     wall.group = group;
     this.container.addObject(wall);
     return wall;
   }
+  getSnapPosition = (pos) => Math.floor(pos / this.gridSpacing) * this.gridSpacing;
 
   // Add a new object group to the level.
-  // Returns updated group list.
+  // Returns the group object that was just added.
   addGroup = (name = `Group ${this.groups.length}`) => {
     this.groups.push({
       name,
       stroke: 0xFFFFFF,
       objects: [],
     });
-    // return this.groups;
     return this.groups[this.groups.length - 1];
   }
 
-  // Control manipulation is in the Engine class for easier
-  // access to object creation functions.
+  // Control manipulation.
   createControls = (obj) => {
     // Saving these because they change with added children.
     let obj_width = obj.width,
@@ -393,9 +425,8 @@ class Engine {
         newPosition = { x: 0, y: 0 },
         newSize = { width: 0, height: 0 };
 
-    // Anchor to snap points.
-    dragPos.x = Math.floor(dragPos.x / this.gridSpacing) * this.gridSpacing;
-    dragPos.y = Math.floor(dragPos.y / this.gridSpacing) * this.gridSpacing;
+    dragPos.x = this.getSnapPosition(dragPos.x);
+    dragPos.y = this.getSnapPosition(dragPos.y);
 
     // Calculate new width.
     if (control.controlPosition.x === 0) {
