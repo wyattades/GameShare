@@ -66,13 +66,10 @@ block page_content
                   )
             .level-block.panel-block
               .field
-                label(
-                  class="label is-small"
-                  for="background-color"
-                ) Level Background Color
+                label(for="background-color") Level Background Color
                 .control
                   input(
-                    id="type-color"
+                    id="background-color"
                     name="background-color"
                     type="color"
                     value="#000000"
@@ -80,4 +77,30 @@ block page_content
           .object-settings.panel
             p.panel-heading Object Settings
             .panel-block
+              .field
+                label(for="background-color") Object Color
+                .control
+                  input(
+                    type="color"
+                    name="type-color"
+                    id="type-color"
+                    value="#FFAABB"
+                    style="margin-left: auto;"
+                  )
+          .type-settings.panel
+            p.panel-heading Type Settings
+            .panel-block
+              .field
+                label(for="background-color") Type Color
+                .control
+                  input(
+                    type="color"
+                    name="type-color"
+                    id="type-color"
+                    value="#FFAABB"
+                    style="margin-left: auto;"
+                  )
+            .panel-block
+              button Rename Type
+              button Delete Type
         .column.root-column#root
