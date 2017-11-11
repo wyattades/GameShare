@@ -1,13 +1,31 @@
 import * as Pixi from 'pixi.js';
 import Colors from './Colors';
 
-
+// Defaults
 const GRID_SPACING = 20; // SNAP
 const GRID_SIZE = { w: GRID_SPACING * 35, h: GRID_SPACING * 25 };
 const GRID_BORDER_SIZE = 100; // Size of the border around the playable area (one side)
+const DEFAULT_OPTIONS = {
+  snap: 8,
+  backgroundColor: 0xDDEEDD,
+  maxBulletsPerPlayer: 4,
+  maxPlayers: 20,
+  bounds: {
+    x: GRID_BORDER_SIZE,
+    y: GRID_BORDER_SIZE,
+    w: GRID_SIZE.w - GRID_BORDER_SIZE,
+    h: GRID_SIZE.h - GRID_BORDER_SIZE,
+  },
+  bulletSpeed: 1000,
+  fireRate: 200,
+  playerSpeed: 500,
+  bulletHealth: 2,
+};
 
+// Constraints
 const RECT_MIN_SIZE = 20; // Minimum size of a rectangle object.
 const RESIZE_CONTROL_SIZE = 20;
+
 
 class Engine {
 
@@ -35,6 +53,8 @@ class Engine {
     this.groups = []; // List of object/wall groups.
     this.addGroup(); // Add default group.
 
+    this.options = DEFAULT_OPTIONS;
+
     this.selectedObject = null; // The currently selected object.
     this.lockSelect = false; // When true, objects won't be selected.
 
@@ -45,26 +65,8 @@ class Engine {
   // Return a JSON-friendly level data object, for saving and loading.
   getLevelData = () => {
     let data = {};
-
-    data.options = {
-      snap: 8,
-      backgroundColor: 0xDDEEDD,
-      maxBulletsPerPlayer: 4,
-      maxPlayers: 20,
-      bounds: {
-        x: this.gridBorderSize,
-        y: this.gridBorderSize,
-        w: this.gridSize.w - this.gridBorderSize,
-        h: this.gridSize.h - this.gridBorderSize,
-      },
-      bulletSpeed: 1000,
-      fireRate: 200,
-      playerSpeed: 500,
-      bulletHealth: 2,
-    };
-
+    data.options = this.options;
     data.groups = this.groups;
-
     data.objects = [];
     for (let i = 0, l = this.container.children.length; i < l; i++) {
       let c = this.container.children[i];
@@ -77,9 +79,14 @@ class Engine {
       });
       data.groups[c.group].objects.push(i);
     }
-
     return data;
   }
+  loadLevelData = (data) => {
+    this.options = data.options;
+    this.groups = data.groups;
+    this.container.children = data.objects;
+  }
+
 
   // Add shaded rectangles over the unplayable region of the map.
   drawBorderShading = (grid = this.container, borderSize = this.gridBorderSize, tint = this.gridBorderColor) => {
@@ -275,8 +282,7 @@ class Engine {
     return this.groups[this.groups.length - 1];
   }
 
-  // Control manipulation is in the Engine class for easier
-  // access to object creation functions.
+  // Control manipulation.
   createControls = (obj) => {
     // Saving these because they change with added children.
     let obj_width = obj.width,
