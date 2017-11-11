@@ -60,6 +60,11 @@ class Engine {
     this.resizeControlSize = RESIZE_CONTROL_SIZE; // Size of resize control elements.
   }
 
+  // Catch-all for modifying game options.
+  setOptions = (opt) => {
+    this.options = Object.assign(this.options, opt);
+  }
+
   // Return a JSON-friendly level data object, for saving and loading.
   getLevelData = () => {
     let data = {};
@@ -79,6 +84,7 @@ class Engine {
     }
     return data;
   }
+  // Match level settings to given options.
   loadLevelData = (data) => {
     this.options = data.options;
     this.resizeGrid(this.options.bounds.w, this.options.bounds.h);
