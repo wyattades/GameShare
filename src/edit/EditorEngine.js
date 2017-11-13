@@ -21,6 +21,11 @@ const DEFAULT_OPTIONS = {
   playerSpeed: 500,
   bulletHealth: 2,
 };
+const DEFAULT_GROUP = {
+  color: 0xFFFFFF,
+
+  objects: [],
+};
 const DEFAULT_RECT_SIZE = DEFAULT_GRID_SPACING * 2;
 
 // Constraints
@@ -30,7 +35,7 @@ const RESIZE_CONTROL_SIZE = 20;
 
 class Engine {
 
-  constructor(parent, initialData = null) {
+  constructor(parent, options) {
 
     this.width = parent.clientWidth;
     this.height = parent.clientHeight;
@@ -43,7 +48,7 @@ class Engine {
 
     parent.appendChild(this.app.view);
 
-    this.options = DEFAULT_OPTIONS;
+    this.options = Object.assign(options, DEFAULT_OPTIONS);
     this.gridSpacing = DEFAULT_GRID_SPACING;
     this.gridBorderSize = DEFAULT_BORDER_SIZE;
     this.gridLineColor = Colors.GRID;
@@ -51,8 +56,8 @@ class Engine {
     this.container = this.createGrid();
     this.app.stage.addChild(this.container);
 
-    this.groups = []; // List of object/wall groups.
-    this.addGroup(); // Add default group.
+    // this.groups = []; // List of object/wall groups.
+    // this.addGroup(); // Add default group.
 
     this.selectedObject = null; // The currently selected object.
     this.lockSelect = false; // When true, objects won't be selected.
@@ -60,45 +65,53 @@ class Engine {
     this.rectMinSize = RECT_MIN_SIZE;
     this.resizeControlSize = RESIZE_CONTROL_SIZE; // Size of resize control elements.
 
-    if (initialData) this.loadLevelData(initialData);
+    // this.loadLevelData(initialData);
   }
 
   // Catch-all for modifying game options.
-  setOptions = (opt) => {
-    this.options = Object.assign(this.options, opt);
-  }
+  // setOptions = (opt) => {
+  //   this.options = Object.assign(this.options, opt);
+  // }
   // Return a JSON-friendly level data object, for saving and loading.
-  getLevelData = () => {
-    let data = {};
-    data.options = this.options;
-    data.groups = this.groups;
-    data.objects = [];
-    for (let i = 0, l = this.container.children.length; i < l; i++) {
-      let c = this.container.children[i];
-      data.objects.push({
-        group: c.group,
-        x: c.x,
-        y: c.y,
-        w: c.shape.width,
-        h: c.shape.height,
-      });
-      data.groups[c.group].objects.push(i);
-    }
-    return data;
-  }
+  // getLevelData = () => {
+  //   let data = {};
+  //   data.options = this.options;
+  //   data.groups = this.groups;
+  //   data.objects = [];
+  //   for (let i = 0, l = this.container.children.length; i < l; i++) {
+  //     let c = this.container.children[i];
+  //     data.objects.push({
+  //       group: c.group,
+  //       x: c.x,
+  //       y: c.y,
+  //       w: c.shape.width,
+  //       h: c.shape.height,
+  //     });
+  //     data.groups[c.group].objects.push(i);
+  //   }
+  //   console.log(data);
+  //   return data;
+  // }
   // Match level settings to given options.
-  loadLevelData = (data) => {
-    this.options = data.options;
-    this.resizeGrid(this.options.bounds.w, this.options.bounds.h);
+  // loadLevelData = (data) => {
+  //   console.log(data);
+  //   this.options = data.options;
 
-    this.groups = data.groups;
+  //   data.objects = data.objects || [];
+  //   for (let group of data.groups) {
+  //     group.objects = group.objects || [];
+  //   }
+    
+  //   this.resizeGrid(this.options.bounds.w, this.options.bounds.h);
 
-    this.container.removeChildren();
-    for (let i = 0, l = data.objects.length; i < l; i++) {
-      let obj = data.objects[i];
-      this.addWall(obj);
-    }
-  }
+  //   this.groups = data.groups;
+
+  //   this.container.removeChildren();
+  //   for (let i = 0, l = data.objects.length; i < l; i++) {
+  //     let obj = data.objects[i];
+  //     this.addWall(obj);
+  //   }
+  // }
 
 
   // Add shaded rectangles over the unplayable region of the map.
@@ -134,7 +147,7 @@ class Engine {
         h = height + (this.gridBorderSize * 2);
 
     let grid = this.createObject({
-      x: 0, y: 0, w, h, draggable: true, container: true,
+      x: 0, y: 0, w, h, draggable: true, // container: true,
     });
     grid.bounds = { x: w, y: h };
 
@@ -182,32 +195,32 @@ class Engine {
     this.app.stop();
   }
 
-  createObject = ({ x = 0, y = 0, w = 1, h = 1, draggable, container, selectable }) => {
+  createObject = ({ x = 0, y = 0, w = 1, h = 1, draggable, selectable }) => {
 
     const obj = new Pixi.Graphics();
 
     if (selectable) { obj.selectable = true; }
 
-    if (container) {
-      obj.getChildren = () => obj.children;
+    // if (container) {
+    //   obj.getChildren = () => obj.children;
 
-      obj.addObject = (...objs) => {
-        for (let o of objs) {
-          obj.addChild(o);
-        }
-      };
+    //   obj.addObject = (...objs) => {
+    //     for (let o of objs) {
+    //       obj.addChild(o);
+    //     }
+    //   };
 
-      obj.removeObject = (...objs) => {
-        if (objs.length > 0) {
-          for (let o of objs) {
-            obj.removeChild(o);
-          }
-        } else {
-          obj.removeChildren();
-        }
-      };
+    //   obj.removeObject = (...objs) => {
+    //     if (objs.length > 0) {
+    //       for (let o of objs) {
+    //         obj.removeChild(o);
+    //       }
+    //     } else {
+    //       obj.removeChildren();
+    //     }
+    //   };
 
-    }
+    // }
 
     obj.x = x;
     obj.y = y;
@@ -267,8 +280,13 @@ class Engine {
 
   // Add a new wall rectangle to the level.
   // Returns the wall object that was just added.
-  addWall = ({ group = 0, x = null, y = null,
-    w = DEFAULT_RECT_SIZE, h = DEFAULT_RECT_SIZE }) => {
+  addWall = (group, { x = null, y = null, w = DEFAULT_RECT_SIZE, h = DEFAULT_RECT_SIZE, ...rest }) => {
+
+    if (!group) {
+      console.error('Must provide group id');
+      return null;
+    }
+
     x = x || this.getSnapPosition(-this.container.x + (this.width / 2));
     y = y || this.getSnapPosition(-this.container.y + (this.height / 2));
 
@@ -279,23 +297,24 @@ class Engine {
       h,
       draggable: true,
       selectable: true,
-      fill: Colors.WHITE, // TODO: get color from group
-      stroke: Colors.BLACK });
-    wall.group = group;
-    this.container.addObject(wall);
+      ...rest,
+    });
+
+    group.addChild(wall);
+
     return wall;
   }
   getSnapPosition = (pos) => Math.floor(pos / this.gridSpacing) * this.gridSpacing;
 
   // Add a new object group to the level.
   // Returns the group object that was just added.
-  addGroup = (name = `Group ${this.groups.length}`) => {
-    this.groups.push({
-      name,
-      stroke: 0xFFFFFF,
-      objects: [],
-    });
-    return this.groups[this.groups.length - 1];
+  addGroup = groupData => {
+
+    const newGroup = new Pixi.Container();
+
+    this.container.addChild(newGroup);
+
+    return newGroup;
   }
 
   // Control manipulation.
@@ -359,8 +378,9 @@ class Engine {
 
   // Moves the element to the bottom of the list, so it renders on top.
   moveToTop = (obj) => {
-    this.container.removeChild(obj);
-    this.container.addChild(obj);
+    const parent = obj.parent;
+    parent.removeChild(obj);
+    parent.addChild(obj);
   }
 
   // Clear the current selection, then select the given object.
@@ -410,8 +430,8 @@ class Engine {
         }
       }
 
-      obj.position.x = newPosition.x;
-      obj.position.y = newPosition.y;
+      obj.translate(newPosition.x, newPosition.y);
+      obj.onUpdate && obj.onUpdate({ x: newPosition.x, y: newPosition.y });
 
       if (obj.isControl) {
         this.resizeParent(obj);
@@ -485,6 +505,7 @@ class Engine {
     // Clamp to minimum height.
     if (newSize.height < this.rectMinSize) { newSize.height = this.rectMinSize; }
 
+    obj.onUpdate && obj.onUpdate({ x: newPosition.x, y: newPosition.y, w: newSize.width, h: newSize.height });
 
     obj.translate(newPosition.x, newPosition.y);
     obj.resize(newSize.width, newSize.height);
