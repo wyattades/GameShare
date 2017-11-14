@@ -123,7 +123,11 @@ div.is-loading {
   padding-right: 0.5em;
 }
 
-.grid-block, .object-settings, .level-block, .type-settings { display: none; }
+.object-block:hover {
+  cursor: pointer !important;
+}
+
+.grid-block, .level-block, #object-settings, #type-settings { display: none; }
 
 // Mysterious CSS that makes the grid display- doesnt show up otherwise
 html, body, .edit-body { height: 100%; }

@@ -4,25 +4,45 @@ import * as engine from './engine';
 let socket,
     userId;
 
-const createLevel = (groups = [], objects = []) => Promise.all(groups.map(groupData => new Promise(resolve => {
-  const group = engine.createGroup(groupData);
+// const createLevel2 = (groups = [], objects = []) => Promise.all(groups.map(groupData => new Promise(resolve => {
+//   const group = engine.createGroup(groupData);
 
-  if (groupData.objects && groupData.objects.length > 0) {
-    let i = 0;
-    const interval = setInterval(() => {
-      const objData = objects[groupData.objects[i]];
+//   if (groupData.objects && groupData.objects.length > 0) {
+//     let i = 0;
+//     const interval = setInterval(() => {
+//       const objData = objects[groupData.objects[i]];
       
-      group.add(Object.assign(groupData, objData));
+//       group.add(Object.assign(groupData, objData));
 
-      if (++i >= groupData.objects.length) {
-        clearInterval(interval);
-        resolve();
+//       if (++i >= groupData.objects.length) {
+//         clearInterval(interval);
+//         resolve();
+//       }
+//     }, 2000 / groupData.objects.length); // Take 2 seconds to spawn all the objects
+//   } else {
+//     resolve();
+//   }
+// })));
+
+const createLevel = (groups = {}, objects = {}) => {
+  for (let groupId in groups) {
+    if (groups.hasOwnProperty(groupId)) {
+
+      const groupData = groups[groupId];
+      groupData.objects = groupData.objects || {};
+
+      const group = engine.createGroup(groupData);
+
+      for (let objId in groupData.objects) {
+        if (groupData.objects.hasOwnProperty(objId)) {
+          const objData = objects[objId];
+          group.add(Object.assign(groupData, objData));
+        }
       }
-    }, 2000 / groupData.objects.length); // Take 2 seconds to spawn all the objects
-  } else {
-    resolve();
+    }
   }
-})));
+  return Promise.resolve();
+};
 
 const addPlayers = players => {
 
@@ -86,7 +106,7 @@ export const connect = id => new Promise((resolve, reject) => {
 
   socket.on('onconnected', data => {
     userId = data.id;
-
+    console.log(data);
     const { x, y, w, h } = data.users[userId];
 
     engine.setup(data.gameData.options, x + (w / 2), y + (h / 2))

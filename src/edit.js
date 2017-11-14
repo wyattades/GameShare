@@ -6,31 +6,16 @@ import editor from './edit/Editor';
 const urlMatch = window.location.pathname.match(/[^/]+/g);
 const gameId = urlMatch && urlMatch.length > 1 && urlMatch[1];
 
-// TEMP
-const tempData = {
-  options: {
-    snap: 8,
-    backgroundColor: 0xFFFFFF,
-    maxBulletsPerPlayer: 4,
-    maxPlayers: 20,
-    bounds: {
-      x: 300,
-      y: 300,
-      w: 1000,
-      h: 800,
+const TEMPLATE_DATA = {
+  options: {},
+  groupGen: 1,
+  objGen: 0,
+  groups: {
+    0: {
+      name: 'default',
     },
-    bulletSpeed: 1000,
-    fireRate: 200,
-    playerSpeed: 500,
-    bulletHealth: 2,
   },
-  groups: [{
-    name: 'default',
-    fill: 0xCCCCCC,
-    stroke: 0x222222,
-    objects: [],
-  }],
-  objects: [],
+  objects: {},
 };
 
 assertLoggedIn()
@@ -40,8 +25,7 @@ assertLoggedIn()
     console.log('Starting editor for game:', gameId);
     return fetchGame(gameId);
   } else {
-    // TEMP: pass some initial data
-    return tempData;
+    return TEMPLATE_DATA;
   }
 })
 .then(initialData => {
