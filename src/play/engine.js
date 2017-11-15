@@ -21,7 +21,8 @@ let input,
     player,
     bullets,
     boundary,
-    players;
+    players,
+	spikes;
 
 // Game options
 let options;
@@ -50,6 +51,16 @@ const createRect = ({ x, y, w = 1, h = 1, fill, stroke }) => {
   if (fill !== undefined) graphic.beginFill(fill);
   if (stroke !== undefined) graphic.lineStyle(1, stroke, 1);
   graphic.drawRect(-w / 2, -h / 2, w, h);
+  if (fill !== undefined) graphic.endFill();
+
+  return graphic;
+};
+const createCircle = ({ x, y, r = 1, fill, stroke }) => {
+  // Draw simple circle graphic
+  const graphic = game.add.graphics(x, y);
+  if (fill !== undefined) graphic.beginFill(fill);
+  if (stroke !== undefined) graphic.lineStyle(1, stroke, 1);
+  graphic.drawCircle(x,y,r);
   if (fill !== undefined) graphic.endFill();
 
   return graphic;
@@ -89,9 +100,27 @@ const generateTextures = () => {
   ]);
   bulletGraphic.endFill();
   createTexture(bulletGraphic, 'bullet');
-
 };
 
+const createSpike = (graphic,x,y) => {
+  textures['spike'] = graphic.generateTexture();
+  //graphic.destroy();
+  var spike=spikes.create(x, y, textures.spike);
+  spike.enableBody = true;
+  physics.enablePhysics(spike, 'spike');
+  physics.collideStart(spike, collider => {
+	if (collider.name === 'player') {
+       console.log(`Player hit: ${collider.id}`);
+	   const plyr = playerMap[collider.id];
+	   if (plyr) {
+		  plyr.kill();
+	      game.time.events.add(respawn_timer, respawn, this, collider.id).autoDestroy = true;
+	   } else {
+		  console.log(`Invalid despawnPlayer: ${id}`);
+	  }
+	}
+  });
+};
 const create = (focusX, focusY) => {
 
   window.addEventListener('resize', () => {
@@ -174,6 +203,8 @@ const create = (focusX, focusY) => {
     });
   });
   
+  spikes = game.add.group();
+
   const { x, y, w, h } = options.bounds;
   
   game.world.setBounds(0, 0, w + (x * 2), h + (y * 2));
@@ -280,8 +311,14 @@ export const initUser = id => {
             index: i,
           });
         }
-      }
+      } else if (collider.name === 'spike') { // Bounce off walls until no health
+        bullet.health--;
+        if (bullet.health <= 0) {
+          bullet.kill();
+        }
+	  }
     });
+	
 
     bullet.events.onKilled.add(allowBullet);
   }
