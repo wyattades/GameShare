@@ -1,14 +1,11 @@
-- const { name, id } = self;
+- const { name } = self;
+
 .object-block.panel-block.group(
-  style="justify-content:space-between;"
-  id=id
+  style="justify-content: space-between;"
 )
-  span.type-name #{name}
-  button(
-    class="button is-small"
-    id="new-object-button"
+  span.type-name= name || 'NA'
+  button.button.is-small.new-object-button(
     name="add new object"
-    style="align"
   )
     span.icon
       i.fa.fa-plus
