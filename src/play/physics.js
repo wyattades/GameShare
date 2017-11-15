@@ -12,6 +12,7 @@ export const init = game => {
   materials.wall = physics.createMaterial();
   materials.boundary = materials.wall;
   materials.bullet = physics.createMaterial();
+  materials.spike = physics.createMaterial();
 
   physics.setImpactEvents(true);
 
@@ -34,6 +35,10 @@ export const enablePhysics = (obj, type) => {
       obj.body.mass = 0.1;
       obj.body.damping = 0;
       obj.body.setCircle(obj.width / 2);
+      break;
+	  
+	case 'spike':
+      obj.body.static = true;
       break;
 
     case 'wall':
