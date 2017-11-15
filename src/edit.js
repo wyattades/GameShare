@@ -1,41 +1,21 @@
-import $ from 'jquery';
-
 import './styles/styles.scss';
 import { updateGame, createGame, assertLoggedIn, fetchGame } from './utils/db';
-import Engine from './edit/EditorEngine';
-// import './edit/Editor';
-import BindStuff from './edit/Editor';
-
-import typeTemplate from './templates/type.pug';
-import objectTemplate from './templates/object.pug';
+import editor from './edit/Editor';
 
 // Get gameId from url
 const urlMatch = window.location.pathname.match(/[^/]+/g);
 const gameId = urlMatch && urlMatch.length > 1 && urlMatch[1];
 
-// TEMP
-const tempData = {
-  options: {
-    snap: 8,
-    backgroundColor: 0xFFFFFF,
-    maxBulletsPerPlayer: 4,
-    maxPlayers: 20,
-    bounds: {
-      x: 300,
-      y: 300,
-      w: 1000,
-      h: 800,
+const TEMPLATE_DATA = {
+  options: {},
+  groupGen: 1,
+  objGen: 0,
+  groups: {
+    0: {
+      name: 'default',
     },
-    bulletSpeed: 1000,
-    fireRate: 200,
-    playerSpeed: 500,
-    bulletHealth: 2,
   },
-  groups: [{
-    name: 'default',
-    objects: [],
-  }],
-  objects: [],
+  objects: {},
 };
 
 assertLoggedIn()
@@ -45,65 +25,30 @@ assertLoggedIn()
     console.log('Starting editor for game:', gameId);
     return fetchGame(gameId);
   } else {
-    // TEMP: pass some initial data
-    return tempData;
+    return TEMPLATE_DATA;
   }
 })
 .then(initialData => {
 
-  const $name = $('#game-name');
-  $name.val(initialData.name || '');
+  // Function to send data to firebase
+  const saveGame = (gameData, infoData) => (
+    gameId ? updateGame(gameId, gameData, infoData) : createGame(gameData, infoData)
+  )
+  .then(id => {
 
-  // Initiate object editor view
-  const app = new Engine($('#root').get(0), initialData);
-  app.start();
+    console.log('Game saved.');
 
-  let typesHTML = typeTemplate({ name: app.groups[0].name, id: app.groups.length - 1 });
-  $(typesHTML).insertBefore('#new-buttons');
-
-  // Save new game data to database
-  const saveGame = newStatus => e => {
-    $(e.target).addClass('is-loading');
-
-    const gameData = app.getLevelData();
-    
-    // Get game name from header input
-    const name = $name.val();
-
-    if (name.length === 0) {
-      window.alert('Please provide a name for your game');
-      return;
+    if (infoData.status === 'running') {
+      window.location.assign(`/play/${gameId || id}`);
+    } else if (!gameId) {
+      window.location.replace(`/edit/${id}`);
     }
 
-    // Update game and info data with new name
-    gameData.name = name;
-    const infoData = {
-      name,
-    };
-    if (newStatus) infoData.status = newStatus;
+    return Promise.resolve();
+  })
+  .catch(console.error);
 
-    // Send data to firebase
-    (gameId ? updateGame(gameId, gameData, infoData) : createGame(gameData, infoData))
-    .then(id => {
-
-      $(e.target).removeClass('is-loading');
-      console.log('Game saved.');
-
-      if (newStatus === 'running') {
-        window.location.assign(`/play/${gameId || id}`);
-      } else if (!gameId) {
-        window.location.replace(`/edit/${id}`);
-      }
-    })
-    .catch(console.error);
-  };
-
-  // Bind input actions:
-
-  $('#publish').click(saveGame('running'));
-
-  $('#save').click(saveGame());
-
-  BindStuff(app);
+  // Create editor
+  editor(initialData, saveGame);
 })
 .catch(console.error);
