@@ -47,8 +47,8 @@ class Engine {
 
     parent.appendChild(this.app.view);
 
-    this.options = options;
-    this.setOptions(DEFAULT_OPTIONS);
+    this.options = DEFAULT_OPTIONS;
+    this.setOptions(options);
 
     this.gridSpacing = DEFAULT_GRID_SPACING;
     this.gridBorderSize = DEFAULT_BORDER_SIZE;
