@@ -76,9 +76,9 @@ block page_content
                   )
           #type-settings.panel
             p.panel-heading Type Settings
-            .panel-block
+            .panel-block(style="justify-content: space-between;")
+              label.label.is-small(for="background-color") Type Color
               .field
-                label.label.is-small(for="background-color") Type Color
                 .control
                   input(
                     type="color"
@@ -87,7 +87,7 @@ block page_content
                     value="#FFAABB"
                     style="margin-left: auto;"
                   )
-            .panel-block(style="display: block;")
+            .panel-block(style="justify-content: space-between;")
               label.label.is-small Type Shape
               .field.has-addons
                 .control

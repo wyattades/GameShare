@@ -7,7 +7,7 @@ const DEFAULT_GRID_SIZE = { w: DEFAULT_GRID_SPACING * 35, h: DEFAULT_GRID_SPACIN
 const DEFAULT_BORDER_SIZE = 100; // Size of the border around the playable area (one side)
 const DEFAULT_OPTIONS = {
   snap: 8,
-  backgroundColor: 0xDDEEDD,
+  // backgroundColor: 0xDDEEDD,
   maxBulletsPerPlayer: 4,
   maxPlayers: 20,
   bounds: {

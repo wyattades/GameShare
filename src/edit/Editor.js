@@ -276,8 +276,10 @@ module.exports = (initialData, saveGame) => {
   $('#boundary-x').change(resizeGrid);
   $('#boundary-y').change(resizeGrid);
 
+  $('#root').css('background-color', app.options.backgroundColor);
   $('#background-color').change(() => {
     app.setOptions({ backgroundColor: $('#background-color').val() });
+    $('#root').css('background-color', app.options.backgroundColor);
   });
 
   $('#type-color').change(function onChange() {
