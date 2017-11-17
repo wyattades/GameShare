@@ -79,7 +79,7 @@ export const login = provider => auth.signInWithPopup(providers[provider])
 .then(fetchUser);
 
 // Create a new game with the given data and info
-export const createGame = (data, info) => {
+export const createGame = (data) => {
   const uid = auth.currentUser.uid;
 
   // Set a reference to the owner of the game
@@ -90,10 +90,13 @@ export const createGame = (data, info) => {
   .then(res => {
     const id = res.key;
 
-    info.created_on = Date.now();
-    info.last_modified = info.created_on;
-    info.status = info.status || 'stopped';
-    info.owner = uid;
+    const created_on = Date.now();
+    const info = {
+      created_on,
+      last_modified: created_on,
+      status: 'stopped',
+      owner: uid,
+    };
 
     return db.ref(`/users/${uid}/games/${id}`).set(true) // Register user as owner of game    
     .then(() => db.ref(`/games_info/${id}`).set(info)) // Create public game info

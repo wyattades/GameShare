@@ -21,27 +21,27 @@ const TEMPLATE_DATA = {
 assertLoggedIn()
 .then(() => {
 
-  if (gameId) {
-    console.log('Starting editor for game:', gameId);
-    return fetchGame(gameId);
-  } else {
-    return TEMPLATE_DATA;
+  if (!gameId) {
+    return createGame(TEMPLATE_DATA)
+    .then(id => {
+      window.location.replace(`/edit/${id}`);
+    });
   }
+
+  console.log('Starting editor for game:', gameId);
+
+  return fetchGame(gameId);
 })
 .then(initialData => {
 
   // Function to send data to firebase
-  const saveGame = (gameData, infoData) => (
-    gameId ? updateGame(gameId, gameData, infoData) : createGame(gameData, infoData)
-  )
-  .then(id => {
+  const saveGame = (gameData, infoData) => updateGame(gameId, gameData, infoData)
+  .then(() => {
 
     console.log('Game saved.');
 
     if (infoData.status === 'running') {
-      window.location.assign(`/play/${gameId || id}`);
-    } else if (!gameId) {
-      window.location.replace(`/edit/${id}`);
+      window.location.assign(`/play/${gameId}`);
     }
 
     return Promise.resolve();

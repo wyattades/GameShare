@@ -14,9 +14,7 @@ const intToHex = int => {
   return `#${hexString}`;
 };
 
-const hexToInt = hex => {
-  return parseInt(hex.substring(1), 16);
-};
+const hexToInt = hex => parseInt(hex.substring(1), 16);
 
 const highlightSelected = ($group, $obj) => {
 
@@ -171,7 +169,15 @@ const initData = (initialData) => {
 
   console.log(data);
   
-  $('#game-name').val(data.name || '');
+  const defaultName = 'Untitled Game';
+  const $name = $('#game-name');
+  $name
+  .val(data.name || defaultName)
+  .blur(() => {
+    if ($name.val().match(/^\s*$/)) {
+      $name.val(defaultName);
+    }
+  });
   
   data.objects = data.objects || {};
   data.groups = data.groups || {};
