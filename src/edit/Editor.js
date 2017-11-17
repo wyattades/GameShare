@@ -106,7 +106,7 @@ const addObject = (objId, objData, appGroup, $group) => {
 
   const groupData = data.groups[objData.group];
   
-  const appObj = app.addWall(appGroup, groupData, objData);
+  const appObj = app.addWall(appGroup, groupData, objData, 'ellip');
 
   groupData.objects[objId] = true;
 

@@ -151,7 +151,7 @@ class Engine {
     this.app.stop();
   }
 
-  createObject = ({ x = 0, y = 0, w = 1, h = 1, draggable, selectable }) => {
+  createObject = ({ x = 0, y = 0, w = 1, h = 1, draggable, selectable, ellip }) => {
 
     const obj = new Pixi.Graphics();
 
@@ -164,7 +164,11 @@ class Engine {
 
     if (draggable) {
       obj.draggable = true;
-      obj.hitArea = new Pixi.Rectangle(0, 0, w, h);
+      if (ellip) {
+        obj.hitArea = new Pixi.Ellipse(0, 0, w, h);
+      } else {
+        obj.hitArea = new Pixi.Rectangle(0, 0, w, h);
+      }
       obj.interactive = true;
       obj.buttonMode = true;
 
@@ -213,9 +217,36 @@ class Engine {
     return rect;
   };
 
+  createEllip = ({ w = 1, h = 1, ellip = true, fill, stroke, ...rest }) => {
+
+    const ellipse = this.createObject({ w, h, ellip, ...rest });
+
+    if (typeof stroke === 'number') ellipse.lineStyle(1, stroke, 1);
+    if (typeof fill === 'number') ellipse.beginFill(fill);
+
+    ellipse.drawEllipse(0, 0, w, h);
+    ellipse.endFill();
+    ellipse.shape = ellipse.graphicsData[0].shape;
+
+    ellipse.resize = (width, height) => {
+      ellipse.shape.width = width;
+      ellipse.shape.height = height;
+      ellipse.hitArea = new Pixi.Ellipse(0, 0, width, height);
+      ellipse.dirty++;
+      ellipse.clearDirty++;
+    };
+
+    ellipse.translate = (xp, yp) => {
+      ellipse.position.x = xp;
+      ellipse.position.y = yp;
+    };
+
+    return ellipse;
+  }
+
   // Add a new wall rectangle to the level.
   // Returns the wall object that was just added.
-  addWall = (group, groupData, objData) => {
+  addWall = (group, groupData, objData, shape) => {
 
     const {
       x = this.getSnapPosition(-this.container.x + (this.width / 2)),
@@ -237,15 +268,28 @@ class Engine {
     rest.stroke = rest.stroke || groupData.stroke;
     rest.fill = rest.fill || groupData.fill;
 
-    const wall = this.createRect({
-      x,
-      y,
-      w,
-      h,
-      draggable: true,
-      selectable: true,
-      ...rest,
-    });
+    let wall;
+    if (shape === 'rect') {
+      wall = this.createRect({
+        x,
+        y,
+        w,
+        h,
+        draggable: true,
+        selectable: true,
+        ...rest,
+      });
+    } else if (shape === 'ellip') {
+      wall = this.createEllip({
+        x,
+        y,
+        w,
+        h,
+        draggable: true,
+        selectable: true,
+        ...rest,
+      });
+    }
 
     Object.assign(objData, { x, y, w, h });
 
