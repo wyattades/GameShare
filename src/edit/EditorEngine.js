@@ -327,8 +327,10 @@ class Engine {
             resizeY = (y === 0 ? -this.resizeControlSize : 0);
 
         if (ellipse) {
-          resizeX = ((x === 0 ? -this.resizeControlSize : obj_width) - obj_width / 2);
-          resizeY = ((y === 0 ? -this.resizeControlSize : obj_height) - obj_width / 2);
+          resizeX = (x === 0 ? -this.resizeControlSize : obj_width);
+          resizeY = (y === 0 ? -this.resizeControlSize : obj_height);
+          resizeX -= obj_width / 2;
+          resizeY -= obj_height / 2;
         }
 
         let ctl = this.createRect({
@@ -341,14 +343,24 @@ class Engine {
           draggable: true,
         });
         ctl.isControl = true;
-
         // controlPosition.x: left (0) or right (1) side.
         // controlPosition.y: top (0) or bottom (1) side.
         ctl.controlPosition = { x, y };
 
         ctl.resetPosition = () => {
-          ctl.x = ctl.controlPosition.x === 0 ? -ctl.width : ctl.parent.shape.width;
-          ctl.y = ctl.controlPosition.y === 0 ? -ctl.height : ctl.parent.shape.height;
+          // for rectangles
+          // ctl.x = ctl.controlPosition.x === 0 ? -ctl.width : ctl.parent.shape.width;
+          // ctl.y = ctl.controlPosition.y === 0 ? -ctl.height : ctl.parent.shape.height;
+
+          console.log(ctl);
+          ctl.x = (ctl.controlPosition.x === 0 ? -ctl.width : ctl.parent.shape.width) - ctl.parent.shape.width/2;
+          ctl.y = (ctl.controlPosition.y === 0 ? -ctl.height : ctl.parent.shape.height) - ctl.parent.shape.height/2;
+
+          // if (ellipse) {
+          //   console.log('ellipse in reset position');
+          //   ctl.x -= ctl.parent.shape.width/4;
+          //   ctl.y -= ctl.parent.shape.height/4;
+          // }
         };
 
         obj.addChild(ctl);
@@ -364,10 +376,10 @@ class Engine {
       }
     }
   };
-  resetControlPositions = (obj, ignore = null) => {
+  resetControlPositions = (obj, ignore = null, ellipse) => {
     for (let c of obj.children) {
       if (c.isControl && c !== ignore) {
-        c.resetPosition();
+        c.resetPosition(ellipse);
       }
     }
   };
@@ -447,6 +459,8 @@ class Engine {
     }
   }
   resizeParent(control) {
+    const ellipse = true;
+
     let obj = control.parent,
         dragPos = control.data.getLocalPosition(obj.parent),
         newPosition = { x: 0, y: 0 },
@@ -516,7 +530,7 @@ class Engine {
 
     obj.translate(newPosition.x, newPosition.y);
     obj.resize(newSize.width, newSize.height);
-    this.resetControlPositions(obj);
+    this.resetControlPositions(obj, ellipse);
   }
   dragEnd = (obj) => {
     obj.alpha = 1.0;
