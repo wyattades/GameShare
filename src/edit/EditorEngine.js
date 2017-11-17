@@ -315,15 +315,25 @@ class Engine {
 
   // Control manipulation.
   createControls = (obj) => {
+    const ellipse = true;
     // Saving these because they change with added children.
     let obj_width = obj.width,
         obj_height = obj.height;
 
     for (let x = 0; x < 2; x++) {
       for (let y = 0; y < 2; y++) {
+
+        let resizeX = (x === 0 ? -this.resizeControlSize : 0),
+            resizeY = (y === 0 ? -this.resizeControlSize : 0);
+
+        if (ellipse) {
+          resizeX = ((x === 0 ? -this.resizeControlSize : obj_width) - obj_width / 2);
+          resizeY = ((y === 0 ? -this.resizeControlSize : obj_height) - obj_width / 2);
+        }
+
         let ctl = this.createRect({
-          x: x === 0 ? -this.resizeControlSize : obj_width,
-          y: y === 0 ? -this.resizeControlSize : obj_height,
+          x: resizeX,
+          y: resizeY,
           w: this.resizeControlSize,
           h: this.resizeControlSize,
           fill: Colors.CONTROL,

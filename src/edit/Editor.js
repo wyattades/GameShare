@@ -168,8 +168,6 @@ const addGroup = (groupId, groupData) => {
 
 const initData = (initialData) => {
   data = initialData;
-
-  console.log(data);
   
   $('#game-name').val(data.name || '');
   
