@@ -276,10 +276,18 @@ module.exports = (initialData, saveGame) => {
   $('#boundary-x').change(resizeGrid);
   $('#boundary-y').change(resizeGrid);
 
-  $('#root').css('background-color', app.options.backgroundColor);
+  function setBackgroundColor(color) {
+    $('#root').css('background-color', `${color}4D`);
+    app.setOptions({ backgroundColor: hexToInt(color) });
+  }
+
+  let color = intToHex(data.options.backgroundColor);
+  $('#background-color').val(color);
+  setBackgroundColor(color);
+
   $('#background-color').change(() => {
-    app.setOptions({ backgroundColor: $('#background-color').val() });
-    $('#root').css('background-color', app.options.backgroundColor);
+    let newColor = $('#background-color').val();
+    setBackgroundColor(newColor);
   });
 
   $('#type-color').change(function onChange() {
