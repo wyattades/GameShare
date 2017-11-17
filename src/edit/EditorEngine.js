@@ -327,10 +327,8 @@ class Engine {
             resizeY = (y === 0 ? -this.resizeControlSize : 0);
 
         if (ellipse) {
-          resizeX = (x === 0 ? -this.resizeControlSize : obj_width);
-          resizeY = (y === 0 ? -this.resizeControlSize : obj_height);
-          resizeX -= obj_width / 2;
-          resizeY -= obj_height / 2;
+          resizeX = (x === 0 ? -(obj_width / 2) - this.resizeControlSize : obj_width / 2);
+          resizeY = (y === 0 ? -(obj_height / 2) - this.resizeControlSize : obj_height / 2);
         }
 
         let ctl = this.createRect({
@@ -352,15 +350,8 @@ class Engine {
           // ctl.x = ctl.controlPosition.x === 0 ? -ctl.width : ctl.parent.shape.width;
           // ctl.y = ctl.controlPosition.y === 0 ? -ctl.height : ctl.parent.shape.height;
 
-          console.log(ctl);
-          ctl.x = (ctl.controlPosition.x === 0 ? -ctl.width : ctl.parent.shape.width) - ctl.parent.shape.width/2;
-          ctl.y = (ctl.controlPosition.y === 0 ? -ctl.height : ctl.parent.shape.height) - ctl.parent.shape.height/2;
-
-          // if (ellipse) {
-          //   console.log('ellipse in reset position');
-          //   ctl.x -= ctl.parent.shape.width/4;
-          //   ctl.y -= ctl.parent.shape.height/4;
-          // }
+          ctl.x = ctl.controlPosition.x === 0 ? -ctl.parent.shape.width - ctl.width : ctl.parent.shape.width;
+          ctl.y = ctl.controlPosition.y === 0 ? -ctl.parent.shape.height - ctl.height : ctl.parent.shape.height;
         };
 
         obj.addChild(ctl);
