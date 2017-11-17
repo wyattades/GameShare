@@ -1,24 +1,3 @@
-script.
-  // Toggle navbar menu
-  document.addEventListener('DOMContentLoaded', () => {
-
-    const $burger = document.getElementById('navbar-burger'),
-          $menu = document.getElementById('navbar-menu'),
-          $buttons = document.getElementsByClassName('button is-outlined');
-
-    $burger.addEventListener('click', function () {
-
-      // Toggle the class on both the "navbar-burger" and the "navbar-menu"
-      $burger.classList.toggle('is-active');
-      $menu.classList.toggle('is-active');
-      Array.prototype.forEach.call($buttons, $el => {
-        $el.classList.toggle('is-inverted')
-      });
-
-    });
-
-  });
-
 nav.navbar.is-primary(class=(self.page !== 'index') && 'has-shadow' role="navigation" aria-label="dropdown navigation")
   .container
     .navbar-brand
