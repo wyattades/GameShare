@@ -86,7 +86,7 @@ const bindHandlers = () => {
     console.log("from bullet_hit handler, data = "); console.log(data); //TESTING
     engine.removeBullet(id, data);
     engine.despawnPlayer(data);
-    //TODO: destructible wall logic here
+    engine.damageWall(data);
   });
 
   return Promise.resolve();

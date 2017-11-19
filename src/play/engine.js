@@ -328,24 +328,24 @@ export const initUser = id => {
           index: i,
         });
       } else if (collider.name === 'wall') { // Bounce off walls until no health
+        
+        if (collider.data.destructible) bullet.health = 0; // No bouncing off destructible walls
+        
         bullet.health--;
         console.log("from collision handler: "); console.log(`new bullet.health: ${bullet.health}`);
         if (bullet.health <= 0) {
           bullet.kill();
           sendHit({
             index: i,
-            wall: collider.data.id,
+            wall_id: collider.data.destructible ? collider.data.id : null,
           });
-          //TODO: destructible wall logic here
-          // needs to send hits on walls regardless of bullet health
-          //console.log(`collider.objId: ${collider.objId}`);
         }
       } else if (collider.name === 'spike') { // Bounce off walls until no health
         bullet.health--;
         if (bullet.health <= 0) {
           bullet.kill();
         }
-	  }
+      }
     });
 
 
@@ -384,6 +384,15 @@ export const addBullet = (id, data) => {
 
   bullet.body.rotation = angle;
   bullet.body.thrust(speed);
+};
+
+// Called on bullet_hit. Checks for and handles destructible wall damage.
+export const damageWall = data => {
+  if (data.wall_id === null) return;
+  console.log("damageWall");
+  console.log(`wall_id: ${data.wall_id}`);
+  
+  console.log(game);
 };
 
 export const despawnPlayer = ({index, player: id}) => {
