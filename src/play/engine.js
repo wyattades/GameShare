@@ -418,7 +418,7 @@ export const damageWall = data => {
   let wall = getObjectById(data.wall_id);
   if (wall.data.destructible) {
     wall.damage(data.damage);
-    // console.log(`dealt ${dmg} damage to wall ${data.wall_id}`);
+    wall.alpha = Math.min(wall.health / wall.maxHealth, 0.5); // Visual damage indication
   }
 };
 
