@@ -22,7 +22,7 @@ let input,
     bullets,
     boundary,
     players,
-	spikes;
+    spikes;
 
 // Game options
 let options;
@@ -62,7 +62,9 @@ const intToHex = int => {
   return `#${hexString}`;
 };
 
-const createWall = ({ x, y, w = 1, h = 1, fill, stroke, destructible = false }) => {
+// Creates and returns a new Sprite wall object.
+const createWall = ({ x, y, w = 1, h = 1, fill, stroke, objId }) => {
+  // Create bitmap graphic.
   // Based on example at: https://phaser.io/examples/v2/sprites/sprite-from-bitmapdata
   const bmd = game.add.bitmapData(w, h);
   bmd.ctx.beginPath();
@@ -70,12 +72,18 @@ const createWall = ({ x, y, w = 1, h = 1, fill, stroke, destructible = false }) 
   bmd.ctx.strokeStyle = intToHex(stroke);
   bmd.ctx.fillStyle = intToHex(fill);
   bmd.ctx.fill();
-
+  
   const sprite = game.add.sprite(x, y, bmd);
-  destructible = true; //TESTING -- should come from group data
-  sprite.data.destructible = destructible;
-  if (destructible) { sprite.maxHealth = 2; sprite.setHealth(10); } //TESTING -- should come from group data
-  console.log(sprite);
+  sprite.data.id = objId;
+  
+  // TODO: destructible variables should be defined by group.
+  let color = intToHex(fill);
+  sprite.data.destructible = (color === '#ff0000'); // red walls are destructible for now
+  if (sprite.data.destructible) {
+    sprite.maxHealth = 2;
+    sprite.setHealth(2);
+  }
+  
   return sprite;
 };
 
@@ -84,7 +92,7 @@ const createCircle = ({ x, y, r = 1, fill, stroke }) => {
   const graphic = game.add.graphics(x, y);
   if (fill !== undefined) graphic.beginFill(fill);
   if (stroke !== undefined) graphic.lineStyle(1, stroke, 1);
-  graphic.drawCircle(x,y,r);
+  graphic.drawCircle(x, y, r);
   if (fill !== undefined) graphic.endFill();
 
   return graphic;
@@ -332,7 +340,6 @@ export const initUser = id => {
         if (collider.data.destructible) bullet.health = 0; // No bouncing off destructible walls
         
         bullet.health--;
-        console.log("from collision handler: "); console.log(`new bullet.health: ${bullet.health}`);
         if (bullet.health <= 0) {
           bullet.kill();
           sendHit({
@@ -387,7 +394,7 @@ export const addBullet = (id, data) => {
 };
 
 // Returns the object with the given custom id.
-// Currently naive O(n) implementation, checking every object for id until found.
+// Currently naive O(n) implementation, checks every object for id.
 const getObjectById = desired_id => {
   // TODO: needs optimization -- which groups are our objects?
   let groups = game.world.children;
@@ -410,7 +417,7 @@ export const damageWall = data => {
   }
 };
 
-export const despawnPlayer = ({index, player: id}) => {
+export const despawnPlayer = ({ index, player: id }) => {
   const plyr = playerMap[id];
   if (plyr) {
     plyr.kill();
@@ -434,12 +441,9 @@ export const createGroup = () => {
 
   return {
     add: obj => {
-      const newWall = createWall(obj);
-      newWall.data.id = obj.objId; //TODO: move to createLevel
-      physics.enablePhysics(newWall, 'wall');
-      group.add(newWall);
-      //console.log("from group.add, obj = "); console.log(obj);
-      //group.add(physics.enablePhysics(createWall(obj), 'wall'));
+      const wall = createWall(obj);
+      physics.enablePhysics(wall, 'wall');
+      group.add(wall);
     },
 
     // TODO: is this necessary?

@@ -23,7 +23,7 @@ let socket,
 //     resolve();
 //   }
 // })));
-var TESTCOUNTER = 0; //TESTING
+
 const createLevel = (groups = {}, objects = {}) => {
   for (let groupId in groups) {
     if (groups.hasOwnProperty(groupId)) {
@@ -36,9 +36,7 @@ const createLevel = (groups = {}, objects = {}) => {
       for (let objId in groupData.objects) {
         if (groupData.objects.hasOwnProperty(objId)) {
           const objData = objects[objId];
-          //console.log(objData); //TESTING
           group.add(Object.assign(groupData, objData));
-          console.log(`objects created: ${++TESTCOUNTER}`); //TESTING
         }
       }
     }
@@ -83,7 +81,6 @@ const bindHandlers = () => {
   });
 
   socket.on('bullet_hit', (id, data) => {
-    console.log("from bullet_hit handler, data = "); console.log(data); //TESTING
     engine.removeBullet(id, data);
     engine.despawnPlayer(data);
     engine.damageWall(data);
