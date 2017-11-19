@@ -348,6 +348,7 @@ export const initUser = id => {
           sendHit({
             index: i,
             wall_id: collider.data.destructible ? collider.data.id : null,
+            damage: bullet.data.damage || 1,
           });
         }
       } else if (collider.name === 'spike') { // Bounce off walls until no health
@@ -416,9 +417,8 @@ export const damageWall = data => {
   
   let wall = getObjectById(data.wall_id);
   if (wall.data.destructible) {
-    let dmg = data.damage || 1;
-    wall.damage(dmg);
-    console.log(`dealt ${dmg} damage to wall ${data.wall_id}`);
+    wall.damage(data.damage);
+    // console.log(`dealt ${dmg} damage to wall ${data.wall_id}`);
   }
 };
 

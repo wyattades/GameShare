@@ -205,8 +205,7 @@ class Game {
       // If we get a valid wall_id, a wall has taken damage.
       if (Number.isInteger(data.wall_id)) {
         // Add the damage to the changes list.
-        let damage = data.damage || 1;
-        this.gameData.objChanges.push({ damageWall: true, wall_id: data.wall_id, damage });
+        this.gameData.objChanges.push({ damageWall: true, wall_id: data.wall_id, damage: data.damage });
       }
       
     });
