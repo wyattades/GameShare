@@ -55,6 +55,26 @@ const createRect = ({ x, y, w = 1, h = 1, fill, stroke }) => {
 
   return graphic;
 };
+
+// TODO: this is copied from Editor.js, move to shared library?
+const intToHex = int => {
+  const hexString = `000000${((int) >>> 0).toString(16)}`.slice(-6);
+  return `#${hexString}`;
+};
+
+const createWall = ({ x, y, w = 1, h = 1, fill, stroke }) => {
+  // Based on example at: https://phaser.io/examples/v2/sprites/sprite-from-bitmapdata
+  const bmd = game.add.bitmapData(w, h);
+  bmd.ctx.beginPath();
+  bmd.ctx.rect(0, 0, w, h);
+  bmd.ctx.strokeStyle = intToHex(stroke);
+  bmd.ctx.fillStyle = intToHex(fill);
+  bmd.ctx.fill();
+
+  const sprite = game.add.sprite(x, y, bmd);
+  return sprite;
+};
+
 const createCircle = ({ x, y, r = 1, fill, stroke }) => {
   // Draw simple circle graphic
   const graphic = game.add.graphics(x, y);
@@ -67,13 +87,13 @@ const createCircle = ({ x, y, r = 1, fill, stroke }) => {
 };
 
 const generateTextures = () => {
-  
+
   // Create textures from temporary graphics objects
   const createTexture = (graphic, name) => {
     textures[name] = graphic.generateTexture();
     graphic.destroy();
   };
-  
+
   const w = 50,
         h = 60;
   const playerGraphic = game.add.graphics(0, 0);
@@ -90,7 +110,7 @@ const generateTextures = () => {
   turretGraphic.drawEllipse(0, 0, radius, radius);
   turretGraphic.endFill();
   createTexture(turretGraphic, 'turret');
-  
+
   const bulletGraphic = game.add.graphics(0, 0);
   bulletGraphic.beginFill(0xFFFF00);
   bulletGraphic.drawTriangle([
@@ -191,10 +211,10 @@ const create = (focusX, focusY) => {
   bullets.createMultiple(options.maxPlayers * options.maxBulletsPerPlayer, textures.bullet, 0, false, (bullet) => {
     // Enable physics and check for collisions
     physics.enablePhysics(bullet, 'bullet');
-    
+
     physics.collideEnd(bullet, collider => {
       if (collider.name === 'wall' && bullet.health > 0) {
-        
+
         // Point bullet towards velocity
         const { mx, my } = bullet.body.velocity;
         bullet.body.rotation = Math.atan2(my, mx) - (Math.PI / 2);
@@ -202,19 +222,19 @@ const create = (focusX, focusY) => {
       }
     });
   });
-  
+
   spikes = game.add.group();
 
   const { x, y, w, h } = options.bounds;
-  
+
   game.world.setBounds(0, 0, w + (x * 2), h + (y * 2));
-  
+
   boundary = createRect({ x, y, w, h, stroke: 0x00FFFF });
   physics.enablePhysics(boundary, 'boundary');
 
 
   game.camera.focusOnXY(focusX, focusY);
-  
+
   return Promise.resolve();
 };
 
@@ -232,7 +252,7 @@ export const addPlayer = (id, data) => {
 
     // Store player id
     plyr.id = id;
-  
+
     // Store player reference
     playerMap[id] = plyr;
   }
@@ -247,7 +267,7 @@ export const removePlayer = id => {
     for (let i = 0; i < options.maxBulletsPerPlayer; i++) {
       bullets.getAt(start + i).kill();
     }
-    
+
     // Despawn player
     plyr.id = null;
     plyr.kill();
@@ -261,7 +281,7 @@ export const removePlayer = id => {
 export const updatePlayer = (id, data) => {
 
   const plyr = playerMap[id];
-  
+
   if (plyr) {
     plyr.body.x = data.x;
     plyr.body.y = data.y;
@@ -318,7 +338,7 @@ export const initUser = id => {
         }
 	  }
     });
-	
+
 
     bullet.events.onKilled.add(allowBullet);
   }
@@ -352,7 +372,7 @@ export const addBullet = (id, data) => {
 
   const bullet = bullets.getAt((playerMap[id].index * options.maxBulletsPerPlayer) + index);
   bullet.reset(x, y, options.bulletHealth); // health - 1 = number of bounces before dying
-  
+
   bullet.body.rotation = angle;
   bullet.body.thrust(speed);
 };
@@ -366,8 +386,8 @@ export const despawnPlayer = ({index, player: id}) => {
     console.log(`Invalid despawnPlayer: ${id}`);
   }
 };
- 
- 
+
+
 function respawn(id) {
   const plyr = playerMap[id];
   plyr.reset(boundary.left + Math.random() * boundary.width, boundary.top + Math.random() * boundary.height);
@@ -381,7 +401,7 @@ export const createGroup = () => {
 
   return {
     add: obj => {
-      group.add(physics.enablePhysics(createRect(obj), 'wall'));
+      group.add(physics.enablePhysics(createWall(obj), 'wall'));
     },
 
     // TODO: is this necessary?
@@ -434,7 +454,7 @@ const render = DEV ? () => {
 } : undefined;
 
 const update = () => {
-    
+
   if (!player) {
     console.log('Bad update');
     return;
@@ -464,13 +484,13 @@ const update = () => {
   // Point turret at mouse pointer
   let angle = game.physics.arcade.angleToPointer(player);
   player.turret.rotation = angle - player.rotation;
-  
+
   if (game.input.activePointer.isDown && // mouse pressed
     bulletsShot < options.maxBulletsPerPlayer && // there's an available bullet
     game.time.now > nextFire) { // fire rate has serpassed
 
     nextFire = game.time.now + options.fireRate;
-    
+
     const data = {
       x: player.x + (GUN_LENGTH * Math.cos(angle)),
       y: player.y + (GUN_LENGTH * Math.sin(angle)),
@@ -498,7 +518,7 @@ const update = () => {
 };
 
 export const setup = (gameOptions, focusX, focusY) => new Promise((resolve, reject) => {
-  
+
   game = new Game({
     width: parent.clientWidth,
     height: parent.clientHeight,
