@@ -165,7 +165,7 @@ class Engine {
     if (draggable) {
       obj.draggable = true;
       if (ellip) {
-        obj.hitArea = new Pixi.Ellipse(0, 0, w / 2, h / 2);
+        obj.hitArea = new Pixi.Ellipse(0, 0, w / 4, h / 4);
       } else {
         obj.hitArea = new Pixi.Rectangle(0, 0, w, h);
       }
@@ -225,7 +225,7 @@ class Engine {
     if (typeof stroke === 'number') ellipse.lineStyle(1, stroke, 1);
     if (typeof fill === 'number') ellipse.beginFill(fill);
 
-    ellipse.drawEllipse(0, 0, w / 2, h / 2);
+    ellipse.drawEllipse(0, 0, w / 4, h / 4);
     ellipse.endFill();
     ellipse.shape = ellipse.graphicsData[0].shape;
     ellipse.shapeType = 'ellip';
@@ -233,7 +233,7 @@ class Engine {
     ellipse.resize = (width, height) => {
       ellipse.shape.width = width;
       ellipse.shape.height = height;
-      ellipse.hitArea = new Pixi.Ellipse(0, 0, width / 2, height / 2);
+      ellipse.hitArea = new Pixi.Ellipse(0, 0, width / 4, height / 4);
       ellipse.dirty++;
       ellipse.clearDirty++;
     };
@@ -350,8 +350,8 @@ class Engine {
           let topY = -ctl.height;
 
           if (ctl.parent.shapeType === 'ellip') {
-            leftX -= (ctl.parent.shape.width / 2);
-            topY -= (ctl.parent.shape.height / 2);
+            leftX -= ctl.parent.shape.width;
+            topY -= ctl.parent.shape.height;
           }
 
           ctl.x = (ctl.controlPosition.x === 0 ? leftX : ctl.parent.shape.width);
