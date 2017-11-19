@@ -389,10 +389,18 @@ export const addBullet = (id, data) => {
 // Called on bullet_hit. Checks for and handles destructible wall damage.
 export const damageWall = data => {
   if (data.wall_id === null) return;
-  console.log("damageWall");
-  console.log(`wall_id: ${data.wall_id}`);
+  //console.log("damageWall");
+  //console.log(`wall_id: ${data.wall_id}`);
   
-  console.log(game);
+  // TODO: needs optimization -- which group is walls?
+  for (let group_index = 0, l = game.world.children.length; group_index < l; group_index++) {
+    let group = game.world.children[group_index];
+    for (let obj_index = 0; obj_index < group.children.length; obj_index++) {
+      let wall_id = group.children[obj_index].data.id;
+      if (wall_id === data.wall_id) console.log(group.children[obj_index]);
+    }
+  }
+  
 };
 
 export const despawnPlayer = ({index, player: id}) => {
