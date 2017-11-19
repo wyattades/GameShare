@@ -219,19 +219,21 @@ class Engine {
 
   createEllip = ({ w = 1, h = 1, ellip = true, fill, stroke, ...rest }) => {
 
-    const ellipse = this.createObject({ w, h, ellip, ...rest });
+    const ellipse = this.createObject({ w: w / 2, h: h / 2, ellip, ...rest });
+
+    console.log(ellipse);
 
     if (typeof stroke === 'number') ellipse.lineStyle(1, stroke, 1);
     if (typeof fill === 'number') ellipse.beginFill(fill);
 
-    ellipse.drawEllipse(0, 0, w, h);
+    ellipse.drawEllipse(0, 0, w / 2, h / 2);
     ellipse.endFill();
     ellipse.shape = ellipse.graphicsData[0].shape;
 
     ellipse.resize = (width, height) => {
       ellipse.shape.width = width;
       ellipse.shape.height = height;
-      ellipse.hitArea = new Pixi.Ellipse(0, 0, width, height);
+      ellipse.hitArea = new Pixi.Ellipse(0, 0, width / 2, height / 2);
       ellipse.dirty++;
       ellipse.clearDirty++;
     };
