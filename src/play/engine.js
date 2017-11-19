@@ -62,7 +62,7 @@ const intToHex = int => {
   return `#${hexString}`;
 };
 
-const createWall = ({ x, y, w = 1, h = 1, fill, stroke }) => {
+const createWall = ({ x, y, w = 1, h = 1, fill, stroke, destructible = false }) => {
   // Based on example at: https://phaser.io/examples/v2/sprites/sprite-from-bitmapdata
   const bmd = game.add.bitmapData(w, h);
   bmd.ctx.beginPath();
@@ -72,6 +72,10 @@ const createWall = ({ x, y, w = 1, h = 1, fill, stroke }) => {
   bmd.ctx.fill();
 
   const sprite = game.add.sprite(x, y, bmd);
+  destructible = true; //TESTING -- should come from group data
+  sprite.data.destructible = destructible;
+  if (destructible) { sprite.maxHealth = 2; sprite.setHealth(10); } //TESTING -- should come from group data
+  console.log(sprite);
   return sprite;
 };
 
@@ -325,11 +329,16 @@ export const initUser = id => {
         });
       } else if (collider.name === 'wall') { // Bounce off walls until no health
         bullet.health--;
+        console.log("from collision handler: "); console.log(`new bullet.health: ${bullet.health}`);
         if (bullet.health <= 0) {
           bullet.kill();
           sendHit({
             index: i,
+            wall: collider.data.id,
           });
+          //TODO: destructible wall logic here
+          // needs to send hits on walls regardless of bullet health
+          //console.log(`collider.objId: ${collider.objId}`);
         }
       } else if (collider.name === 'spike') { // Bounce off walls until no health
         bullet.health--;
@@ -401,7 +410,12 @@ export const createGroup = () => {
 
   return {
     add: obj => {
-      group.add(physics.enablePhysics(createWall(obj), 'wall'));
+      const newWall = createWall(obj);
+      newWall.data.id = obj.objId; //TODO: move to createLevel
+      physics.enablePhysics(newWall, 'wall');
+      group.add(newWall);
+      //console.log("from group.add, obj = "); console.log(obj);
+      //group.add(physics.enablePhysics(createWall(obj), 'wall'));
     },
 
     // TODO: is this necessary?

@@ -102,6 +102,7 @@ const addObject = (objId, objData, appGroup, $group) => {
   if (objId === null) {
     objId = data.objGen++;
     data.objects[objId] = objData;
+    data.objects[objId].objId = objId;
   }
 
   const groupData = data.groups[objData.group];
