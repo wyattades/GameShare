@@ -64,6 +64,9 @@ const intToHex = int => {
 
 // Creates and returns a new Sprite wall object.
 const createWall = ({ x, y, w = 1, h = 1, fill, stroke, objId }) => {
+  x += w / 2;
+  y += h / 2;
+  
   // Create bitmap graphic.
   // Based on example at: https://phaser.io/examples/v2/sprites/sprite-from-bitmapdata
   const bmd = game.add.bitmapData(w, h);
