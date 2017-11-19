@@ -386,21 +386,28 @@ export const addBullet = (id, data) => {
   bullet.body.thrust(speed);
 };
 
+// Returns the object with the given custom id.
+// Currently naive O(n) implementation, checking every object for id until found.
+const getObjectById = desired_id => {
+  // TODO: needs optimization -- which groups are our objects?
+  let groups = game.world.children;
+  for (let i = 0, l = groups.length; i < l; i++) {
+    for (let obj_index = 0; obj_index < groups[i].children.length; obj_index++) {
+      let obj = groups[i].children[obj_index];
+      if (obj.data.id === desired_id) return obj;
+    }
+  }
+  return null;
+};
+
 // Called on bullet_hit. Checks for and handles destructible wall damage.
 export const damageWall = data => {
   if (data.wall_id === null) return;
-  //console.log("damageWall");
-  //console.log(`wall_id: ${data.wall_id}`);
   
-  // TODO: needs optimization -- which group is walls?
-  for (let group_index = 0, l = game.world.children.length; group_index < l; group_index++) {
-    let group = game.world.children[group_index];
-    for (let obj_index = 0; obj_index < group.children.length; obj_index++) {
-      let wall_id = group.children[obj_index].data.id;
-      if (wall_id === data.wall_id) console.log(group.children[obj_index]);
-    }
+  let wall = getObjectById(data.wall_id);
+  if (wall.data.destructible) {
+    wall.damage(1);
   }
-  
 };
 
 export const despawnPlayer = ({index, player: id}) => {
