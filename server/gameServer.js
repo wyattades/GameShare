@@ -40,6 +40,10 @@ class Game {
     this.gameData = gameData;
     this.users = {};
     this.connections = 0;
+    
+    this.gameData.objChanges = []; //TESTING
+    //console.log(gameData); //TESTING
+    
 
     this.io = io.of(`/${id}`);
   }
@@ -194,7 +198,17 @@ class Game {
         } else {
           Object.assign(user, {score: user.score + 1})
           //console.log(user.score);
-        }}});
+        }
+      }
+      
+      console.log(data); //TESTING
+      // If we get a valid wall_id, a wall has taken damage.
+      if (Number.isInteger(data.wall_id)) {
+        // Add the damage to the changes list.
+        this.gameData.objChanges.push({ objId: data.wall_id, damage: 1 });
+      }
+      
+    });
     
   }
 

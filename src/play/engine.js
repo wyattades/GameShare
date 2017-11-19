@@ -79,9 +79,9 @@ const createWall = ({ x, y, w = 1, h = 1, fill, stroke, objId }) => {
   const sprite = game.add.sprite(x, y, bmd);
   sprite.data.id = objId;
   
-  // TODO: destructible variables should be defined by group.
+  // TODO: destructible variables should be defined by group, not the color red.
   let color = intToHex(fill);
-  sprite.data.destructible = (color === '#ff0000'); // red walls are destructible for now
+  sprite.data.destructible = (color === '#ff0000');
   if (sprite.data.destructible) {
     sprite.maxHealth = 2;
     sprite.setHealth(2);
@@ -416,7 +416,9 @@ export const damageWall = data => {
   
   let wall = getObjectById(data.wall_id);
   if (wall.data.destructible) {
-    wall.damage(1);
+    let dmg = data.damage || 1;
+    wall.damage(dmg);
+    console.log(`dealt ${dmg} damage to wall ${data.wall_id}`);
   }
 };
 
