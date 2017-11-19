@@ -200,6 +200,7 @@ class Engine {
     rect.drawRect(0, 0, w, h);
     rect.endFill();
     rect.shape = rect.graphicsData[0].shape;
+    rect.shapeType = 'rect';
 
     rect.resize = (width, height) => {
       rect.shape.width = width;
@@ -227,6 +228,7 @@ class Engine {
     ellipse.drawEllipse(0, 0, w / 2, h / 2);
     ellipse.endFill();
     ellipse.shape = ellipse.graphicsData[0].shape;
+    ellipse.shapeType = 'ellip';
 
     ellipse.resize = (width, height) => {
       ellipse.shape.width = width;
@@ -324,7 +326,7 @@ class Engine {
         let resizeX = (x === 0 ? -this.resizeControlSize : obj_width),
             resizeY = (y === 0 ? -this.resizeControlSize : obj_height);
 
-        if (obj.shape === 'ellip') {
+        if (obj.shapeType === 'ellip') {
           resizeX = (x === 0 ? -(obj_width / 2) - this.resizeControlSize : obj_width / 2);
           resizeY = (y === 0 ? -(obj_height / 2) - this.resizeControlSize : obj_height / 2);
         }
@@ -347,7 +349,7 @@ class Engine {
           let leftX = -ctl.width;
           let topY = -ctl.height;
 
-          if (ctl.parent.shape === 'ellip') {
+          if (ctl.parent.shapeType === 'ellip') {
             leftX -= (ctl.parent.shape.width / 2);
             topY -= (ctl.parent.shape.height / 2);
           }

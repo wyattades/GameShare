@@ -32,6 +32,7 @@ assertLoggedIn()
 
   // Function to send data to firebase
   const saveGame = (gameData, infoData) => (
+    console.log('game data', gameData),
     gameId ? updateGame(gameId, gameData, infoData) : createGame(gameData, infoData)
   )
   .then(id => {

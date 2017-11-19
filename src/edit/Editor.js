@@ -104,6 +104,8 @@ const addObject = (objId, objData, appGroup, $group, type) => {
     data.objects[objId] = objData;
   }
 
+  data.objects[objId].shapeType = type;
+
   const groupData = data.groups[objData.group];
   
   const appObj = app.addWall(appGroup, groupData, objData, type);
@@ -157,7 +159,7 @@ const addGroup = (groupId, groupData) => {
   groupData.objects = groupData.objects || {};
   for (let objId in groupData.objects) {
     if (groupData.objects.hasOwnProperty(objId)) {
-      addObject(objId, data.objects[objId], appGroup, $group, 'rect');
+      addObject(objId, data.objects[objId], appGroup, $group, data.objects[objId].shapeType);
     }
   }
 
