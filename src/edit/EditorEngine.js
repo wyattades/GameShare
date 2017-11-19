@@ -165,7 +165,7 @@ class Engine {
     if (draggable) {
       obj.draggable = true;
       if (ellip) {
-        obj.hitArea = new Pixi.Ellipse(0, 0, w, h);
+        obj.hitArea = new Pixi.Ellipse(0, 0, w / 2, h / 2);
       } else {
         obj.hitArea = new Pixi.Rectangle(0, 0, w, h);
       }
@@ -219,9 +219,7 @@ class Engine {
 
   createEllip = ({ w = 1, h = 1, ellip = true, fill, stroke, ...rest }) => {
 
-    const ellipse = this.createObject({ w: w / 2, h: h / 2, ellip, ...rest });
-
-    console.log(ellipse);
+    const ellipse = this.createObject({ w, h, ellip, ...rest });
 
     if (typeof stroke === 'number') ellipse.lineStyle(1, stroke, 1);
     if (typeof fill === 'number') ellipse.beginFill(fill);
@@ -317,18 +315,16 @@ class Engine {
 
   // Control manipulation.
   createControls = (obj) => {
-    const ellipse = true;
     // Saving these because they change with added children.
     let obj_width = obj.width,
         obj_height = obj.height;
 
     for (let x = 0; x < 2; x++) {
       for (let y = 0; y < 2; y++) {
+        let resizeX = (x === 0 ? -this.resizeControlSize : obj_width),
+            resizeY = (y === 0 ? -this.resizeControlSize : obj_height);
 
-        let resizeX = (x === 0 ? -this.resizeControlSize : 0),
-            resizeY = (y === 0 ? -this.resizeControlSize : 0);
-
-        if (ellipse) {
+        if (obj.shape === 'ellip') {
           resizeX = (x === 0 ? -(obj_width / 2) - this.resizeControlSize : obj_width / 2);
           resizeY = (y === 0 ? -(obj_height / 2) - this.resizeControlSize : obj_height / 2);
         }
@@ -348,12 +344,16 @@ class Engine {
         ctl.controlPosition = { x, y };
 
         ctl.resetPosition = () => {
-          // for rectangles
-          // ctl.x = ctl.controlPosition.x === 0 ? -ctl.width : ctl.parent.shape.width;
-          // ctl.y = ctl.controlPosition.y === 0 ? -ctl.height : ctl.parent.shape.height;
+          let leftX = -ctl.width;
+          let topY = -ctl.height;
 
-          ctl.x = ctl.controlPosition.x === 0 ? -ctl.parent.shape.width - ctl.width : ctl.parent.shape.width;
-          ctl.y = ctl.controlPosition.y === 0 ? -ctl.parent.shape.height - ctl.height : ctl.parent.shape.height;
+          if (ctl.parent.shape === 'ellip') {
+            leftX -= (ctl.parent.shape.width / 2);
+            topY -= (ctl.parent.shape.height / 2);
+          }
+
+          ctl.x = (ctl.controlPosition.x === 0 ? leftX : ctl.parent.shape.width);
+          ctl.y = (ctl.controlPosition.y === 0 ? topY : ctl.parent.shape.height);
         };
 
         obj.addChild(ctl);
@@ -369,10 +369,10 @@ class Engine {
       }
     }
   };
-  resetControlPositions = (obj, ignore = null, ellipse) => {
+  resetControlPositions = (obj, ignore = null) => {
     for (let c of obj.children) {
       if (c.isControl && c !== ignore) {
-        c.resetPosition(ellipse);
+        c.resetPosition();
       }
     }
   };

@@ -97,7 +97,7 @@ const deleteSelected = () => {
   }
 };
 
-const addObject = (objId, objData, appGroup, $group) => {
+const addObject = (objId, objData, appGroup, $group, type) => {
 
   if (objId === null) {
     objId = data.objGen++;
@@ -106,7 +106,7 @@ const addObject = (objId, objData, appGroup, $group) => {
 
   const groupData = data.groups[objData.group];
   
-  const appObj = app.addWall(appGroup, groupData, objData, 'ellip');
+  const appObj = app.addWall(appGroup, groupData, objData, type);
 
   groupData.objects[objId] = true;
 
@@ -157,12 +157,16 @@ const addGroup = (groupId, groupData) => {
   groupData.objects = groupData.objects || {};
   for (let objId in groupData.objects) {
     if (groupData.objects.hasOwnProperty(objId)) {
-      addObject(objId, data.objects[objId], appGroup, $group);
+      addObject(objId, data.objects[objId], appGroup, $group, 'rect');
     }
   }
 
-  $group.on('click', '.new-object-button', () => {
-    addObject(null, { group: groupId }, appGroup, $group);
+  $group.on('click', '.new-rect-button', () => {
+    addObject(null, { group: groupId }, appGroup, $group, 'rect');
+  });
+
+  $group.on('click', '.new-ellip-button', () => {
+    addObject(null, { group: groupId }, appGroup, $group, 'ellip');
   });
 };
 

@@ -4,9 +4,16 @@
   style="justify-content: space-between;"
 )
   span.type-name= name || 'NA'
-  button.button.is-small.new-object-button(
-    name="add new object"
-  )
-    span.icon
-      i.fa.fa-plus
-    span Add Object
+  .field.has-addons
+    .control
+      button.button.is-small.new-rect-button(
+        name="add new rectangle"
+      )
+        span.icon
+          i.fa.fa-square
+    .control
+      button.button.is-small.new-ellip-button(
+        name="add new ellipse"
+      )
+        span.icon
+          i.fa.fa-circle
