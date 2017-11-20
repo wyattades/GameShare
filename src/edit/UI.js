@@ -126,10 +126,16 @@ const addGroup = (groupId, groupData) => {
   .insertBefore('#new-buttons')
   .attr('data-group', groupId)
   .click(() => events.emit('select', groupId))
-  .on('click', '.new-object-button', () => {
+  .on('click', '.new-rect-button', () => {
     events.emit('add-object', groupId, groupData, null, {
       group: groupId,
-      shape: prompt('choose one of: rect, round_rect, ellipse'),
+      shape: 'rect',
+    });
+  })
+  .on('click', '.new-ellip-button', () => {
+    events.emit('add-object', groupId, groupData, null, {
+      group: groupId,
+      shape: 'ellipse',
     });
   });
 };

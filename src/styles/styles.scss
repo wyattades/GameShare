@@ -105,11 +105,12 @@ div.is-loading {
     border-width: 0.25em;
   }
 }
-// .sidebar {
+.sidebar {
+  overflow-y: scroll;
 //   display: block!important;
 //   margin: 0.75em;
 //   padding-left: 0;
-// }
+}
 
 // .root-column {
 //   margin-top: 0.75em;
