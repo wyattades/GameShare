@@ -55,6 +55,15 @@ const addPlayers = players => {
   return engine.initUser(userId);
 };
 
+// Apply level object changes that occured before this player joined.
+const applyChanges = changes => {
+  for (let i = 0; i < changes.length; i++) {
+    if (changes[i].damageWall) {
+      engine.damageWall(changes[i]);
+    }
+  }
+};
+
 const bindHandlers = () => {
   
   socket.on('update', updatedPlayers => {
@@ -83,6 +92,7 @@ const bindHandlers = () => {
   socket.on('bullet_hit', (id, data) => {
     engine.removeBullet(id, data);
     engine.despawnPlayer(data);
+    engine.damageWall(data);
   });
 
   return Promise.resolve();
@@ -119,6 +129,7 @@ export const connect = id => new Promise((resolve, reject) => {
 
       createLevel(data.gameData.groups, data.gameData.objects)
       .then(() => addPlayers(data.users))
+      .then(() => applyChanges(data.gameData.objChanges))
       .then(() => bindHandlers())
       .then(() => engine.resume())
       .catch(console.error);
@@ -160,4 +171,3 @@ export const destroy = () => {
   disconnect();
   engine.destroy();
 };
-

@@ -21,7 +21,8 @@ let input,
     player,
     bullets,
     boundary,
-    players;
+    players,
+    spikes;
 
 // Game options
 let options;
@@ -55,14 +56,59 @@ const createRect = ({ x, y, w = 1, h = 1, fill, stroke }) => {
   return graphic;
 };
 
-const generateTextures = () => {
+// TODO: this is copied from Editor.js, move to shared library?
+const intToHex = int => {
+  const hexString = `000000${((int) >>> 0).toString(16)}`.slice(-6);
+  return `#${hexString}`;
+};
+
+// Creates and returns a new Sprite wall object.
+const createWall = ({ x, y, w = 1, h = 1, fill, stroke, objId }) => {
+  x += w / 2;
+  y += h / 2;
   
+  // Create bitmap graphic.
+  // Based on example at: https://phaser.io/examples/v2/sprites/sprite-from-bitmapdata
+  const bmd = game.add.bitmapData(w, h);
+  bmd.ctx.beginPath();
+  bmd.ctx.rect(0, 0, w, h);
+  bmd.ctx.strokeStyle = intToHex(stroke);
+  bmd.ctx.fillStyle = intToHex(fill);
+  bmd.ctx.fill();
+  
+  const sprite = game.add.sprite(x, y, bmd);
+  sprite.data.id = objId;
+  
+  // TODO: destructible variables should be defined by group, not the color red.
+  let color = intToHex(fill);
+  sprite.data.destructible = (color === '#ff0000');
+  if (sprite.data.destructible) {
+    sprite.maxHealth = 2;
+    sprite.setHealth(2);
+  }
+  
+  return sprite;
+};
+
+const createCircle = ({ x, y, r = 1, fill, stroke }) => {
+  // Draw simple circle graphic
+  const graphic = game.add.graphics(x, y);
+  if (fill !== undefined) graphic.beginFill(fill);
+  if (stroke !== undefined) graphic.lineStyle(1, stroke, 1);
+  graphic.drawCircle(x, y, r);
+  if (fill !== undefined) graphic.endFill();
+
+  return graphic;
+};
+
+const generateTextures = () => {
+
   // Create textures from temporary graphics objects
   const createTexture = (graphic, name) => {
     textures[name] = graphic.generateTexture();
     graphic.destroy();
   };
-  
+
   const w = 50,
         h = 60;
   const playerGraphic = game.add.graphics(0, 0);
@@ -79,7 +125,7 @@ const generateTextures = () => {
   turretGraphic.drawEllipse(0, 0, radius, radius);
   turretGraphic.endFill();
   createTexture(turretGraphic, 'turret');
-  
+
   const bulletGraphic = game.add.graphics(0, 0);
   bulletGraphic.beginFill(0xFFFF00);
   bulletGraphic.drawTriangle([
@@ -89,9 +135,27 @@ const generateTextures = () => {
   ]);
   bulletGraphic.endFill();
   createTexture(bulletGraphic, 'bullet');
-
 };
 
+const createSpike = (graphic,x,y) => {
+  textures['spike'] = graphic.generateTexture();
+  //graphic.destroy();
+  var spike=spikes.create(x, y, textures.spike);
+  spike.enableBody = true;
+  physics.enablePhysics(spike, 'spike');
+  physics.collideStart(spike, collider => {
+	if (collider.name === 'player') {
+       console.log(`Player hit: ${collider.id}`);
+	   const plyr = playerMap[collider.id];
+	   if (plyr) {
+		  plyr.kill();
+	      game.time.events.add(respawn_timer, respawn, this, collider.id).autoDestroy = true;
+	   } else {
+		  console.log(`Invalid despawnPlayer: ${id}`);
+	  }
+	}
+  });
+};
 const create = (focusX, focusY) => {
 
   window.addEventListener('resize', () => {
@@ -162,10 +226,10 @@ const create = (focusX, focusY) => {
   bullets.createMultiple(options.maxPlayers * options.maxBulletsPerPlayer, textures.bullet, 0, false, (bullet) => {
     // Enable physics and check for collisions
     physics.enablePhysics(bullet, 'bullet');
-    
+
     physics.collideEnd(bullet, collider => {
       if (collider.name === 'wall' && bullet.health > 0) {
-        
+
         // Point bullet towards velocity
         const { mx, my } = bullet.body.velocity;
         bullet.body.rotation = Math.atan2(my, mx) - (Math.PI / 2);
@@ -173,17 +237,19 @@ const create = (focusX, focusY) => {
       }
     });
   });
-  
+
+  spikes = game.add.group();
+
   const { x, y, w, h } = options.bounds;
-  
+
   game.world.setBounds(0, 0, w + (x * 2), h + (y * 2));
-  
+
   boundary = createRect({ x, y, w, h, stroke: 0x00FFFF });
   physics.enablePhysics(boundary, 'boundary');
 
 
   game.camera.focusOnXY(focusX, focusY);
-  
+
   return Promise.resolve();
 };
 
@@ -201,7 +267,7 @@ export const addPlayer = (id, data) => {
 
     // Store player id
     plyr.id = id;
-  
+
     // Store player reference
     playerMap[id] = plyr;
   }
@@ -216,7 +282,7 @@ export const removePlayer = id => {
     for (let i = 0; i < options.maxBulletsPerPlayer; i++) {
       bullets.getAt(start + i).kill();
     }
-    
+
     // Despawn player
     plyr.id = null;
     plyr.kill();
@@ -230,7 +296,7 @@ export const removePlayer = id => {
 export const updatePlayer = (id, data) => {
 
   const plyr = playerMap[id];
-  
+
   if (plyr) {
     plyr.body.x = data.x;
     plyr.body.y = data.y;
@@ -273,15 +339,26 @@ export const initUser = id => {
           index: i,
         });
       } else if (collider.name === 'wall') { // Bounce off walls until no health
+        
+        if (collider.data.destructible) bullet.health = 0; // No bouncing off destructible walls
+        
         bullet.health--;
         if (bullet.health <= 0) {
           bullet.kill();
           sendHit({
             index: i,
+            wall_id: collider.data.destructible ? collider.data.id : null,
+            damage: bullet.data.damage || 1,
           });
+        }
+      } else if (collider.name === 'spike') { // Bounce off walls until no health
+        bullet.health--;
+        if (bullet.health <= 0) {
+          bullet.kill();
         }
       }
     });
+
 
     bullet.events.onKilled.add(allowBullet);
   }
@@ -315,12 +392,37 @@ export const addBullet = (id, data) => {
 
   const bullet = bullets.getAt((playerMap[id].index * options.maxBulletsPerPlayer) + index);
   bullet.reset(x, y, options.bulletHealth); // health - 1 = number of bounces before dying
-  
+
   bullet.body.rotation = angle;
   bullet.body.thrust(speed);
 };
 
-export const despawnPlayer = ({index, player: id}) => {
+// Returns the object with the given custom id.
+// Currently naive O(n) implementation, checks every object for id.
+const getObjectById = desired_id => {
+  // TODO: needs optimization -- which groups are our objects?
+  let groups = game.world.children;
+  for (let i = 0, l = groups.length; i < l; i++) {
+    for (let obj_index = 0; obj_index < groups[i].children.length; obj_index++) {
+      let obj = groups[i].children[obj_index];
+      if (obj.data.id === desired_id) return obj;
+    }
+  }
+  return null;
+};
+
+// Called on bullet_hit. Checks for and handles destructible wall damage.
+export const damageWall = data => {
+  if (data.wall_id === null) return;
+  
+  let wall = getObjectById(data.wall_id);
+  if (wall.data.destructible) {
+    wall.damage(data.damage);
+    wall.alpha = Math.min(wall.health / wall.maxHealth, 0.5); // Visual damage indication
+  }
+};
+
+export const despawnPlayer = ({ index, player: id }) => {
   const plyr = playerMap[id];
   if (plyr) {
     plyr.kill();
@@ -329,8 +431,8 @@ export const despawnPlayer = ({index, player: id}) => {
     console.log(`Invalid despawnPlayer: ${id}`);
   }
 };
- 
- 
+
+
 function respawn(id) {
   const plyr = playerMap[id];
   plyr.reset(boundary.left + Math.random() * boundary.width, boundary.top + Math.random() * boundary.height);
@@ -344,7 +446,9 @@ export const createGroup = () => {
 
   return {
     add: obj => {
-      group.add(physics.enablePhysics(createRect(obj), 'wall'));
+      const wall = createWall(obj);
+      physics.enablePhysics(wall, 'wall');
+      group.add(wall);
     },
 
     // TODO: is this necessary?
@@ -397,7 +501,7 @@ const render = DEV ? () => {
 } : undefined;
 
 const update = () => {
-    
+
   if (!player) {
     console.log('Bad update');
     return;
@@ -427,13 +531,13 @@ const update = () => {
   // Point turret at mouse pointer
   let angle = game.physics.arcade.angleToPointer(player);
   player.turret.rotation = angle - player.rotation;
-  
+
   if (game.input.activePointer.isDown && // mouse pressed
     bulletsShot < options.maxBulletsPerPlayer && // there's an available bullet
     game.time.now > nextFire) { // fire rate has serpassed
 
     nextFire = game.time.now + options.fireRate;
-    
+
     const data = {
       x: player.x + (GUN_LENGTH * Math.cos(angle)),
       y: player.y + (GUN_LENGTH * Math.sin(angle)),
@@ -461,7 +565,7 @@ const update = () => {
 };
 
 export const setup = (gameOptions, focusX, focusY) => new Promise((resolve, reject) => {
-  
+
   game = new Game({
     width: parent.clientWidth,
     height: parent.clientHeight,
