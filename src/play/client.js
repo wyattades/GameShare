@@ -30,12 +30,12 @@ const createLevel = (groups = {}, objects = {}) => {
 
       const groupData = groups[groupId];
       groupData.objects = groupData.objects || {};
-
       const group = engine.createGroup(groupData);
 
       for (let objId in groupData.objects) {
         if (groupData.objects.hasOwnProperty(objId)) {
           const objData = objects[objId];
+          if (objData) { objData.objId = objId; }
           group.add(Object.assign(groupData, objData));
         }
       }
