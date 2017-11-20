@@ -16,19 +16,18 @@ block page_content
               a#level-tab Level
             .object-block.panel-block(
               id="new-buttons"
-              style="justify-content: center;"
             )
               button.button.is-small#new-type-button New Type
             .grid-block.panel-block
               .field
                 label(
                   class="label is-small"
-                  for="snap-input"
+                  for="opt-snap"
                 ) Grid Spacing
                 .control
                   input(
                     class="input is-small"
-                    id="snap-input"
+                    id="opt-snap"
                     max="100"
                     name="snap"
                     type="number"
@@ -38,14 +37,13 @@ block page_content
               .field
                 label(
                   class="label is-small"
-                  for="boundary-x"
-                ) Width of Playable Area
+                  for="opt-bounds-x"
+                ) X
                 .control
                   input(
                     class="input is-small"
-                    id="boundary-x"
+                    id="opt-bounds-x"
                     max="10000"
-                    name="boundary-x"
                     type="number"
                     value="7000"
                   )
@@ -53,14 +51,41 @@ block page_content
               .field
                 label(
                   class="label is-small"
-                  for="boundary-y"
-                ) Height of Playable Area
+                  for="opt-bounds-y"
+                ) Y
                 .control
                   input(
                     class="input is-small"
-                    id="boundary-y"
+                    id="opt-bounds-y"
                     max="10000"
-                    name="boundary-y"
+                    type="number"
+                    value="7000"
+                  )
+            .grid-block.panel-block
+              .field
+                label(
+                  class="label is-small"
+                  for="opt-bounds-w"
+                ) W
+                .control
+                  input(
+                    class="input is-small"
+                    id="opt-bounds-w"
+                    max="10000"
+                    type="number"
+                    value="7000"
+                  )
+            .grid-block.panel-block
+              .field
+                label(
+                  class="label is-small"
+                  for="opt-bounds-h"
+                ) H
+                .control
+                  input(
+                    class="input is-small"
+                    id="opt-bounds-h"
+                    max="10000"
                     type="number"
                     value="7000"
                   )
@@ -69,8 +94,8 @@ block page_content
                 label(for="background-color") Level Background Color
                 .control
                   input(
-                    id="background-color"
-                    name="background-color"
+                    id="opt-backgroundColor"
+                    name="opt-backgroundColor"
                     type="color"
                     value="#000000"
                   )
@@ -78,14 +103,13 @@ block page_content
             p.panel-heading Type Settings
             .panel-block
               .field
-                label(for="background-color") Type Color
+                label(for="type-color") Type Color
                 .control
                   input(
                     type="color"
                     name="type-color"
                     id="type-color"
                     value="#FFAABB"
-                    style="margin-left: auto;"
                   )
             .panel-block
               .field.is-grouped
@@ -107,8 +131,7 @@ block page_content
                     type="color"
                     name="object-color"
                     id="object-color"
-                    value="#FFAABB"
-                    style="margin-left: auto;"
+                    value="#FFFFFF"
                   )
             .panel-block
               .field.is-grouped

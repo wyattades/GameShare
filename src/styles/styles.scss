@@ -86,6 +86,10 @@ $facebook-color: #3B5998;
   }
 }
 
+#save {
+  @include control;
+}
+
 // Loading indicator on a div
 div.is-loading {
   position: relative;
@@ -102,26 +106,27 @@ div.is-loading {
   }
 }
 .sidebar {
-  display: block!important;
-  margin: 0.75em;
-  padding-left: 0;
+  overflow-y: scroll;
+//   display: block!important;
+//   margin: 0.75em;
+//   padding-left: 0;
 }
 
-.root-column {
-  margin-top: 0.75em;
-  margin-left: -1.25em;
-}
+// .root-column {
+//   margin-top: 0.75em;
+//   margin-left: -1.25em;
+// }
 
-.label { font-weight: $weight-medium; }
+// .label { font-weight: $weight-medium; }
 
-.is-grouped {
-  margin-left: auto;
-  margin-right: auto;
-}
+// .is-grouped {
+//   margin-left: auto;
+//   margin-right: auto;
+// }
 
-.type-name {
-  padding-right: 0.5em;
-}
+// .type-name {
+//   padding-right: 0.5em;
+// }
 
 .object-block:hover {
   cursor: pointer !important;
