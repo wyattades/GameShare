@@ -6,6 +6,7 @@ import 'expose-loader?Phaser!phaser-ce/build/custom/phaser-split.js'; /* global 
 
 import { sendUpdate, sendShoot, sendHit } from './client';
 import * as physics from './physics';
+import * as particles from './particles';
 
 const DEV = process.env.NODE_ENV === 'development';
 let devToggle;
@@ -86,6 +87,8 @@ const createWall = ({ x, y, w = 1, h = 1, fill, stroke, objId }) => {
     sprite.maxHealth = 2;
     sprite.setHealth(2);
   }
+  
+  particles.addEmitter(game, x, y); //TESTING
   
   return sprite;
 };
