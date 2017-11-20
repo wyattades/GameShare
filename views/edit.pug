@@ -4,6 +4,17 @@ block page_content
 
   include ./templates/editHeader
 
+  -
+    const options = [
+      ['playerHealth', 'Player Health'],
+      ['maxBulletsPerPlayer', 'Max Bullets Per Player'],
+      ['maxPlayers', 'Max Players'],
+      ['bulletSpeed', 'Bullet Speed'],
+      ['fireRate', 'Fire Rate'],
+      ['playerSpeed', 'Player Speed'],
+      ['bulletHealth', 'Bullet Health'],
+    ];
+
   .layers
     .layer
       .columns.edit-body
@@ -19,86 +30,65 @@ block page_content
             )
               button.button.is-small#new-type-button New Type
             .grid-block.panel-block
-              .field
-                label(
-                  class="label is-small"
-                  for="opt-snap"
-                ) Grid Spacing
-                .control
-                  input(
-                    class="input is-small"
-                    id="opt-snap"
-                    max="100"
-                    name="snap"
-                    type="number"
-                    value="10"
-                  )
+              .field.is-horizontal
+                .field-label.is-small
+                  label.label(
+                    for="opt-snap"
+                  ) Grid Spacing
+                .field-body
+                  .field
+                    .control
+                      input.input.is-small(
+                        id="opt-snap"
+                        max="100"
+                        name="snap"
+                        type="number"
+                        value="10"
+                      )
+            each prop in ['x','y','w','h']
+              - const optionId = `opt-bounds-${prop}`;
+              .grid-block.panel-block
+                .field.is-horizontal
+                  .field-label.is-small
+                    label.label(for=optionId)= prop.toUpperCase()
+                  .field-body
+                    .field
+                      .control
+                        input.input.is-small(
+                          id=optionId
+                          name=optionId
+                          type="number"
+                          value="0"
+                        )
             .grid-block.panel-block
-              .field
-                label(
-                  class="label is-small"
-                  for="opt-bounds-x"
-                ) X
-                .control
-                  input(
-                    class="input is-small"
-                    id="opt-bounds-x"
-                    max="10000"
-                    type="number"
-                    value="7000"
-                  )
-            .grid-block.panel-block
-              .field
-                label(
-                  class="label is-small"
-                  for="opt-bounds-y"
-                ) Y
-                .control
-                  input(
-                    class="input is-small"
-                    id="opt-bounds-y"
-                    max="10000"
-                    type="number"
-                    value="7000"
-                  )
-            .grid-block.panel-block
-              .field
-                label(
-                  class="label is-small"
-                  for="opt-bounds-w"
-                ) W
-                .control
-                  input(
-                    class="input is-small"
-                    id="opt-bounds-w"
-                    max="10000"
-                    type="number"
-                    value="7000"
-                  )
-            .grid-block.panel-block
-              .field
-                label(
-                  class="label is-small"
-                  for="opt-bounds-h"
-                ) H
-                .control
-                  input(
-                    class="input is-small"
-                    id="opt-bounds-h"
-                    max="10000"
-                    type="number"
-                    value="7000"
-                  )
-            .level-block.panel-block
-              .field
-                label(for="background-color") Level Background Color
-                .control
-                  input(
-                    id="opt-backgroundColor"
-                    name="opt-backgroundColor"
-                    type="color"
-                    value="#000000"
-                  )
+              .field.is-horizontal
+                .field-label.is-small
+                  label.label(for="opt-backgroundColor") Level Background Color
+                .field-body
+                  .field
+                    .control
+                      input.input.is-small(
+                        id="opt-backgroundColor"
+                        name="opt-backgroundColor"
+                        type="color"
+                        value="#000000"
+                      )
+            each option in options  
+              - const optionId = `opt-${option[0]}`;
+              .level-block.panel-block
+                .field.is-horizontal
+                  .field-label.is-small
+                    label.label(for=optionId)= option[1]
+                  .field-body
+                    .field
+                      .control
+                        input.input.is-small.is-expanded(
+                          id=optionId
+                          name=optionId
+                          type="number"
+                          value="0"
+                        )
+
           #type-settings.panel
             p.panel-heading Type Settings
             .panel-block
