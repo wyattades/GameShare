@@ -96,6 +96,7 @@ export const createGame = (data) => {
       last_modified: created_on,
       status: 'stopped',
       owner: uid,
+      name: 'Untitled Game',
     };
 
     return db.ref(`/users/${uid}/games/${id}`).set(true) // Register user as owner of game    
@@ -105,10 +106,11 @@ export const createGame = (data) => {
 };
 
 // Update game data/info
-export const updateGame = (id, data, info) => (data ? db.ref(`/games/${id}`).update(data) : Promise.resolve())
+// TODO: only update a bit at a time?
+export const updateGame = (id, data, info) => (data ? db.ref(`/games/${id}`).set(data) : Promise.resolve())
 .then(() => {
   if (data) info.last_modified = Date.now();
-
+  
   return db.ref(`/games_info/${id}`).update(info);
 });
 

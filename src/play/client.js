@@ -102,11 +102,15 @@ export const sendHit = data => {
 };
 
 export const connect = id => new Promise((resolve, reject) => {
-  socket = io(`/${id}`);
+  socket = io(`/${id}`, {
+    query: {
+      game_id: id,
+    },
+  });
 
   socket.on('onconnected', data => {
     userId = data.id;
-    console.log(data);
+
     const { x, y, w, h } = data.users[userId];
 
     engine.setup(data.gameData.options, x + (w / 2), y + (h / 2))
@@ -116,9 +120,17 @@ export const connect = id => new Promise((resolve, reject) => {
       createLevel(data.gameData.groups, data.gameData.objects)
       .then(() => addPlayers(data.users))
       .then(() => bindHandlers())
-      .then(() => engine.resume());
+      .then(() => engine.resume())
+      .catch(console.error);
 
-    });
+    })
+    .catch(reject);
+  });
+
+  socket.on('invalid_gameid', () => {
+    socket.close();
+
+    reject('Invalid game id');
   });
 
   socket.on('lobby_full', () => {
@@ -128,7 +140,11 @@ export const connect = id => new Promise((resolve, reject) => {
   });
 
   socket.on('connect_error', err => {
-    reject(err.msg);
+    reject(`Connection error: ${err}`);
+  });
+
+  socket.on('disconnect', () => {
+    reject('The game your are trying to connect to is unavailable');
   });
 
   // TODO: handle network timeouts?

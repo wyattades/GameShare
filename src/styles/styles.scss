@@ -86,6 +86,10 @@ $facebook-color: #3B5998;
   }
 }
 
+#save {
+  @include control;
+}
+
 // Loading indicator on a div
 div.is-loading {
   position: relative;

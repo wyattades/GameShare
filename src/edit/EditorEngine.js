@@ -1,38 +1,56 @@
 import * as Pixi from 'pixi.js';
 import Colors from './Colors';
+import EE from './EventEmitter';
 
-// Defaults
-const DEFAULT_GRID_SPACING = 20; // SNAP
-const DEFAULT_GRID_SIZE = { w: DEFAULT_GRID_SPACING * 35, h: DEFAULT_GRID_SPACING * 25 };
-const DEFAULT_BORDER_SIZE = 100; // Size of the border around the playable area (one side)
-const DEFAULT_OPTIONS = {
-  snap: 8,
-  backgroundColor: 0xDDEEDD,
-  maxBulletsPerPlayer: 4,
-  maxPlayers: 20,
-  bounds: {
-    x: DEFAULT_BORDER_SIZE,
-    y: DEFAULT_BORDER_SIZE,
-    w: DEFAULT_GRID_SIZE.w - DEFAULT_BORDER_SIZE,
-    h: DEFAULT_GRID_SIZE.h - DEFAULT_BORDER_SIZE,
-  },
-  bulletSpeed: 1000,
-  fireRate: 200,
-  playerSpeed: 500,
-  bulletHealth: 2,
+const events = new EE();
+
+const update = obj => events.broadcast('update-object', obj.group, obj.id, {
+  x: obj.x, y: obj.y, w: obj.w, h: obj.h,
+});
+
+// Add shaded rectangles over the unplayable region of the map
+// Add grid lines
+const drawGrid = (grid, snap, bounds) => {
+
+  grid.clear();
+  
+  const tint = Colors.GRID;
+  const w = (bounds.x * 2) + bounds.w;
+  const h = (bounds.y * 2) + bounds.h;
+
+  grid.beginFill(0xFFFFFF);
+  grid.drawRect(0, 0, w, h);
+  grid.endFill();
+
+  grid.lineStyle(0, 0, 0);
+  grid.beginFill(tint, 0.4);
+  grid.drawRect(0, 0, w, bounds.y);
+  grid.drawRect(0, bounds.y + bounds.h, w, bounds.y);
+  grid.drawRect(0, bounds.y, bounds.x, bounds.h);
+  grid.drawRect(bounds.x + bounds.w, bounds.y, bounds.x, bounds.h);
+  grid.endFill();
+
+  grid.lineStyle(1, tint, 1);
+  for (let x = 0; x <= w; x += snap) {
+    grid.lineStyle(x % 100 === 0 || x === w ? 2 : 1, tint, 1);
+    grid.moveTo(x, 0);
+    grid.lineTo(x, h);
+  }
+  for (let y = 0; y <= h; y += snap) {
+    grid.lineStyle(y % 100 === 0 || y === h ? 2 : 1, tint, 1);
+    grid.moveTo(0, y);
+    grid.lineTo(w, y);
+  }
+
+  grid.lineStyle(2, Colors.BLUE, 1);
+  grid.drawRect(bounds.x, bounds.y, bounds.w, bounds.h);
 };
-const DEFAULT_RECT_SIZE = DEFAULT_GRID_SPACING * 4;
-const DEFAULT_GROUP_DATA = {
-  fill: 0xCCCCCC,
-  stroke: 0x222222,
-};
-
-// Constraints
-const RECT_MIN_SIZE = 20; // Minimum size of a rectangle object.
-const RESIZE_CONTROL_SIZE = 20;
-
 
 class Engine {
+
+  groups = {};
+
+  resizeControlSize = 16; // Size of resize control elements.
 
   constructor(parent, options) {
 
@@ -42,104 +60,136 @@ class Engine {
     this.app = new Pixi.Application({
       width: this.width,
       height: this.height,
-      transparent: true,
+      // transparent: true,
     });
 
     parent.appendChild(this.app.view);
 
-    this.options = DEFAULT_OPTIONS;
-    this.setOptions(options);
+    const bounds = options.bounds,
+          w = bounds.w + (bounds.x * 2),
+          h = bounds.h + (bounds.y * 2);
 
-    this.gridSpacing = DEFAULT_GRID_SPACING;
-    this.gridBorderSize = DEFAULT_BORDER_SIZE;
-    this.gridLineColor = Colors.GRID;
-    this.gridBorderColor = Colors.BLACK;
-    this.container = this.createGrid();
+    this.container = this.createObject({ x: 0, y: 0, w, h, draggable: true });
     this.app.stage.addChild(this.container);
+    this.grid = new Pixi.Graphics();
+    this.container.addChild(this.grid);
+
+    this.options = options;
+    this.resizeGrid();
 
     this.selectedObject = null; // The currently selected object.
     this.lockSelect = false; // When true, objects won't be selected.
 
-    this.rectMinSize = RECT_MIN_SIZE;
-    this.resizeControlSize = RESIZE_CONTROL_SIZE; // Size of resize control elements.
+    this.bindListeners();
 
+  }
+
+  bindListeners = () => {
+    const listeners = {
+
+      'add-object': this.addObject,
+
+      'add-group': this.addGroup,
+    
+      'remove-group': (groupId) => {
+        if (this.groups.hasOwnProperty(groupId)) {
+          this.groups[groupId].destroy();
+          delete this.groups[groupId];
+        }
+      },
+      'remove-object': (groupId, objId) => {
+        const objects = this.groups[groupId].objects;
+        if (objects.hasOwnProperty(objId)) {
+          objects[objId].destroy();
+          delete objects[objId];
+        }
+      },
+    
+      'update-object': (groupId, objId, newData) => {
+        const obj = this.groups[groupId].objects[objId];
+        if (obj) {
+          const { x, y, w, h, stroke, fill } = newData;
+
+          if (x !== undefined) obj.x = x;
+          if (y !== undefined) obj.y = y;
+          if (w !== undefined || h !== undefined) obj.resize(w, h);
+
+          if (fill !== undefined) {
+            if (fill === null) {
+              obj.fill = null;
+              obj.tint = this.groups[groupId].fill;
+            } else {
+              obj.fill = fill;
+              obj.tint = fill;
+            }
+          }
+          if (stroke !== undefined) ;
+        }
+      },
+
+      'update-group': (groupId, newData) => {
+        const group = this.groups[groupId];
+        if (group) {
+          const { fill, stroke } = newData;
+
+          if (fill !== undefined) {
+            group.fill = fill;
+            for (let objId in group.objects) {
+              const obj = group.objects[objId];
+              obj.fill = obj.fill || fill;
+              obj.tint = obj.fill;
+            }
+          }
+          if (stroke !== undefined) ;
+        }
+      },
+    
+      'update-option': this.updateOption,
+
+      select: (groupId, objId) => {
+        if (objId && groupId) {
+          const obj = this.groups[groupId].objects[objId];
+          if (obj) this.selectObject(obj);
+        } else {
+          // TODO: Select group?
+          this.clearSelection();
+        }
+      },
+    };
+
+    for (let event in listeners) {
+      events.on(event, listeners[event]);
+    }
   }
 
   // Catch-all for modifying game options.
-  setOptions = (opt) => {
-    Object.assign(this.options, opt);
-  }
-
-  // Add shaded rectangles over the unplayable region of the map.
-  drawBorderShading = (grid = this.container, borderSize = this.gridBorderSize, tint = this.gridBorderColor) => {
-    grid.lineStyle(0, tint, 0.08);
-    grid.beginFill(tint, 0.08);
-    grid.drawRect(0, 0, grid.width, borderSize);
-    grid.drawRect(0, borderSize, borderSize, grid.height - (borderSize * 2));
-    grid.drawRect(grid.width - borderSize - 2, borderSize, borderSize, grid.height - (borderSize * 2));
-    grid.drawRect(0, grid.height - borderSize - 2, grid.width - 2, borderSize);
-  }
-  // Add gridline primitives to grid object.
-  drawGridlines = (grid = this.container, tint = this.gridLineColor) => {
-    let w = grid.w,
-        h = grid.h;
-
-    grid.lineStyle(1, tint, 1);
-    for (let x = 0; x <= w; x += this.gridSpacing) {
-      grid.lineStyle(x % 100 === 0 || x === w ? 2 : 1, tint, 1);
-      grid.moveTo(x, 0);
-      grid.lineTo(x, h);
+  updateOptions = (opt) => {
+    for (let option in opt) {
+      this.updateOption(option, opt[option]);
     }
-    for (let y = 0; y <= h; y += this.gridSpacing) {
-      grid.lineStyle(y % 100 === 0 || y === h ? 2 : 1, tint, 1);
-      grid.moveTo(0, y);
-      grid.lineTo(w, y);
+  }
+
+
+  updateOption = (key, value, keyDeep) => {
+    if (keyDeep) this.options[key][keyDeep] = value;
+    else this.options[key] = value;
+
+    // Handle grid change
+    if (key === 'bounds' || key === 'snap') {
+      this.resizeGrid();
     }
-
   }
-  // Generate the grid container. Width and height define the playable area.
-  createGrid = (width = this.options.bounds.w, height = this.options.bounds.h) => {
-    let w = width + (this.gridBorderSize * 2),
-        h = height + (this.gridBorderSize * 2);
+  
+  // Resize the grid to the options bounds parameters. Adds border region to given values.
+  resizeGrid = () => {
 
-    let grid = this.createObject({
-      x: 0, y: 0, w, h, draggable: true,
-    });
-    grid.bounds = { x: w, y: h };
+    const bounds = this.options.bounds,
+          w = bounds.w + (bounds.x * 2),
+          h = bounds.h + (bounds.y * 2);
 
-    this.drawGridlines(grid);
-    this.drawBorderShading(grid);
-    return grid;
-  }
-  // Resize the grid to the given parameters. Adds border region to given values.
-  resizeGrid = (width = this.options.bounds.w, height = this.options.bounds.h,
-    spacing = this.gridSpacing, grid = this.container) => {
+    this.container.hitArea = new Pixi.Rectangle(0, 0, w, h);
 
-    this.options.bounds.w = +width;
-    this.options.bounds.h = +height;
-    this.gridSpacing = +spacing;
-
-    let w = this.options.bounds.w + (this.gridBorderSize * 2),
-        h = this.options.bounds.h + (this.gridBorderSize * 2);
-
-    grid.x = 0;
-    grid.y = 0;
-    grid.w = w;
-    grid.h = h;
-    grid.hitArea = new Pixi.Rectangle(0, 0, w, h);
-    grid.bounds = { x: w, y: h };
-
-    // Clear gridline primitives
-    grid.graphicsData.length = 0;
-    grid.dirty++;
-    grid.clearDirty++;
-
-    this.drawGridlines(grid);
-    this.drawBorderShading(grid);
-  }
-
-  addUpdate = fn => {
-    this.app.ticker.add(fn);
+    drawGrid(this.grid, this.options.snap, bounds);
   }
 
   start = () => {
@@ -169,30 +219,32 @@ class Engine {
       obj.buttonMode = true;
 
       // Set event hooks.
-      let engine = this;
       obj
       // Mouse down
-      .on('mousedown', (e) => { engine.onMouseDown(obj, e); })
-      .on('touchstart', (e) => { engine.onMouseDown(obj, e); })
+      .on('mousedown', this.onMouseDown)
+      .on('touchstart', this.onMouseDown)
       // Mouse up
-      .on('mouseup', (e) => { engine.onMouseUp(obj, e); })
-      .on('mouseupoutside', (e) => { engine.onMouseUp(obj, e); })
-      .on('touchend', (e) => { engine.onMouseUp(obj, e); })
-      .on('touchendoutside', (e) => { engine.onMouseUp(obj, e); })
+      .on('mouseup', this.onMouseUp)
+      .on('mouseupoutside', this.onMouseUp)
+      .on('touchend', this.onMouseUp)
+      .on('touchendoutside', this.onMouseUp)
       // Mouse move
-      .on('mousemove', (e) => { engine.onMouseMove(obj, e); })
-      .on('touchmove', (e) => { engine.onMouseMove(obj, e); });
+      .on('mousemove', this.onMouseMove)
+      .on('touchmove', this.onMouseMove);
     }
 
     return obj;
   };
 
-  createRect = ({ w = 1, h = 1, fill, stroke, ...rest }) => {
+  createShape = ({ w = 1, h = 1, fill, stroke, ...rest }) => {
 
     const rect = this.createObject({ w, h, ...rest });
 
     if (typeof stroke === 'number') rect.lineStyle(1, stroke, 1);
-    if (typeof fill === 'number') rect.beginFill(fill);
+    if (typeof fill === 'number') {
+      rect.beginFill(0xFFFFFF);
+      rect.tint = fill;
+    }
     rect.drawRect(0, 0, w, h);
     rect.endFill();
     rect.shape = rect.graphicsData[0].shape;
@@ -201,6 +253,8 @@ class Engine {
       rect.shape.width = width;
       rect.shape.height = height;
       rect.hitArea = new Pixi.Rectangle(0, 0, width, height);
+      rect.w = width;
+      rect.h = height;
       rect.dirty++;
       rect.clearDirty++;
     };
@@ -215,58 +269,43 @@ class Engine {
 
   // Add a new wall rectangle to the level.
   // Returns the wall object that was just added.
-  addWall = (group, groupData, objData) => {
+  addObject = (groupId, groupData, objId, objData) => {
 
     const {
-      x = this.getSnapPosition(-this.container.x + (this.width / 2)),
-      y = this.getSnapPosition(-this.container.y + (this.height / 2)),
-      w = DEFAULT_RECT_SIZE, h = DEFAULT_RECT_SIZE,
+      x, y, w, h,
       ...rest
     } = objData;
 
-    if (!group) {
-      console.error('Must provide group');
-      return null;
-    }
-
-
-    // Object.assign(rest, {
-    //   fill: groupData.fill,
-    //   stroke: groupData.stroke,
-    // }, rest);
     rest.stroke = rest.stroke || groupData.stroke;
     rest.fill = rest.fill || groupData.fill;
 
-    const wall = this.createRect({
-      x,
-      y,
-      w,
-      h,
+    const obj = this.createShape({
+      x, y, w, h,
       draggable: true,
       selectable: true,
       ...rest,
     });
+    obj.group = groupId;
+    obj.id = objId;
 
     Object.assign(objData, { x, y, w, h });
 
-    group.addChild(wall);
-
-    return wall;
+    this.groups[groupId].addChild(obj);
+    this.groups[groupId].objects[objId] = obj;
   }
-  getSnapPosition = (pos) => Math.floor(pos / this.gridSpacing) * this.gridSpacing;
+
+  getSnapPosition = (pos) => Math.floor(pos / this.options.snap) * this.options.snap;
 
   // Add a new object group to the level.
-  // Returns the group object that was just added.
-  addGroup = (groupData, id) => { // TEMP id
+  addGroup = (groupId, groupData) => {
 
-    Object.assign(groupData, Object.assign(DEFAULT_GROUP_DATA, groupData));
+    // groupData = Object.assign(DEFAULT_GROUP_DATA, groupData);
 
     const newGroup = new Pixi.Container();
-    newGroup.id = id;
+    newGroup.objects = {};
 
     this.container.addChild(newGroup);
-
-    return newGroup;
+    this.groups[groupId] = newGroup;
   }
 
   // Control manipulation.
@@ -277,7 +316,7 @@ class Engine {
 
     for (let x = 0; x < 2; x++) {
       for (let y = 0; y < 2; y++) {
-        let ctl = this.createRect({
+        let ctl = this.createShape({
           x: x === 0 ? -this.resizeControlSize : obj_width,
           y: y === 0 ? -this.resizeControlSize : obj_height,
           w: this.resizeControlSize,
@@ -302,6 +341,7 @@ class Engine {
     }
   };
   removeControls = (obj) => {
+    // TODO: remove with reverse forloop
     for (let i = 0; i < obj.children.length; i++) {
       if (obj.children[i].isControl) {
         obj.removeChildAt(i);
@@ -321,7 +361,6 @@ class Engine {
   // Clear the current object selection.
   clearSelection = () => {
     if (this.selectedObject) {
-      this.selectedObject.tint = Colors.WHITE;
       this.removeControls(this.selectedObject);
     }
 
@@ -342,9 +381,7 @@ class Engine {
     if (!obj.selectable) { return; }
 
     this.selectedObject = obj;
-    // this.moveToTop(this.selectedObject);
-
-    this.selectedObject.tint = Colors.GREEN;
+    this.moveToTop(this.selectedObject);
 
     this.createControls(obj);
   }
@@ -352,7 +389,9 @@ class Engine {
   // Object dragging logic.
   // Called by event handler functions.
   dragStart = (obj, event) => {
-    obj.alpha = 0.8;
+    if (obj !== this.container) {
+      obj.alpha = 0.8;
+    }
     obj.dragging = true;
     obj.data = event.data;
     obj.offset = event.data.getLocalPosition(obj); // Mouse offset within obj.
@@ -365,29 +404,32 @@ class Engine {
       newPosition.y -= obj.offset.y;
 
       if (obj !== this.container) {
-        newPosition.x = Math.floor(newPosition.x / this.gridSpacing) * this.gridSpacing;
-        newPosition.y = Math.floor(newPosition.y / this.gridSpacing) * this.gridSpacing;
+        newPosition.x = Math.floor(newPosition.x / this.options.snap) * this.options.snap;
+        newPosition.y = Math.floor(newPosition.y / this.options.snap) * this.options.snap;
 
         // Check bounds and clamp
+        const maxWidth = this.options.bounds.w + (this.options.bounds.x * 2);
         if (newPosition.x < 0) {
           newPosition.x = 0;
-        } else if (newPosition.x + obj.shape.width > this.container.bounds.x) {
-          newPosition.x = this.container.bounds.x - obj.shape.width;
+        } else if (newPosition.x + obj.shape.width > maxWidth) {
+          newPosition.x = maxWidth - obj.shape.width;
         }
 
+        const maxHeight = this.options.bounds.h + (this.options.bounds.y * 2);
         if (newPosition.y < 0) {
           newPosition.y = 0;
-        } else if (newPosition.y + obj.shape.height > this.container.bounds.y) {
-          newPosition.y = this.container.bounds.y - obj.shape.height;
+        } else if (newPosition.y + obj.shape.height > maxHeight) {
+          newPosition.y = maxHeight - obj.shape.height;
         }
       }
 
       obj.position.set(newPosition.x, newPosition.y);
 
-      obj.onUpdate && obj.onUpdate({ x: newPosition.x, y: newPosition.y });
-
       if (obj.isControl) {
         this.resizeParent(obj);
+        update(obj.parent);
+      } else if (obj !== this.container) {
+        update(obj);
       }
 
     }
@@ -408,7 +450,7 @@ class Engine {
       newPosition.x = dragPos.x + (control.width / 2);
 
       // Clamp to dragging bounds (prevents sliding element):
-      let xMax = (obj.x + obj.shape.width) - this.rectMinSize;
+      let xMax = (obj.x + obj.shape.width) - this.options.snap;
       newPosition.x = Math.min(newPosition.x, xMax);
 
       // Clamp to grid area.
@@ -422,12 +464,13 @@ class Engine {
       newSize.width = dragPos.x - obj.x;
 
       // Clamp to grid boundary width.
-      if (newPosition.x + newSize.width > this.container.bounds.x) {
-        newSize.width = this.container.bounds.x - newPosition.x;
+      const maxWidth = this.options.bounds.w + (this.options.bounds.x * 2);
+      if (newPosition.x + newSize.width > maxWidth) {
+        newSize.width = maxWidth - newPosition.x;
       }
     }
     // Clamp to minimum width.
-    if (newSize.width < this.rectMinSize) { newSize.width = this.rectMinSize; }
+    if (newSize.width < this.options.snap) { newSize.width = this.options.snap; }
 
 
     // Calculate new height.
@@ -437,7 +480,7 @@ class Engine {
       newPosition.y = dragPos.y + (control.height / 2);
 
       // Clamp to dragging bounds (prevents sliding element):
-      let yMax = (obj.y + obj.shape.height) - this.rectMinSize;
+      let yMax = (obj.y + obj.shape.height) - this.options.snap;
       newPosition.y = Math.min(newPosition.y, yMax);
 
       // Clamp to grid area.
@@ -451,14 +494,17 @@ class Engine {
       newSize.height = dragPos.y - obj.y;
 
       // Clamp to grid boundary height.
-      if (newPosition.y + newSize.height > this.container.bounds.y) {
-        newSize.height = this.container.bounds.y - newPosition.y;
+      const maxHeight = this.options.bounds.h + (this.options.bounds.y * 2);
+      if (newPosition.y + newSize.height > maxHeight) {
+        newSize.height = maxHeight - newPosition.y;
       }
     }
     // Clamp to minimum height.
-    if (newSize.height < this.rectMinSize) { newSize.height = this.rectMinSize; }
+    if (newSize.height < this.options.snap) { newSize.height = this.options.snap; }
 
-    obj.onUpdate && obj.onUpdate({ x: newPosition.x, y: newPosition.y, w: newSize.width, h: newSize.height });
+    events.broadcast('update-object', obj.group, obj.id, {
+      x: newPosition.x, y: newPosition.y, w: newSize.width, h: newSize.height,
+    }, true);
 
     obj.translate(newPosition.x, newPosition.y);
     obj.resize(newSize.width, newSize.height);
@@ -470,25 +516,33 @@ class Engine {
 
     if (obj.isControl) {
       this.resizeParent(obj);
+      update(obj.parent);
+    } else if (obj !== this.container) {
+      update(obj);
     }
   }
 
   // Event handler functions.
-  onMouseDown = (obj, event) => {
+  onMouseDown = (e) => {
+    const obj = e.currentTarget;
+
     if (this.lockSelect) { return; }
     this.lockSelect = true;
 
-    this.selectObject(obj);
-    obj.onUpdate && obj.onUpdate({ selected: true });
+    if (!obj.isControl) events.emit('select', obj.group, obj.id);
 
-    if (obj.draggable) { this.dragStart(obj, event); }
+    if (obj.draggable) { this.dragStart(obj, e); }
   }
-  onMouseUp = (obj, event) => {
-    if (obj.dragging) { this.dragEnd(obj, event); }
+  onMouseUp = (e) => {
+    const obj = e.currentTarget;
+
+    if (obj.dragging) { this.dragEnd(obj, e); }
     this.lockSelect = false;
   }
-  onMouseMove = (obj, event) => {
-    if (obj.dragging) { this.dragMove(obj, event); }
+  onMouseMove = (e) => {
+    const obj = e.currentTarget;
+    
+    if (obj.dragging) { this.dragMove(obj, e); }
   }
 
 }

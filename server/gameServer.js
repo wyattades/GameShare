@@ -40,6 +40,7 @@ class Game {
     this.gameData = gameData;
     this.users = {};
     this.connections = 0;
+    this.maxConnections = gameData.options.maxPlayers || MAX_CONNECTIONS;
 
     this.io = io.of(`/${id}`);
   }
@@ -95,9 +96,9 @@ class Game {
 
   onConnection(socket) {
 
-    if (this.connections >= MAX_CONNECTIONS) {
+    if (this.connections >= this.maxConnections) {
       socket.emit('lobby_full');
-      socket.disconnect();
+      socket.disconnect(true);
       return;
     }
 
@@ -142,9 +143,11 @@ class Game {
     // }
 
     this.users[userId] = newUser;
+    
   
     // Send initial data to connected client
-    socket.emit('onconnected', { users: this.users, id: userId, gameData: this.gameData });
+    const onConnectData = { users: this.users, id: userId, gameData: this.gameData };
+    socket.emit('onconnected', onConnectData);
   
     // const address = socket.request.connection.remoteAddress; 
     // const address = socket.handshake.address;
@@ -182,19 +185,21 @@ class Game {
       const user = this.users[id];
       const hit = this.users[data.player];
  
-      if(!user) {
-        console.warn('Invalid id: ${id}');
+      if (!user) {
+        console.warn(`Invalid id: ${id}`);
         return;
       }
  
-      if(hit) {
-        if(hit == user){
-          Object.assign(user, {score: user.score - 1})
-          //console.log(user.score);
+      if (hit) {
+        if (hit === user) {
+          Object.assign(user, { score: user.score - 1 });
+          // console.log(user.score);
         } else {
-          Object.assign(user, {score: user.score + 1})
-          //console.log(user.score);
-        }}});
+          Object.assign(user, { score: user.score + 1 });
+          // console.log(user.score);
+        }
+      }
+    });
     
   }
 
@@ -212,6 +217,13 @@ module.exports = server => {
   // TODO: handle connection to invalid game id
 
   games = {};
+
+  io.on('connection', socket => {
+    const game_id = socket.handshake.query.game_id;
+    if (!game_id || !games.hasOwnProperty(game_id)) {
+      socket.disconnect(true);
+    }
+  });
 
   const app = {};
 

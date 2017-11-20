@@ -37,18 +37,21 @@ module.exports = {
       y: 465,
       w: 330,
       h: 60,
+      shape: 'ellip',
     }, {
       group: 0,
       x: 600,
       y: 750,
       w: 165,
       h: 150,
+      shape: 'rect',
     }, {
       group: 0,
       x: 1005,
       y: 375,
       w: 75,
       h: 270,
+      shape: 'poly',
     }, {
       group: 0,
       x: 1020,
