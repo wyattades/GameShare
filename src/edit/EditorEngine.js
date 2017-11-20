@@ -199,7 +199,7 @@ class Engine {
   }
 
   setBackgroundColor = () => {
-    this.grid.tint = this.options.backgroundColor;
+    this.grid.tint = hexToInt(this.options.backgroundColor);
   }
 
   start = () => {
