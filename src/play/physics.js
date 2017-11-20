@@ -5,7 +5,7 @@ let physics;
 
 export const init = game => {
   game.physics.startSystem(Phaser.Physics.P2JS);
-  
+
   physics = game.physics.p2;
 
   materials.player = physics.createMaterial();
@@ -20,7 +20,7 @@ export const init = game => {
 };
 
 export const enablePhysics = (obj, type) => {
-  
+
   if (!obj.body) physics.enable(obj);
 
   obj.name = type;
@@ -36,14 +36,14 @@ export const enablePhysics = (obj, type) => {
       obj.body.damping = 0;
       obj.body.setCircle(obj.width / 2);
       break;
-	  
+
 	case 'spike':
       obj.body.static = true;
       break;
 
     case 'wall':
       obj.body.static = true;
-      obj.body.setRectangle(obj.width, obj.height);
+      // obj.body.setRectangle(obj.width, obj.height); // might not be necessary
       break;
 
     case 'boundary':
@@ -55,7 +55,7 @@ export const enablePhysics = (obj, type) => {
             h = obj.height,
             // otherAngle = Math.PI / 2,
             thick = 50;
-      
+
       obj.body.clearShapes();
       obj.body.addRectangle(w + (thick * 2), thick, 0, -(h / 2) - (thick / 2));
       obj.body.addRectangle(w + (thick * 2), thick, 0, (h / 2) + (thick / 2));

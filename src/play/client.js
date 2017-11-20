@@ -55,6 +55,15 @@ const addPlayers = players => {
   return engine.initUser(userId);
 };
 
+// Apply level object changes that occured before this player joined.
+const applyChanges = changes => {
+  for (let i = 0; i < changes.length; i++) {
+    if (changes[i].damageWall) {
+      engine.damageWall(changes[i]);
+    }
+  }
+};
+
 const bindHandlers = () => {
   
   socket.on('update', updatedPlayers => {
@@ -83,6 +92,7 @@ const bindHandlers = () => {
   socket.on('bullet_hit', (id, data) => {
     engine.removeBullet(id, data);
     engine.despawnPlayer(data);
+    engine.damageWall(data);
   });
 
   return Promise.resolve();
@@ -102,11 +112,15 @@ export const sendHit = data => {
 };
 
 export const connect = id => new Promise((resolve, reject) => {
-  socket = io(`/${id}`);
+  socket = io(`/${id}`, {
+    query: {
+      game_id: id,
+    },
+  });
 
   socket.on('onconnected', data => {
     userId = data.id;
-    console.log(data);
+
     const { x, y, w, h } = data.users[userId];
 
     engine.setup(data.gameData.options, x + (w / 2), y + (h / 2))
@@ -115,10 +129,19 @@ export const connect = id => new Promise((resolve, reject) => {
 
       createLevel(data.gameData.groups, data.gameData.objects)
       .then(() => addPlayers(data.users))
+      .then(() => applyChanges(data.gameData.objChanges))
       .then(() => bindHandlers())
-      .then(() => engine.resume());
+      .then(() => engine.resume())
+      .catch(console.error);
 
-    });
+    })
+    .catch(reject);
+  });
+
+  socket.on('invalid_gameid', () => {
+    socket.close();
+
+    reject('Invalid game id');
   });
 
   socket.on('lobby_full', () => {
@@ -128,7 +151,11 @@ export const connect = id => new Promise((resolve, reject) => {
   });
 
   socket.on('connect_error', err => {
-    reject(err.msg);
+    reject(`Connection error: ${err}`);
+  });
+
+  socket.on('disconnect', () => {
+    reject('The game your are trying to connect to is unavailable');
   });
 
   // TODO: handle network timeouts?
@@ -144,4 +171,3 @@ export const destroy = () => {
   disconnect();
   engine.destroy();
 };
-
