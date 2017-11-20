@@ -236,35 +236,56 @@ class Engine {
     return obj;
   };
 
-  createShape = ({ w = 1, h = 1, fill, stroke, ...rest }) => {
+  createShape = ({ w = 1, h = 1, fill, stroke, shape = 'rect', borderRadius, ...rest }) => {
 
-    const rect = this.createObject({ w, h, ...rest });
+    const obj = this.createObject({ w, h, ...rest });
 
-    if (typeof stroke === 'number') rect.lineStyle(1, stroke, 1);
+    if (typeof stroke === 'number') obj.lineStyle(1, stroke, 1);
     if (typeof fill === 'number') {
-      rect.beginFill(0xFFFFFF);
-      rect.tint = fill;
+      obj.beginFill(0xFFFFFF);
+      obj.tint = fill;
     }
-    rect.drawRect(0, 0, w, h);
-    rect.endFill();
-    rect.shape = rect.graphicsData[0].shape;
 
-    rect.resize = (width, height) => {
-      rect.shape.width = width;
-      rect.shape.height = height;
-      rect.hitArea = new Pixi.Rectangle(0, 0, width, height);
-      rect.w = width;
-      rect.h = height;
-      rect.dirty++;
-      rect.clearDirty++;
+    let getHitArea;
+    switch (shape) {
+      case 'rect':
+      default:
+        obj.drawRect(0, 0, w, h);
+        getHitArea = (_w, _h) => new Pixi.Rectangle(0, 0, _w, _h);
+        break;
+      case 'round_rect':
+        obj.drawRoundedRect(0, 0, w, h, borderRadius);
+        getHitArea = (_w, _h) => new Pixi.RoundedRectangle(0, 0, _w, _h, borderRadius);
+        break;
+      case 'ellipse':
+        obj.drawEllipse(w / 2, h / 2, w / 2, h / 2);
+        getHitArea = (_w, _h) => new Pixi.Ellipse(_w / 2, _h / 2, _w / 2, _h / 2);
+        break;
+    }
+
+    obj.endFill();
+    obj.shape = obj.graphicsData[0].shape;
+
+    obj.resize = (width, height) => {
+      obj.hitArea = getHitArea(width, height);
+
+      obj.shape.x = obj.hitArea.x;
+      obj.shape.y = obj.hitArea.y;
+      obj.shape.width = obj.hitArea.width;
+      obj.shape.height = obj.hitArea.height;
+      
+      obj.w = width;
+      obj.h = height;
+      obj.dirty++;
+      obj.clearDirty++;
     };
 
-    rect.translate = (xp, yp) => {
-      rect.position.x = xp;
-      rect.position.y = yp;
+    obj.translate = (xp, yp) => {
+      obj.position.x = xp;
+      obj.position.y = yp;
     };
 
-    return rect;
+    return obj;
   };
 
   // Add a new wall rectangle to the level.
@@ -323,6 +344,8 @@ class Engine {
           h: this.resizeControlSize,
           fill: Colors.CONTROL,
           stroke: Colors.BLACK,
+          // shape: 'round_rect',
+          // borderRadius: 8,
           draggable: true,
         });
         ctl.isControl = true;
@@ -332,8 +355,8 @@ class Engine {
         ctl.controlPosition = { x, y };
 
         ctl.resetPosition = () => {
-          ctl.x = ctl.controlPosition.x === 0 ? -ctl.width : ctl.parent.shape.width;
-          ctl.y = ctl.controlPosition.y === 0 ? -ctl.height : ctl.parent.shape.height;
+          ctl.x = ctl.controlPosition.x === 0 ? -ctl.width : ctl.parent.w;
+          ctl.y = ctl.controlPosition.y === 0 ? -ctl.height : ctl.parent.h;
         };
 
         obj.addChild(ctl);
@@ -411,15 +434,15 @@ class Engine {
         const maxWidth = this.options.bounds.w + (this.options.bounds.x * 2);
         if (newPosition.x < 0) {
           newPosition.x = 0;
-        } else if (newPosition.x + obj.shape.width > maxWidth) {
-          newPosition.x = maxWidth - obj.shape.width;
+        } else if (newPosition.x + obj.w > maxWidth) {
+          newPosition.x = maxWidth - obj.w;
         }
 
         const maxHeight = this.options.bounds.h + (this.options.bounds.y * 2);
         if (newPosition.y < 0) {
           newPosition.y = 0;
-        } else if (newPosition.y + obj.shape.height > maxHeight) {
-          newPosition.y = maxHeight - obj.shape.height;
+        } else if (newPosition.y + obj.h > maxHeight) {
+          newPosition.y = maxHeight - obj.h;
         }
       }
 
@@ -450,14 +473,14 @@ class Engine {
       newPosition.x = dragPos.x + (control.width / 2);
 
       // Clamp to dragging bounds (prevents sliding element):
-      let xMax = (obj.x + obj.shape.width) - this.options.snap;
+      let xMax = (obj.x + obj.w) - this.options.snap;
       newPosition.x = Math.min(newPosition.x, xMax);
 
       // Clamp to grid area.
       let xMin = 0;
       newPosition.x = Math.max(newPosition.x, xMin);
 
-      newSize.width = (obj.x + obj.shape.width) - newPosition.x;
+      newSize.width = (obj.x + obj.w) - newPosition.x;
     } else {
       // This is a right-side control.
       newPosition.x = obj.x;
@@ -480,14 +503,14 @@ class Engine {
       newPosition.y = dragPos.y + (control.height / 2);
 
       // Clamp to dragging bounds (prevents sliding element):
-      let yMax = (obj.y + obj.shape.height) - this.options.snap;
+      let yMax = (obj.y + obj.h) - this.options.snap;
       newPosition.y = Math.min(newPosition.y, yMax);
 
       // Clamp to grid area.
       let yMin = 0;
       newPosition.y = Math.max(newPosition.y, yMin);
 
-      newSize.height = (obj.y + obj.shape.height) - newPosition.y;
+      newSize.height = (obj.y + obj.h) - newPosition.y;
     } else {
       // This is a bottom control.
       newPosition.y = obj.y;

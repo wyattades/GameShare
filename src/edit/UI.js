@@ -127,7 +127,10 @@ const addGroup = (groupId, groupData) => {
   .attr('data-group', groupId)
   .click(() => events.emit('select', groupId))
   .on('click', '.new-object-button', () => {
-    events.emit('add-object', groupId, groupData, null, { group: groupId });
+    events.emit('add-object', groupId, groupData, null, {
+      group: groupId,
+      shape: prompt('choose one of: rect, round_rect, ellipse'),
+    });
   });
 };
 
