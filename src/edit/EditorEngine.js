@@ -1,6 +1,8 @@
 import * as Pixi from 'pixi.js';
+
 import Colors from './Colors';
 import EE from './EventEmitter';
+import { hexToInt } from '../utils/convert';
 
 const events = new EE();
 
@@ -60,6 +62,7 @@ class Engine {
     this.app = new Pixi.Application({
       width: this.width,
       height: this.height,
+      // antialias: true,
       // transparent: true,
     });
 
@@ -76,6 +79,7 @@ class Engine {
 
     this.options = options;
     this.resizeGrid();
+    this.setBackgroundColor();
 
     this.selectedObject = null; // The currently selected object.
     this.lockSelect = false; // When true, objects won't be selected.
@@ -177,6 +181,8 @@ class Engine {
     // Handle grid change
     if (key === 'bounds' || key === 'snap') {
       this.resizeGrid();
+    } else if (key === 'backgroundColor') {
+      this.setBackgroundColor();
     }
   }
   
@@ -190,6 +196,10 @@ class Engine {
     this.container.hitArea = new Pixi.Rectangle(0, 0, w, h);
 
     drawGrid(this.grid, this.options.snap, bounds);
+  }
+
+  setBackgroundColor = () => {
+    this.grid.tint = this.options.backgroundColor;
   }
 
   start = () => {

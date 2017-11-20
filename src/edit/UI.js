@@ -3,15 +3,9 @@ import $ from 'jquery';
 import typeTemplate from '../templates/type.pug';
 import objectTemplate from '../templates/object.pug';
 import EE from './EventEmitter';
+import { hexToInt, intToHex } from '../utils/convert';
 
 const events = new EE();
-
-// Helper functions for converting: hex color string <--> color integer
-const intToHex = int => {
-  const hexString = `000000${((int) >>> 0).toString(16)}`.slice(-6);
-  return `#${hexString}`;
-};
-const hexToInt = hex => parseInt(hex.substring(1), 16);
 
 const select = (groupId, objId, groupData, objData) => {
 
