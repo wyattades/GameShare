@@ -112,10 +112,11 @@ div.is-loading {
 //   padding-left: 0;
 }
 
-// .root-column {
+.root-column {
+  padding-left: 0;
 //   margin-top: 0.75em;
 //   margin-left: -1.25em;
-// }
+}
 
 // .label { font-weight: $weight-medium; }
 
@@ -132,7 +133,7 @@ div.is-loading {
   cursor: pointer !important;
 }
 
-.grid-block, .level-block, #object-settings, #type-settings { display: none; }
+.level-block, #object-settings, #type-settings { display: none; }
 
 // Mysterious CSS that makes the grid display- doesnt show up otherwise
 html, body, .edit-body { height: 100%; }

@@ -17,10 +17,11 @@ const select = (groupId, objId, groupData, objData) => {
   if (!$group) {
     $('#type-settings').css('display', 'none');
     $('#object-settings').css('display', 'none');
+    $('#grid-settings').css('display', 'block');
     return;
   }
 
-  $('#type-settings').css('display', 'block');
+  $('#grid-settings').css('display', 'none');
 
   $('#type-color')
   .val(intToHex(groupData.fill))
@@ -56,8 +57,8 @@ const select = (groupId, objId, groupData, objData) => {
   });
   
   if ($obj) {
-
     $('#object-settings').css('display', 'block');
+    $('#type-settings').css('display', 'none');
     $group.css('background-color', '#bdf4d0');
     $obj.css('background-color', '#50e283');
   
@@ -74,6 +75,7 @@ const select = (groupId, objId, groupData, objData) => {
       events.emit('remove-object', groupId, objId);
     });
   } else {
+    $('#type-settings').css('display', 'block');
     $('#object-settings').css('display', 'none');
     $group.css('background-color', '#50e283');
   }
@@ -81,7 +83,7 @@ const select = (groupId, objId, groupData, objData) => {
 
 // Handles displaying content for editor tabs
 // TODO: do this without iteration (using jquery magic)
-const tabs = ['object', 'grid', 'level'];
+const tabs = ['object', 'level'];
 const onClickTab = tab => () => {
   events.emit('select');
 
