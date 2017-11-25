@@ -9,22 +9,24 @@ console.log('Connecting to game:', gameId);
 
 let client = _client;
 
-const loadingScreen = document.getElementById('loading');
-loadingScreen.lastChild.innerHTML = 'Connecting to server...';
+const $loading = document.getElementById('loading');
+const $loadingLabel = document.getElementById('loading-label');
+// const $loadingProgress = document.getElementById('loading-progress');
+
+$loadingLabel.innerHTML = 'Connecting to server...';
 const progress = val => {
-  console.log(val);
   if (val < 1) {
-    loadingScreen.innerText = val;
+    // $loadingProgress.value = val;
   }
 };
 
 const init = () => client.connect(gameId, progress)
 .then(() => {
-  loadingScreen.remove();
+  $loading.remove();
 })
 .catch(err => {
-  loadingScreen.innerHTML = `An error occurred during initialization:<br/>${err || 'Unknown Error'}`;
-  console.log('Init Error:', err);
+  $loadingLabel.innerHTML = `An error occurred during initialization:<br/>${err || 'Unknown Error'}`;
+  console.error('Init Error:', err);
 });
 
 init(client);
