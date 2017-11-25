@@ -7,21 +7,25 @@ import { hexToInt, intToHex } from '../utils/convert';
 
 const events = new EE();
 
+// const $typeSettings = $('#type-settings').hide(),
+//       $objectSettings = $('#object-settings').hide(),
+//       $gridSettings = $('#grid-settings').show();
+
 const select = (groupId, objId, groupData, objData) => {
 
   const $group = groupId && $(`.group[data-group='${groupId}']`),
         $obj = objId && $(`.object[data-obj='${objId}']`);
 
-  $('.object-block').css('background-color', 'white');
+  $('.object-block').removeClass('selected secondary-selected');
 
   if (!$group) {
-    $('#type-settings').css('display', 'none');
-    $('#object-settings').css('display', 'none');
-    $('#grid-settings').css('display', 'block');
+    $('#type-settings').hide();
+    $('#object-settings').hide();
+    $('#grid-settings').show();
     return;
   }
 
-  $('#grid-settings').css('display', 'none');
+  $('#grid-settings').hide();
 
   $('#type-color')
   .val(intToHex(groupData.fill))
@@ -57,10 +61,20 @@ const select = (groupId, objId, groupData, objData) => {
   });
   
   if ($obj) {
-    $('#object-settings').css('display', 'block');
-    $('#type-settings').css('display', 'none');
-    $group.css('background-color', '#bdf4d0');
-    $obj.css('background-color', '#50e283');
+    $('#object-settings').show();
+    $('#type-settings').hide();
+    $group.addClass('secondary-selected');
+    $obj.addClass('selected');
+    
+    for (let key of ['x', 'y', 'w', 'h']) {
+      $(`#object-${key}`)
+      .val(objData[key])
+      .off().change(e => {
+        events.emit('update-object', groupId, objId, {
+          [key]: parseFloat(e.target.value),
+        });
+      });
+    }
   
     $('#object-color')
     .val(intToHex(objData.fill))
@@ -74,10 +88,19 @@ const select = (groupId, objId, groupData, objData) => {
     .off().click(() => {
       events.emit('remove-object', groupId, objId);
     });
+
+    $('#object-duplicate')
+    .off().click(() => {
+      const newObjData = { ...objData };
+      newObjData.x += 10; // TODO: use snap instead of 10
+      newObjData.y += 10;
+      events.emit('add-object', groupId, groupData, null, newObjData);
+    });
+    
   } else {
-    $('#type-settings').css('display', 'block');
-    $('#object-settings').css('display', 'none');
-    $group.css('background-color', '#50e283');
+    $('#type-settings').show();
+    $('#object-settings').hide();
+    $group.addClass('selected');
   }
 };
 
@@ -157,10 +180,14 @@ const listeners = {
       text = text.replace(new RegExp(`${key}:.*?,`), `${key}: ${newData[key]},`);
     }
     $el.text(text);
+
+    for (let key in newData) {
+      $(`#object-${key}`).val(newData[key]);
+    }
   },
 
   // 'update-group': (groupId, newData) => {
-    
+
   // },
 
   select,
@@ -178,13 +205,18 @@ const listeners = {
 };
 
 const updateOption = (option, subOption) => e => {
-  const val = e.target.type === 'number' && e.target.value !== 'number' ? parseInt(e.target.value, 10) : e.target.value;
+  let val = e.target.value;
+  if (e.target.type === 'number' && typeof val !== 'number') val = parseFloat(val);
+  else if (e.target.type === 'color' && typeof val === 'string') val = hexToInt(val);
+
   events.broadcast('update-option', option, val, subOption);
 };
 
 const bindOptionChange = (option, initialValue, subOption) => {
-  $(`#opt-${option}${subOption ? `-${subOption}` : ''}`)
-  .val(initialValue)
+  const $el = $(`#opt-${option}${subOption ? `-${subOption}` : ''}`);
+
+  $el
+  .val($el.attr('type') === 'color' && typeof initialValue === 'number' ? intToHex(initialValue) : initialValue)
   .change(updateOption(option, subOption));
 };
 
@@ -214,13 +246,8 @@ const init = (options) => {
     }
   }
 
-  // Only allow number inputs to be multiples of snap
-  // $('#opt-snap').change(e => {
-  //   $('snap-numbers').attr('snap', e.target.value);
-  // });
-    
   $('#new-type-button').click(() => {
-    let name = prompt('Enter new object type name:');
+    const name = prompt('Enter new object type name:');
 
     if (name) {
       // TODO: don't use middleware to create id?

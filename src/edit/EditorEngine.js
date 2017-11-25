@@ -2,13 +2,12 @@ import * as Pixi from 'pixi.js';
 
 import Colors from './Colors';
 import EE from './EventEmitter';
-import { hexToInt } from '../utils/convert';
 
 const events = new EE();
 
-const update = obj => events.broadcast('update-object', obj.group, obj.id, {
+const update = (obj, silent) => events.broadcast('update-object', obj.group, obj.id, {
   x: obj.x, y: obj.y, w: obj.w, h: obj.h,
-});
+}, silent);
 
 // Add shaded rectangles over the unplayable region of the map
 // Add grid lines
@@ -62,8 +61,6 @@ class Engine {
     this.app = new Pixi.Application({
       width: this.width,
       height: this.height,
-      // antialias: true,
-      // transparent: true,
     });
 
     parent.appendChild(this.app.view);
@@ -85,6 +82,12 @@ class Engine {
     this.lockSelect = false; // When true, objects won't be selected.
 
     this.bindListeners();
+
+    window.addEventListener('resize', () => {
+      this.width = parent.clientWidth;
+      this.height = parent.clientHeight;
+      this.app.renderer.resize(this.width, this.height);
+    });
 
   }
 
@@ -199,7 +202,7 @@ class Engine {
   }
 
   setBackgroundColor = () => {
-    this.grid.tint = hexToInt(this.options.backgroundColor);
+    this.grid.tint = this.options.backgroundColor || 0xFFFFFF;
   }
 
   start = () => {
@@ -277,6 +280,9 @@ class Engine {
     obj.shape = obj.graphicsData[0].shape;
 
     obj.resize = (width, height) => {
+
+      width = typeof width === 'number' ? width : obj.w;
+      height = typeof height === 'number' ? height : obj.h;
       obj.hitArea = getHitArea(width, height);
 
       obj.shape.x = obj.hitArea.x;
@@ -288,6 +294,8 @@ class Engine {
       obj.h = height;
       obj.dirty++;
       obj.clearDirty++;
+
+      this.resetControlPositions(obj);
     };
 
     obj.translate = (xp, yp) => {
@@ -428,6 +436,9 @@ class Engine {
     obj.dragging = true;
     obj.data = event.data;
     obj.offset = event.data.getLocalPosition(obj); // Mouse offset within obj.
+
+    obj.startX = obj.x;
+    obj.startY = obj.y;
   }
   dragMove = (obj) => {
     if (obj.dragging) {
@@ -439,6 +450,12 @@ class Engine {
       if (obj !== this.container) {
         newPosition.x = Math.floor(newPosition.x / this.options.snap) * this.options.snap;
         newPosition.y = Math.floor(newPosition.y / this.options.snap) * this.options.snap;
+
+        if (newPosition.x === obj.startX && newPosition.y === obj.startY) {
+          obj.shouldUpdate = false;
+        } else {
+          obj.shouldUpdate = true;
+        }
 
         // Check bounds and clamp
         const maxWidth = this.options.bounds.w + (this.options.bounds.x * 2);
@@ -460,9 +477,9 @@ class Engine {
 
       if (obj.isControl) {
         this.resizeParent(obj);
-        update(obj.parent);
+        update(obj.parent, true);
       } else if (obj !== this.container) {
-        update(obj);
+        update(obj, true);
       }
 
     }
@@ -535,22 +552,17 @@ class Engine {
     // Clamp to minimum height.
     if (newSize.height < this.options.snap) { newSize.height = this.options.snap; }
 
-    events.broadcast('update-object', obj.group, obj.id, {
-      x: newPosition.x, y: newPosition.y, w: newSize.width, h: newSize.height,
-    }, true);
-
     obj.translate(newPosition.x, newPosition.y);
     obj.resize(newSize.width, newSize.height);
-    this.resetControlPositions(obj);
   }
   dragEnd = (obj) => {
     obj.alpha = 1.0;
     obj.dragging = false;
 
-    if (obj.isControl) {
+    if (obj.isControl && obj.shouldUpdate) {
       this.resizeParent(obj);
       update(obj.parent);
-    } else if (obj !== this.container) {
+    } else if (obj !== this.container && obj.shouldUpdate) {
       update(obj);
     }
   }
