@@ -17,9 +17,9 @@ block page_content
 
   .layers
     .layer
-      .columns.edit-body
-        .column.is-2.sidebar
-          .settings-panel.panel
+      .edit-body
+        .edit-sidebar
+          .panel
             p.panel-heading Settings
             p.panel-tabs
               a#object-tab.is-active Objects
@@ -44,26 +44,10 @@ block page_content
                           type="number"
                           value="0"
                         )
-        .column.is-8.root-column#root
-        .column.is-2
+        #root
+        .edit-sidebar
           #grid-settings.panel
             p.panel-heading Grid
-            .grid-block.panel-block
-              .field.is-horizontal
-                .field-label.is-small
-                  label.label(
-                    for="opt-snap"
-                  ) Spacing
-                .field-body
-                  .field
-                    .control
-                      input.input.is-small(
-                        id="opt-snap"
-                        max="100"
-                        name="snap"
-                        type="number"
-                        value="10"
-                      )
             each arr in [['x', 'y'], ['w', 'h']]
               .grid-block.panel-block(style="border-bottom: none;")
                 .field.is-horizontal
@@ -74,7 +58,7 @@ block page_content
                       .field-body(style="flex-grow: 3;")
                         .field
                           .control
-                            input.input.is-small(
+                            input.input.is-small.is-expanded(
                               id=optionId
                               name=optionId
                               type="number"
@@ -82,12 +66,28 @@ block page_content
                             )
             .grid-block.panel-block(style="border-top: 1px solid #dbdbdb;")
               .field.is-horizontal
-                .field-label.is-small
+                .field-label.is-small(style="flex-grow: 5;")
+                  label.label(
+                    for="opt-snap"
+                  ) Spacing
+                .field-body
+                  .field
+                    .control
+                      input.input.is-small.is-expanded(
+                        id="opt-snap"
+                        max="100"
+                        name="snap"
+                        type="number"
+                        value="10"
+                      )
+            .grid-block.panel-block
+              .field.is-horizontal
+                .field-label.is-small(style="flex-grow: 5;")
                   label.label(for="opt-backgroundColor") Background Color
                 .field-body
                   .field
                     .control
-                      input.input.is-small(
+                      input.input.is-small.is-expanded(
                         id="opt-backgroundColor"
                         name="opt-backgroundColor"
                         type="color"
@@ -99,13 +99,15 @@ block page_content
               .field.is-horizontal
                 .field-label.is-small
                   label.label(for="type-color") Type Color
-                .control
-                  input(
-                    type="color"
-                    name="type-color"
-                    id="type-color"
-                    value="#FFFFFF"
-                  )
+                .field-body
+                  .field
+                    .control
+                      input.input.is-small(
+                        type="color"
+                        name="type-color"
+                        id="type-color"
+                        value="#FFFFFF"
+                      )
             .panel-block
               .field.is-horizontal
                 .field-label.is-small(style="flex-grow: 5;")
@@ -131,17 +133,35 @@ block page_content
                   ) Delete
           #object-settings.panel
             p.panel-heading Object Settings
-            .panel-block
+            each arr in [['x', 'y'], ['w', 'h']]
+              .grid-block.panel-block(style="border-bottom: none;")
+                .field.is-horizontal
+                  each prop in arr
+                    - const optionId = `object-${prop}`;
+                      .field-label.is-small(style = "margin-right: 0.5rem;")
+                        label.label(for=optionId)= prop.toUpperCase()
+                      .field-body(style="flex-grow: 3;")
+                        .field
+                          .control
+                            input.input.is-small(
+                              id=optionId
+                              name=optionId
+                              type="number"
+                              value="0"
+                            )
+            .panel-block(style="border-top: 1px solid #dbdbdb;")
               .field.is-horizontal
                 .field-label.is-small
                   label.label(for="object-color") Object Color
-                .control
-                  input(
-                    type="color"
-                    name="object-color"
-                    id="object-color"
-                    value="#FFFFFF"
-                  )
+                .field-body
+                  .field
+                    .control
+                      input.input.is-small(
+                        type="color"
+                        name="object-color"
+                        id="object-color"
+                        value="#FFFFFF"
+                      )
             .panel-block
               .field.is-horizontal
                 .field-label.is-small(style="flex-grow: 5;")
@@ -161,3 +181,7 @@ block page_content
                   button.button.is-small(
                     id="object-delete"
                   ) Delete
+                .control
+                  button.button.is-small(
+                    id="object-duplicate"
+                  ) Duplicate

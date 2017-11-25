@@ -7,6 +7,8 @@ block page_content
   .layers
     .layer(id=self.rootId)
     .layer#loading
-      div
-        progress.progress.is-success#loading-progress(value="25" max="100") 25%
-        h4#loading-label Loading JS
+      section.hero.is-black.is-fullheight
+        .hero-body
+          .container
+            //- progress#loading-progress.progress.is-success(value="25" max="100") 25%
+            #loading-label.has-text-centered Loading Js...
