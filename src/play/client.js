@@ -25,6 +25,11 @@ let socket,
 // })));
 
 const createLevel = (groups = {}, objects = {}) => {
+
+  if (Array.isArray(groups) || Array.isArray(objects)) {
+    return Promise.reject('Incorrect data type Array for objects and/or groups');
+  }
+
   for (let groupId in groups) {
     if (groups.hasOwnProperty(groupId)) {
 
@@ -41,6 +46,7 @@ const createLevel = (groups = {}, objects = {}) => {
       }
     }
   }
+  
   return Promise.resolve();
 };
 
@@ -124,17 +130,12 @@ export const connect = id => new Promise((resolve, reject) => {
     const { x, y, w, h } = data.users[userId];
 
     engine.setup(data.gameData.options, x + (w / 2), y + (h / 2))
-    .then(() => {
-      resolve();
-
-      createLevel(data.gameData.groups, data.gameData.objects)
-      .then(() => addPlayers(data.users))
-      .then(() => applyChanges(data.gameData.objChanges))
-      .then(() => bindHandlers())
-      .then(() => engine.resume())
-      .catch(console.error);
-
-    })
+    .then(() => createLevel(data.gameData.groups, data.gameData.objects))
+    .then(() => addPlayers(data.users))
+    .then(() => applyChanges(data.gameData.objChanges))
+    .then(() => bindHandlers())
+    .then(() => engine.resume())
+    .then(resolve)
     .catch(reject);
   });
 

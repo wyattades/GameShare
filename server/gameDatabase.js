@@ -27,34 +27,34 @@ module.exports = (create, destroy) => {
     });
   };
 
-  // Game info added event
   gamesInfo.on('child_added', snapshot => {
-    // const game = snapshot.val();
     const id = snapshot.key;
+    const status = snapshot.child('status').val();
 
-    // Start games when starting node server
-    // if (game.status === 'running') {
-    //   fetchAndCreate(id);
-    // }
+    if (status === 'running') {
+      fetchAndCreate(id);
+    }
+  });
 
-    // Listen for game status changes
-    snapshot.ref.child('status').on('value', snap => {
-      const status = snap.val();
+  gamesInfo.on('child_changed', snapshot => {
+    const id = snapshot.key;
+    const status = snapshot.child('status').val();
 
-      if (status === 'running') {
-        fetchAndCreate(id);
-      } else if (status === 'stopped') { // FIXME: this is called when the server starts as well
-        destroy(id);
-      }
-    });
+    if (status === 'running') {
+      fetchAndCreate(id);
+    } else if (status === 'stopped') {
+      destroy(id);
+    } else {
+      console.log('Unknown status!');
+    }
   });
 
   // Destroy game server if game info is removed and it's status was running
   gamesInfo.on('child_removed', snapshot => {
-    const game = snapshot.val();
     const id = snapshot.key;
+    const status = snapshot.child('status').val();
 
-    if (game.status === 'running') {
+    if (status === 'running') {
       destroy(id);
     }
   });
