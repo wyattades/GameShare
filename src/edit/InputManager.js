@@ -21,6 +21,8 @@ const translate = ([dx, dy, scaleFactor]) => scaleFactor ?
   events.emit('zoom', canvas.clientWidth / 2, canvas.clientHeight / 2, scaleFactor) :
   events.emit('translate', dx, dy);
 
+const selected = {};
+
 export default () => {
 
   document.addEventListener('keydown', e => {
@@ -29,6 +31,9 @@ export default () => {
       // keys[e.key] = true;
       // events.emit('translate', ...keys[key]);
       translate(keys[key]);
+    } else if (key === 46) { // DEL
+      if (selected.objId) events.emit('remove-object', selected.groupId, selected.objId);
+      else if (selected.groupId) events.emit('remove-group', selected.groupId);
     }
   });
 
@@ -40,6 +45,11 @@ export default () => {
 
   canvas.addEventListener('mousewheel', e => {
     events.emit('zoom', e.offsetX, e.offsetY, 1 + (e.deltaY * SCROLL_FACTOR));
+  });
+
+  events.on('select', (groupId, objId) => {
+    selected.groupId = groupId;
+    selected.objId = objId;
   });
 
 };
