@@ -106,17 +106,17 @@ const select = (groupId, objId, groupData, objData) => {
 
 // Handles displaying content for editor tabs
 // TODO: do this without iteration (using jquery magic)
-const tabs = ['object', 'level'];
+const tabs = ['objects', 'level'];
 const onClickTab = tab => () => {
-  events.emit('select');
-
+  // events.emit('select');
+  
   for (let _tab of tabs) {
     if (tab === _tab) {
       $(`#${_tab}-tab`).addClass('is-active');
-      $(`.${_tab}-block`).css('display', 'flex');
+      $(`#${_tab}-settings`).show();
     } else {
       $(`#${_tab}-tab`).removeClass('is-active');
-      $(`.${_tab}-block`).css('display', 'none');
+      $(`#${_tab}-settings`).hide();
     }
   }
 };
@@ -142,7 +142,7 @@ const addGroup = (groupId, groupData) => {
   const groupHTML = typeTemplate(groupData);
 
   $(groupHTML)
-  .insertBefore('#new-buttons')
+  .appendTo('#object-list')
   .attr('data-group', groupId)
   .click(() => events.emit('select', groupId))
   .on('click', '.new-rect-button', () => {

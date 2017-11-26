@@ -122,7 +122,9 @@ $facebook-color: #3B5998;
 }
 
 // Initial hidden elements
-.level-block, #object-settings, #type-settings { display: none; }
+#level-settings, #object-settings, #type-settings {
+  display: none;
+}
 
 .edit-body {
 
@@ -133,19 +135,56 @@ $facebook-color: #3B5998;
   .edit-sidebar {
     display: flex;
     flex: 0 1 250px;
-    overflow-y: auto;    
-    & > .panel {
+
+    .panel {
       width: 100%;  
+      display: flex;
+      flex: 1;
+      flex-direction: column;
+    }
+
+    .panel-block, .panel-heading, .panel-tabs {
+      border-radius: 0;
+      border-left: none;
+      border-right: none;
+      border-top: none;
+    }
+
+    &:first-of-type {
+      border-right: 1px solid $border;
+    }
+    &:last-of-type {
+      border-left: 1px solid $border;
     }
   }
 
   #root {
     display: flex;
     flex: 1;
-    border-color: $border;
-    border-width: 1px 0;
     overflow: hidden;
   }
+}
+
+#objects-settings {
+  display: flex;
+  flex-direction: column;
+  flex: 1;  
+}
+
+#object-list-container {
+  display: flex;
+  flex: 1;
+  position: relative;
+  border-bottom: 1px solid $border;
+}
+
+#object-list {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  overflow-y: scroll;  
 }
 
 // --- Edit and Play pages

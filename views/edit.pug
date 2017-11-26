@@ -22,34 +22,37 @@ block page_content
           .panel
             p.panel-heading Settings
             p.panel-tabs
-              a#object-tab.is-active Objects
+              a#objects-tab.is-active Objects
               a#level-tab Level
-            .object-block.panel-block(
-              id="new-buttons"
-              style="justify-content: space-around;"
-            )
-              button.button.is-small#new-type-button New Type
-            each option in options  
-              - const optionId = `opt-${option[0]}`;
-              .level-block.panel-block
-                .field.is-horizontal
-                  .field-label.is-small(style="flex-grow: 5;")
-                    label.label(for=optionId)= option[1]
-                  .field-body
-                    .field
-                      .control
-                        input.input.is-small.is-expanded(
-                          id=optionId
-                          name=optionId
-                          type="number"
-                          value="0"
-                        )
+            #objects-settings
+              #object-list-container
+                #object-list
+              .panel-block(
+                style="justify-content: space-around"
+              )
+                button.button.is-small#new-type-button New Type
+            #level-settings
+              each option in options  
+                - const optionId = `opt-${option[0]}`;
+                .panel-block
+                  .field.is-horizontal
+                    .field-label.is-small(style="flex-grow: 5;")
+                      label.label(for=optionId)= option[1]
+                    .field-body
+                      .field
+                        .control
+                          input.input.is-small.is-expanded(
+                            id=optionId
+                            name=optionId
+                            type="number"
+                            value="0"
+                          )
         #root
         .edit-sidebar
           #grid-settings.panel
             p.panel-heading Grid
             each arr in [['x', 'y'], ['w', 'h']]
-              .grid-block.panel-block(style="border-bottom: none;")
+              .panel-block(style="border-bottom: none;")
                 .field.is-horizontal
                   each prop in arr
                     - const optionId = `opt-bounds-${prop}`;
@@ -64,7 +67,7 @@ block page_content
                               type="number"
                               value="0"
                             )
-            .grid-block.panel-block(style="border-top: 1px solid #dbdbdb;")
+            .panel-block(style="border-top: 1px solid #dbdbdb;")
               .field.is-horizontal
                 .field-label.is-small(style="flex-grow: 5;")
                   label.label(
@@ -80,7 +83,7 @@ block page_content
                         type="number"
                         value="10"
                       )
-            .grid-block.panel-block
+            .panel-block
               .field.is-horizontal
                 .field-label.is-small(style="flex-grow: 5;")
                   label.label(for="opt-backgroundColor") Background Color
