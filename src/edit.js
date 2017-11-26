@@ -3,6 +3,7 @@ import { createGame, assertLoggedIn, fetchGame } from './utils/db';
 import UI from './edit/UI';
 import Data from './edit/DataManager';
 import Engine from './edit/EditorEngine';
+import Input from './edit/InputManager';
 
 // Get gameId from url
 const urlMatch = window.location.pathname.match(/[^/]+/g);
@@ -54,6 +55,7 @@ assertLoggedIn()
   
   new Engine(document.getElementById('root'), initialData.options);
   UI(initialData.options);
+  Input();
   Data(initialData, gameId);
 
 })
