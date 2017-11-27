@@ -4,7 +4,7 @@ import 'expose-loader?p2!phaser-ce/build/custom/p2.js';
 import 'expose-loader?Phaser!phaser-ce/build/custom/phaser-split.js'; /* global Phaser */
 /* eslint-enable */
 
-import { sendUpdate, sendShoot, sendHit } from './client';
+import { sendUpdate, sendShoot, sendHit, sendSpike, respawnPlayer } from './client';
 import * as physics from './physics';
 
 const DEV = process.env.NODE_ENV === 'development';
@@ -34,6 +34,7 @@ let nextFire = 0,
 
 const GUN_LENGTH = 48;
 const GUN_BODY_RATIO = 0.25;
+const BULLET_DMG = 1;
 
 const parent = document.getElementById('root');
 // const grandParent = parent.parentElement;
@@ -100,7 +101,31 @@ const createCircle = ({ x, y, r = 1, fill, stroke }) => {
 
   return graphic;
 };
-
+const createEllipse = ({ x, y, w = 1, h = 1, fill, stroke, objId }) => {
+  x += w / 2;
+  y += h / 2;
+  
+  // Create bitmap graphic.
+  // Based on example at: https://phaser.io/examples/v2/sprites/sprite-from-bitmapdata
+  const bmd = game.add.bitmapData(w, h);
+  bmd.ctx.beginPath();
+  bmd.ctx.ellipse(w/2, h/2, w/2, h/2,0,0,  Math.PI*2);
+  bmd.ctx.strokeStyle = intToHex(stroke);
+  bmd.ctx.fillStyle = intToHex(fill);
+  bmd.ctx.fill();
+  
+  const sprite = game.add.sprite(x, y, bmd);
+  sprite.data.id = objId;
+  
+  // TODO: destructible variables should be defined by group, not the color red.
+  let color = intToHex(fill);
+  sprite.data.destructible = (color === '#ff0000');
+  if (sprite.data.destructible) {
+    sprite.maxHealth = 2;
+    sprite.setHealth(2);
+  }
+  return sprite;
+}
 const generateTextures = () => {
 
   // Create textures from temporary graphics objects
@@ -137,7 +162,7 @@ const generateTextures = () => {
   createTexture(bulletGraphic, 'bullet');
 };
 
-const createSpike = (graphic,x,y) => {
+const createSpike = (graphic,x,y,dmg) => {
   textures['spike'] = graphic.generateTexture();
   //graphic.destroy();
   var spike=spikes.create(x, y, textures.spike);
@@ -147,15 +172,13 @@ const createSpike = (graphic,x,y) => {
 	if (collider.name === 'player') {
        console.log(`Player hit: ${collider.id}`);
 	   const plyr = playerMap[collider.id];
-	   if (plyr) {
-		  plyr.kill();
-	      game.time.events.add(respawn_timer, respawn, this, collider.id).autoDestroy = true;
-	   } else {
-		  console.log(`Invalid despawnPlayer: ${id}`);
-	  }
+	   sendSpike({
+             player: collider.id,
+       });
 	}
   });
 };
+
 const create = (focusX, focusY) => {
 
   window.addEventListener('resize', () => {
@@ -239,7 +262,10 @@ const create = (focusX, focusY) => {
   });
 
   spikes = game.add.group();
-
+  var graphic = createCircle({r:100,fill:0xff0000});
+  createSpike(graphic,350,350,1);
+  createSpike(graphic,500,500,3);
+  graphic.destroy();
   const { x, y, w, h } = options.bounds;
 
   game.world.setBounds(0, 0, w + (x * 2), h + (y * 2));
@@ -257,7 +283,7 @@ export const addPlayer = (id, data) => {
   if (playerMap.hasOwnProperty(id)) {
     console.log(`Invalid addPlayer: ${id}`);
   } else {
-
+	
     const { x, y, color } = data;
     const { width, height } = textures.player;
 
@@ -267,7 +293,6 @@ export const addPlayer = (id, data) => {
 
     // Store player id
     plyr.id = id;
-
     // Store player reference
     playerMap[id] = plyr;
   }
@@ -328,9 +353,9 @@ export const initUser = id => {
       if (collider.name === 'player') {
         console.log(`Player hit: ${collider.id}`);
         bullet.kill();
-        sendHit({
-          index: i,
-          player: collider.id,
+		sendHit({
+             index: i,
+             player: collider.id,
         });
       } else if (collider.name === 'bullet') {
         // We don't immediately kill the bullet here because we want to make sure
@@ -370,7 +395,7 @@ export const initUser = id => {
 };
 
 export const removeBullet = (id, data) => {
-
+  if (data.index === null) return;
   const { index } = data;
 
   if (!playerMap.hasOwnProperty(id) || typeof index !== 'number' || index >= options.maxBulletsPerPlayer) {
@@ -432,10 +457,17 @@ export const despawnPlayer = ({ index, player: id }) => {
   }
 };
 
+export const shootPlayer = ({ index, player: id }) => {
+  const plyr = playerMap[id];
+  
+};
 
 function respawn(id) {
   const plyr = playerMap[id];
   plyr.reset(boundary.left + Math.random() * boundary.width, boundary.top + Math.random() * boundary.height);
+  respawnPlayer({
+     //data goes here	  
+  });
 }
 
 export const createGroup = () => {
@@ -446,9 +478,15 @@ export const createGroup = () => {
 
   return {
     add: obj => {
+	  if (obj.shape == "ellipse") {
+	  const ellipse = createEllipse(obj);
+      physics.enablePhysics(ellipse, 'ellipse');
+      group.add(ellipse);
+	  } else {
       const wall = createWall(obj);
       physics.enablePhysics(wall, 'wall');
       group.add(wall);
+	  }
     },
 
     // TODO: is this necessary?
@@ -583,3 +621,4 @@ export const setup = (gameOptions, focusX, focusY) => new Promise((resolve, reje
 
   options = gameOptions;
 });
+
