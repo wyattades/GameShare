@@ -1,4 +1,4 @@
-export const generatePolygonFromEllipse = (x, y, w, h, numOfPoints = 10) => {
+export const generatePolygonFromEllipse = (w, h, numOfPoints = 10) => {
 
   const radiusX = w / 2;
   const radiusY = h / 2;
@@ -10,8 +10,8 @@ export const generatePolygonFromEllipse = (x, y, w, h, numOfPoints = 10) => {
 
   for (let a = 0; a < TWO_PI; a += delta) {
     points.push([
-      (radiusX * Math.cos(a)) + x,
-      (radiusY * Math.sin(a)) + y,
+      (radiusX * Math.cos(a)),
+      (radiusY * Math.sin(a)),
     ]);
   }
 

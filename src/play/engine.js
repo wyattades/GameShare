@@ -64,7 +64,7 @@ const intToHex = int => {
 };
 
 // Creates and returns a new Sprite wall object.
-const createWall = ({ x, y, w = 1, h = 1, fill, stroke, objId }) => {
+const createWall = ({ x, y, w = 1, h = 1, fill, stroke, objId, shape = "rect"}) => {
   x += w / 2;
   y += h / 2;
   
@@ -72,14 +72,21 @@ const createWall = ({ x, y, w = 1, h = 1, fill, stroke, objId }) => {
   // Based on example at: https://phaser.io/examples/v2/sprites/sprite-from-bitmapdata
   const bmd = game.add.bitmapData(w, h);
   bmd.ctx.beginPath();
-  bmd.ctx.rect(0, 0, w, h);
+  if (shape == "ellipse") {
+	bmd.ctx.ellipse(w/2, h/2, w/2, h/2, 0, 0,  Math.PI*2);
+  }
+  if (shape == "rect") {
+    bmd.ctx.rect(0, 0, w, h);
+  }
   bmd.ctx.strokeStyle = intToHex(stroke);
   bmd.ctx.fillStyle = intToHex(fill);
   bmd.ctx.fill();
   
   const sprite = game.add.sprite(x, y, bmd);
   sprite.data.id = objId;
-  
+  sprite.shape = shape;
+  sprite.w = w;
+  sprite.h = h;
   // TODO: destructible variables should be defined by group, not the color red.
   let color = intToHex(fill);
   sprite.data.destructible = (color === '#ff0000');
@@ -101,31 +108,7 @@ const createCircle = ({ x, y, r = 1, fill, stroke }) => {
 
   return graphic;
 };
-const createEllipse = ({ x, y, w = 1, h = 1, fill, stroke, objId }) => {
-  x += w / 2;
-  y += h / 2;
-  
-  // Create bitmap graphic.
-  // Based on example at: https://phaser.io/examples/v2/sprites/sprite-from-bitmapdata
-  const bmd = game.add.bitmapData(w, h);
-  bmd.ctx.beginPath();
-  bmd.ctx.ellipse(w/2, h/2, w/2, h/2,0,0,  Math.PI*2);
-  bmd.ctx.strokeStyle = intToHex(stroke);
-  bmd.ctx.fillStyle = intToHex(fill);
-  bmd.ctx.fill();
-  
-  const sprite = game.add.sprite(x, y, bmd);
-  sprite.data.id = objId;
-  
-  // TODO: destructible variables should be defined by group, not the color red.
-  let color = intToHex(fill);
-  sprite.data.destructible = (color === '#ff0000');
-  if (sprite.data.destructible) {
-    sprite.maxHealth = 2;
-    sprite.setHealth(2);
-  }
-  return sprite;
-}
+
 const generateTextures = () => {
 
   // Create textures from temporary graphics objects
@@ -261,10 +244,11 @@ const create = (focusX, focusY) => {
   });
 
   spikes = game.add.group();
+  /* test code for spikes
   var graphic = createCircle({r:100,fill:0xff0000});
   createSpike(graphic,350,350,1);
   createSpike(graphic,500,500,3);
-  graphic.destroy();
+  graphic.destroy();*/
   const { x, y, w, h } = options.bounds;
 
   game.world.setBounds(0, 0, w + (x * 2), h + (y * 2));
@@ -487,15 +471,9 @@ export const createGroup = () => {
 
   return {
     add: obj => {
-	  if (obj.shape == "ellipse") {
-	  const ellipse = createEllipse(obj);
-      physics.enablePhysics(ellipse, 'ellipse');
-      group.add(ellipse);
-	  } else {
-      const wall = createWall(obj);
-      physics.enablePhysics(wall, 'wall');
-      group.add(wall);
-	  }
+        const wall = createWall(obj);
+        physics.enablePhysics(wall, 'wall');
+        group.add(wall);
     },
 
     // TODO: is this necessary?
