@@ -62,6 +62,14 @@ export const enablePhysics = (obj, type) => {
       obj.body.addRectangle(thick, h + (thick * 2), -(w / 2) - (thick / 2), 0);
       obj.body.addRectangle(thick, h + (thick * 2), (w / 2) + (thick / 2), 0);
       break;
+      
+    //TESTING PARTICLES
+    case 'particle':
+      obj.body.mass = 0.1;
+      obj.body.damping = 0.5;
+      //obj.body.setCircle(obj.width / 2);
+      break;
+      
 
     default:
       throw new Error('Invalid type in enablePhysics()');

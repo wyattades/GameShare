@@ -1,4 +1,5 @@
 /* global Phaser */
+import * as physics from './physics';
 
 const makeParticleBitmap = (game, w = 10, h = 10) => {
   const bmd = game.add.bitmapData(w, h);
@@ -10,14 +11,13 @@ const makeParticleBitmap = (game, w = 10, h = 10) => {
   return bmd;
 };
 
+const enableParticlePhysics = (particle) => {
+  physics.enablePhysics(particle, 'particle');
+};
+
 
 export const addEmitter = (game, x, y) => {
-  // Adding a graphic for testing purposes
-  let w = 10;
-  let h = 10;
-  
-  const bmd = makeParticleBitmap(game);
-  const sprite = game.add.sprite(x, y, bmd);
+  const sprite = game.add.sprite(x, y, null);
   
   sprite.data.particles = [];
   sprite.data.nParticles = 0;
@@ -35,8 +35,9 @@ export const addEmitter = (game, x, y) => {
     const pbmd = makeParticleBitmap(game);
     const particle = game.make.sprite((Math.random() * 20) - 10, (Math.random() * 20) - 10, pbmd);
     particle.data.lifetimeMS = 0;
-    particle.data.lifetimeMax = 1000;
+    particle.data.lifetimeMax = 4000;
     
+    // Per-loop update function for particles, called by emitter object.
     particle.update = (elapsedMS) => {
       particle.data.lifetimeMS += elapsedMS;
       if (particle.data.lifetimeMS >= particle.data.lifetimeMax) {
@@ -44,6 +45,8 @@ export const addEmitter = (game, x, y) => {
       }
       return particle.data.deleteMe;
     };
+    
+    enableParticlePhysics(particle);
     
     sprite.addChild(particle);
   };
