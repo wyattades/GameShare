@@ -2,28 +2,36 @@ const socketIO = require('socket.io');
 const UUID = require('node-uuid');
 
 let io,
-    connections,
-    games;
+    connections;
+
+const games = {};
 
 const MAX_CONNECTIONS = 5;
 
 const createGameLoop = (fn, fps) => {
   
-  let delta,
-      lastUpdate = Date.now(),
-      now;
-
-  const intervalId = setInterval(() => {
-    now = Date.now();
-    delta = now - lastUpdate;
-    lastUpdate = now;
-
-    fn(delta / 16.66); // 16.66 is the deltaTime of client i.e. 60fps
-  }, 1000 / fps);
+  let intervalId;
 
   return {
+    start: () => {
+      if (intervalId) clearInterval(intervalId);
+
+      let delta,
+          lastUpdate = Date.now(),
+          now;
+
+      intervalId = setInterval(() => {
+        now = Date.now();
+        delta = now - lastUpdate;
+        lastUpdate = now;
+
+        fn(delta / 16.66); // 16.66 is the deltaTime of client i.e. 60fps
+      }, 1000 / fps);
+    },
+
     stop: () => {
-      clearInterval(intervalId);
+      if (intervalId) clearInterval(intervalId);
+      intervalId = null;
     },
   };
 };
@@ -74,9 +82,11 @@ class Game {
 
   update(delta) {
 
-    const update = {};
+    const ids = Object.keys(this.users);
 
-    for (let i = 0, ids = Object.keys(this.users); i < ids.length; i++) {
+    const update = {};
+    
+    for (let i = 0; i < ids.length; i++) {
       const user = this.users[ids[i]];
 
       // if (user.vx) user.x += user.vx * delta;
@@ -103,6 +113,10 @@ class Game {
       socket.emit('lobby_full');
       socket.disconnect(true);
       return;
+    }
+
+    if (this.connections === 0) {
+      this.gameLoop.start();
     }
 
     this.connections++;
@@ -166,6 +180,10 @@ class Game {
       socket.broadcast.emit('user_disconnect', userId);
   
       delete this.users[userId];
+
+      if (this.connections <= 0) {
+        this.gameLoop.stop();
+      }
     });
   
     socket.on('update', (id, data) => {
@@ -222,11 +240,8 @@ module.exports = server => {
 
   io = socketIO(server);
   connections = 0;
-
-  // TODO: handle connection to invalid game id
-
-  games = {};
-
+  
+  // Handle connection to invalid game id
   io.on('connection', socket => {
     const game_id = socket.handshake.query.game_id;
     if (!game_id || !games.hasOwnProperty(game_id)) {
@@ -260,6 +275,11 @@ module.exports = server => {
       console.log(`A game with id ${id} does not exist`);
     }
   };
+
+  // Destroy previous games
+  for (let id in games) {
+    app.destroy(id);
+  }
 
   return app;
 };
