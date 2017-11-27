@@ -51,7 +51,13 @@ const addEntry = data => {
 
 assertLoggedIn()
 .then(fetchGames)
-.then(games => games.forEach(addEntry))
+.then(games => {
+  if (games.length === 0) {
+    parent.append('<div></div>');
+  } else {
+    games.forEach(addEntry);
+  }
+})
 .catch(err => {
   console.log('Games Page Error:', err);
 });

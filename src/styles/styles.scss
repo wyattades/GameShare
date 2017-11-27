@@ -97,7 +97,7 @@ $facebook-color: #3B5998;
 }
 
 #games_content:empty:after {
-  content: 'No games!';
+  content: 'Loading...';
   font-size: 24px;  
   text-align: center;
   width: 100%;
