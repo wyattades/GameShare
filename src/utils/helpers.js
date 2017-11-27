@@ -11,3 +11,20 @@ export const constrain = (val, min, max) => {
   if (val > max) return max;
   return val;
 };
+
+// Clone an object with at-most 2 layers
+export const deepClone = (obj) => {
+  const clone = {};
+
+  for (let key in obj) {
+    let val = obj[key];
+
+    if (typeof val === 'object') {
+      val = Object.assign({}, val);
+    }
+
+    clone[key] = val;
+  }
+
+  return clone;
+};

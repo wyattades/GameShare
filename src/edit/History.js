@@ -7,8 +7,8 @@ const events = new EE();
 
 let data;
 
-let historyIndex = -1;
-let history = [];
+let historyIndex = -1; // index in history array
+let history = []; // array of history objects
 
 const update = (redo, undo) => {
 
@@ -26,7 +26,8 @@ const update = (redo, undo) => {
     history.shift();
     historyIndex--;
   }
-
+  
+  // Let UI know that history was updated
   events.emit('history-limit', historyIndex <= -1, historyIndex >= history.length - 1);
 };
 
@@ -95,30 +96,16 @@ const listeners = {
   // TODO: set-name, update-object, editorengine color updates
 
   history: (delta) => {
-    // const newIndex = constrain(historyIndex + delta, -1, history.length - 1);
-    // const diff = newIndex - historyIndex;
-    // console.log(history, historyIndex, newIndex);
-    // if (diff < 0) {
-    //   for (; historyIndex > newIndex; historyIndex--) {
-    //     console.log(history[historyIndex].undo);
-    //     events.broadcast(...history[historyIndex].undo);
-    //   }
-    // } else if (diff > 0) {
-    //   for (; historyIndex < newIndex; historyIndex++) {
-    //     console.log(history[historyIndex].redo);
-    //     events.broadcast(...history[historyIndex].redo);
-    //   }
-    // }
 
-    console.log(historyIndex, history);
-
-    if (delta === -1 && historyIndex > -1) { // undo
+    if (delta === -1 && historyIndex > -1) { // UNDO
 
       events.broadcast(...history[historyIndex--].undo);
 
-    } else if (delta === 1 && historyIndex < history.length - 1) { // redo
+    } else if (delta === 1 && historyIndex < history.length - 1) { // REDO
 
       const redo = history[++historyIndex].redo;
+
+      // Allow array of arrays if there are multiple actions to take
       if (Array.isArray(redo[0])) {
         for (let _redo of redo) {
           events.broadcast(..._redo);
@@ -128,6 +115,7 @@ const listeners = {
       }
     }
 
+    // Let UI know that history was updated
     events.emit('history-limit', historyIndex <= -1, historyIndex >= history.length - 1);
   },
 
