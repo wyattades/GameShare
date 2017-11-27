@@ -88,7 +88,7 @@ const createWall = ({ x, y, w = 1, h = 1, fill, stroke, objId }) => {
     sprite.setHealth(2);
   }
   
-  particles.addEmitter(game, x, y); //TESTING
+  particles.addEmitter(game, x + 150, y + 150); //TESTING
   
   return sprite;
 };

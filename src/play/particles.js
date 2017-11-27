@@ -11,31 +11,38 @@ const makeParticleBitmap = (game, w = 10, h = 10) => {
   return bmd;
 };
 
-const enableParticlePhysics = (particle) => {
-  physics.enablePhysics(particle, 'particle');
-};
-
-
 export const addEmitter = (game, x, y) => {
-  const sprite = game.add.sprite(x, y, null);
+  const emitter = game.add.sprite(x, y, null);
   
-  sprite.data.particles = [];
-  sprite.data.nParticles = 0;
-  sprite.data.maxParticles = 10;
-  sprite.data.particleFrequency = 100; // How many ms between emissions?
-  sprite.data.sinceEmit = 0;
-  sprite.data.deleteMe = false;
+  emitter.data.particles = [];
+  emitter.data.nParticles = 0;
+  emitter.data.maxParticles = 10;
+  emitter.data.particleFrequency = 100; // How many ms between emissions?
+  emitter.data.sinceEmit = 0;
+  emitter.data.deleteMe = false;
   
-  // Build a particle sprite
-  sprite.emitParticle = () => {
-    if (sprite.data.nParticles >= sprite.data.maxParticles) return;
-    sprite.data.sinceEmit = 0;
-    sprite.data.nParticles++;
+  emitter.data.collisionGroup = game.physics.p2.createCollisionGroup();
+  emitter.data.selfCollision = false;
+  
+  // Build a particle emitter
+  emitter.emitParticle = () => {
+    if (emitter.data.nParticles >= emitter.data.maxParticles) return;
+    emitter.data.sinceEmit = 0;
+    emitter.data.nParticles++;
     
     const pbmd = makeParticleBitmap(game);
     const particle = game.make.sprite((Math.random() * 20) - 10, (Math.random() * 20) - 10, pbmd);
     particle.data.lifetimeMS = 0;
     particle.data.lifetimeMax = 4000;
+    
+    // Initialize physics
+    physics.enablePhysics(particle, 'particle');
+    particle.body.setCollisionGroup(emitter.data.collisionGroup);
+    if (emitter.data.selfCollision) {
+      particle.body.collides(emitter.data.collisionGroup);
+    }
+    particle.body.angle = Math.random() * 360;
+    particle.body.thrust(1000);
     
     // Per-loop update function for particles, called by emitter object.
     particle.update = (elapsedMS) => {
@@ -46,29 +53,27 @@ export const addEmitter = (game, x, y) => {
       return particle.data.deleteMe;
     };
     
-    enableParticlePhysics(particle);
-    
-    sprite.addChild(particle);
+    emitter.addChild(particle);
   };
   
-  sprite.update = () => {
+  emitter.update = () => {
     
-    sprite.data.sinceEmit += game.time.elapsedMS;
-    if (sprite.data.sinceEmit >= sprite.data.particleFrequency) {
-      sprite.data.sinceEmit = 0;
-      sprite.emitParticle();
+    emitter.data.sinceEmit += game.time.elapsedMS;
+    if (emitter.data.sinceEmit >= emitter.data.particleFrequency) {
+      emitter.data.sinceEmit = 0;
+      emitter.emitParticle();
     }
     
-    for (let i = 0, l = sprite.children.length; i < l; i++) {
-      const particle = sprite.children[i];
+    for (let i = 0, l = emitter.children.length; i < l; i++) {
+      const particle = emitter.children[i];
       const isFinished = particle.update(game.time.elapsedMS);
       if (isFinished) {
         particle.destroy();
-        sprite.data.nParticles--;
+        emitter.data.nParticles--;
         l--;
       }
     }
   };
   
-  return sprite;
+  return emitter;
 };

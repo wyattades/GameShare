@@ -67,7 +67,6 @@ export const enablePhysics = (obj, type) => {
     case 'particle':
       obj.body.mass = 0.1;
       obj.body.damping = 0.5;
-      //obj.body.setCircle(obj.width / 2);
       break;
       
 
