@@ -7,7 +7,6 @@ let io,
 
 const MAX_CONNECTIONS = 5;
 const PLAYER_MAX_HEALTH = 3; //TODO get from editor rules
-var timer;
 
 const createGameLoop = (fn, fps) => {
   
