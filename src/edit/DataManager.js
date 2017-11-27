@@ -1,5 +1,6 @@
 import { updateGame } from '../utils/db';
 import EE, { addMiddlewear } from './EventEmitter';
+import History from './History';
 
 const events = new EE();
 let data,
@@ -114,23 +115,37 @@ const listeners = {
     save();
   },
   'remove-object': (groupId, objId) => {
-    delete data.groups[data.objects[objId].group].objects[objId];
+    delete data.groups[groupId].objects[objId];
     delete data.objects[objId];
     save();
   },
 
   'update-object': (groupId, objId, newData, silent) => {
-    Object.assign(data.objects[objId], newData);
-    if (!silent) save();
+    if (!silent) {
+      const obj = data.objects[objId];
+      for (let key in newData) {
+        if (newData[key] === undefined) delete obj[key];
+        else obj[key] = newData[key];
+      }
+      
+      save();
+    }
   },
   'update-group': (groupId, newData) => {
-    Object.assign(data.groups[groupId], newData);
+    const group = data.groups[groupId];
+    for (let key in newData) {
+      if (newData[key] === undefined) delete group[key];
+      else group[key] = newData[key];
+    }
+
     save();
   },
 
   'update-option': (key, value, keyDeep) => {
     if (keyDeep) data.options[key][keyDeep] = value;
-    else data.options[key] = value;
+    else if (value !== undefined) data.options[key] = value;
+    else delete data.options[key];
+
     save();
   },
 
@@ -179,6 +194,8 @@ export default (_data, _gameId) => {
   gameId = _gameId;
 
   init();
+
+  History(data);
 
   for (let event in listeners) {
     events.on(event, listeners[event]);
