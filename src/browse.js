@@ -13,6 +13,6 @@ assertLoggedIn(false)
     parent.insertAdjacentHTML('beforeend', gameEntry(game));
   }
 
-  if (games.length === 0) parent.insertAdjacentHTML('beforeend', '<div></div>');
+  parent.classList.remove('loading');
 })
 .catch(console.error);
