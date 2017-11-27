@@ -10,9 +10,9 @@ let data,
 const roundInt = (val, round) => Math.round(val / round) * round;
 
 const getNewId = (type) => {
-  let prev = parseInt(data[type], 10);
+  let prev = parseInt(data[type].substring(1), 10);
   prev++;
-  data[type] = prev.toString();
+  data[type] = `_${prev}`;
   return data[type];
 };
 
@@ -168,6 +168,9 @@ const init = () => {
       events.broadcast('add-object', groupId, groupData, objId, objData);
     }
   }
+
+  // Select nothing
+  events.emit('select');
 };
 
 export default (_data, _gameId) => {

@@ -3,6 +3,12 @@
 // Bulma css framework
 @import './bulma';
 
+.logged-out {
+  display: none;
+}
+
+// --- Browse and My Games pages
+
 // Assert that cards are equal height
 .card {
   display: flex;
@@ -44,6 +50,8 @@
   background-repeat: no-repeat;  
 }
 
+// --- Home page
+
 #google-sign-in {
   font-weight: bold;  
   color: #888;
@@ -71,9 +79,7 @@ $facebook-color: #3B5998;
   border-top: 1px solid rgb(111, 188, 236);
 }
 
-.logged-out {
-  display: none;
-}
+// --- Edit page
 
 #game-name {
   font-weight: bold;  
@@ -90,68 +96,111 @@ $facebook-color: #3B5998;
   @include control;
 }
 
-// Loading indicator on a div
-div.is-loading {
-  position: relative;
-  pointer-events: none;
-  opacity: 0.5;
-  &:after {
-    @include loader;
-    position: absolute;
-    top: calc(50% - 2.5em);
-    left: calc(50% - 2.5em);
-    width: 5em;
-    height: 5em;
-    border-width: 0.25em;
+#games_content:empty:after {
+  content: 'No games!';
+  font-size: 24px;  
+  text-align: center;
+  width: 100%;
+  margin-top: 4em;
+}
+
+.root-column {
+  padding-left: 0;
+}
+
+.object, .group {
+  &:hover {
+    cursor: pointer;
+    border-left: 3px solid $info;
+  }
+  &.selected {
+    background-color: $grey-light;
+  }
+  &.secondary-selected {
+    background-color: $grey-lighter;
   }
 }
-.sidebar {
-  overflow-y: scroll;
-//   display: block!important;
-//   margin: 0.75em;
-//   padding-left: 0;
+
+// Initial hidden elements
+#level-settings, #object-settings, #type-settings {
+  display: none;
 }
 
-// .root-column {
-//   margin-top: 0.75em;
-//   margin-left: -1.25em;
-// }
+.edit-body {
 
-// .label { font-weight: $weight-medium; }
+  display: flex;
+  flex: 1;
+  flex-direction: row;
 
-// .is-grouped {
-//   margin-left: auto;
-//   margin-right: auto;
-// }
+  .edit-sidebar {
+    display: flex;
+    flex: 0 1 250px;
 
-// .type-name {
-//   padding-right: 0.5em;
-// }
+    .panel {
+      width: 100%;  
+      display: flex;
+      flex: 1;
+      flex-direction: column;
+    }
 
-.object-block:hover {
-  cursor: pointer !important;
+    .panel-block, .panel-heading, .panel-tabs {
+      border-radius: 0;
+      border-left: none;
+      border-right: none;
+      border-top: none;
+    }
+
+    &:first-of-type {
+      border-right: 1px solid $border;
+    }
+    &:last-of-type {
+      border-left: 1px solid $border;
+    }
+  }
+
+  #root {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+  }
 }
 
-.grid-block, .level-block, #object-settings, #type-settings { display: none; }
-
-// Mysterious CSS that makes the grid display- doesnt show up otherwise
-html, body, .edit-body { height: 100%; }
-
-// TODO: The following css is required in 'edit' and 'play'
-
-body {
+#objects-settings {
   display: flex;
   flex-direction: column;
-}
-html {
-  overflow-y: hidden;  
+  flex: 1;  
 }
 
-.layers {
+#object-list-container {
   display: flex;
   flex: 1;
   position: relative;
+  border-bottom: 1px solid $border;
+}
+
+#object-list {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  overflow-y: scroll;  
+}
+
+// --- Edit and Play pages
+
+// Mysterious CSS that makes the grid display- doesnt show up otherwise
+html, body, .edit-body {
+  height: 100%;
+}
+
+.layers {
+  position: relative;
   overflow: hidden;
+  height: calc(100% - #{$navbar-height});  
+  height: -o-calc(100% - #{$navbar-height}); /* opera */
+  height: -webkit-calc(100% - #{$navbar-height}); /* google, safari */
+  height: -moz-calc(100% - #{$navbar-height}); /* firefox */
 
   .layer {
     position: absolute;

@@ -240,12 +240,15 @@ module.exports = server => {
 
   app.create = (id, gameData) => {
     if (games.hasOwnProperty(id)) {
-      console.log(`A game with id ${id} already exists`);
+      games[id].stop();
+      console.log(`Restarted game: ${id}`);
     } else {
-      games[id] = new Game(id, gameData);
-      games[id].start();
       console.log(`Created game: ${id}`);
     }
+
+    games[id] = new Game(id, gameData);
+    games[id].start();
+    
   };
 
   app.destroy = id => {

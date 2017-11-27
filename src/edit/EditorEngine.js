@@ -1,20 +1,26 @@
 import * as Pixi from 'pixi.js';
+
 import Colors from './Colors';
 import EE from './EventEmitter';
 
 const events = new EE();
 
-const update = obj => events.broadcast('update-object', obj.group, obj.id, {
+const constrain = (val, min, max) => {
+  if (val < min) return min;
+  if (val > max) return max;
+  return val;
+};
+
+const update = (obj, silent) => events.broadcast('update-object', obj.group, obj.id, {
   x: obj.x, y: obj.y, w: obj.w, h: obj.h,
-});
+}, silent);
 
 // Add shaded rectangles over the unplayable region of the map
 // Add grid lines
-const drawGrid = (grid, snap, bounds) => {
-
-  grid.clear();
+const drawGrid = (sprite, snap, bounds) => {
   
-  const tint = Colors.GRID;
+  const grid = new Pixi.Graphics();
+  
   const w = (bounds.x * 2) + bounds.w;
   const h = (bounds.y * 2) + bounds.h;
 
@@ -22,28 +28,29 @@ const drawGrid = (grid, snap, bounds) => {
   grid.drawRect(0, 0, w, h);
   grid.endFill();
 
-  grid.lineStyle(0, 0, 0);
-  grid.beginFill(tint, 0.4);
+  grid.lineStyle();
+  grid.beginFill(Colors.GRID_LINE, 0.4);
   grid.drawRect(0, 0, w, bounds.y);
   grid.drawRect(0, bounds.y + bounds.h, w, bounds.y);
   grid.drawRect(0, bounds.y, bounds.x, bounds.h);
   grid.drawRect(bounds.x + bounds.w, bounds.y, bounds.x, bounds.h);
   grid.endFill();
 
-  grid.lineStyle(1, tint, 1);
   for (let x = 0; x <= w; x += snap) {
-    grid.lineStyle(x % 100 === 0 || x === w ? 2 : 1, tint, 1);
+    grid.lineStyle(x % 100 === 0 || x === w ? 2 : 1, Colors.GRID_LINE, 1);
     grid.moveTo(x, 0);
     grid.lineTo(x, h);
   }
   for (let y = 0; y <= h; y += snap) {
-    grid.lineStyle(y % 100 === 0 || y === h ? 2 : 1, tint, 1);
+    grid.lineStyle(y % 100 === 0 || y === h ? 2 : 1, Colors.GRID_LINE, 1);
     grid.moveTo(0, y);
     grid.lineTo(w, y);
   }
 
-  grid.lineStyle(2, Colors.BLUE, 1);
+  grid.lineStyle(2, Colors.GRID_BORDER, 1);
   grid.drawRect(bounds.x, bounds.y, bounds.w, bounds.h);
+
+  sprite.texture = grid.generateCanvasTexture();
 };
 
 class Engine {
@@ -60,7 +67,6 @@ class Engine {
     this.app = new Pixi.Application({
       width: this.width,
       height: this.height,
-      // transparent: true,
     });
 
     parent.appendChild(this.app.view);
@@ -71,16 +77,23 @@ class Engine {
 
     this.container = this.createObject({ x: 0, y: 0, w, h, draggable: true });
     this.app.stage.addChild(this.container);
-    this.grid = new Pixi.Graphics();
+    this.grid = new Pixi.Sprite();
     this.container.addChild(this.grid);
 
     this.options = options;
     this.resizeGrid();
+    this.setBackgroundColor();
 
     this.selectedObject = null; // The currently selected object.
     this.lockSelect = false; // When true, objects won't be selected.
 
     this.bindListeners();
+
+    window.addEventListener('resize', () => {
+      this.width = parent.clientWidth;
+      this.height = parent.clientHeight;
+      this.app.renderer.resize(this.width, this.height);
+    });
 
   }
 
@@ -155,6 +168,23 @@ class Engine {
           this.clearSelection();
         }
       },
+
+      translate: (dx, dy) => {
+        this.container.x -= dx;
+        this.container.y -= dy;
+      },
+
+      zoom: (x, y, scaleFactor) => {
+
+        const oldScale = this.container.scale.x;
+        const newScale = constrain(oldScale * scaleFactor, 0.3, 2.0);
+        
+        if (oldScale !== newScale) {
+          this.container.scale.set(newScale, newScale);
+          this.container.x = (scaleFactor * (this.container.x - x)) + x;
+          this.container.y = (scaleFactor * (this.container.y - y)) + y;
+        }
+      },
     };
 
     for (let event in listeners) {
@@ -177,6 +207,8 @@ class Engine {
     // Handle grid change
     if (key === 'bounds' || key === 'snap') {
       this.resizeGrid();
+    } else if (key === 'backgroundColor') {
+      this.setBackgroundColor();
     }
   }
   
@@ -190,6 +222,10 @@ class Engine {
     this.container.hitArea = new Pixi.Rectangle(0, 0, w, h);
 
     drawGrid(this.grid, this.options.snap, bounds);
+  }
+
+  setBackgroundColor = () => {
+    this.grid.tint = this.options.backgroundColor || 0xFFFFFF;
   }
 
   start = () => {
@@ -236,11 +272,11 @@ class Engine {
     return obj;
   };
 
-  createShape = ({ w = 1, h = 1, fill, stroke, shape = 'rect', borderRadius, ...rest }) => {
+  createShape = ({ w = 1, h = 1, fill, stroke, strokeWeight = 1, shape = 'rect', borderRadius = 0, ...rest }) => {
 
     const obj = this.createObject({ w, h, ...rest });
 
-    if (typeof stroke === 'number') obj.lineStyle(1, stroke, 1);
+    if (typeof stroke === 'number') obj.lineStyle(strokeWeight, stroke, 1);
     if (typeof fill === 'number') {
       obj.beginFill(0xFFFFFF);
       obj.tint = fill;
@@ -267,6 +303,10 @@ class Engine {
     obj.shape = obj.graphicsData[0].shape;
 
     obj.resize = (width, height) => {
+
+      width = typeof width === 'number' ? width : obj.w;
+      height = typeof height === 'number' ? height : obj.h;
+
       obj.hitArea = getHitArea(width, height);
 
       obj.shape.x = obj.hitArea.x;
@@ -278,6 +318,8 @@ class Engine {
       obj.h = height;
       obj.dirty++;
       obj.clearDirty++;
+
+      this.resetControlPositions(obj);
     };
 
     obj.translate = (xp, yp) => {
@@ -315,7 +357,10 @@ class Engine {
     this.groups[groupId].objects[objId] = obj;
   }
 
-  getSnapPosition = (pos) => Math.floor(pos / this.options.snap) * this.options.snap;
+  getSnapPosition = (pos) => {
+    if (this.options.snap <= 1) return Math.round(pos);
+    else return Math.round(pos / this.options.snap) * this.options.snap;
+  };
 
   // Add a new object group to the level.
   addGroup = (groupId, groupData) => {
@@ -343,9 +388,10 @@ class Engine {
           w: this.resizeControlSize,
           h: this.resizeControlSize,
           fill: Colors.CONTROL,
-          stroke: Colors.BLACK,
+          // stroke: Colors.BLACK,
+          // strokeWeight: 3,
           // shape: 'round_rect',
-          // borderRadius: 8,
+          // borderRadius: 2,
           draggable: true,
         });
         ctl.isControl = true;
@@ -416,19 +462,27 @@ class Engine {
       obj.alpha = 0.8;
     }
     obj.dragging = true;
-    obj.data = event.data;
     obj.offset = event.data.getLocalPosition(obj); // Mouse offset within obj.
+
+    obj.offset.x *= obj.scale.x;
+    obj.offset.y *= obj.scale.x;
+
+    obj.startX = obj.x;
+    obj.startY = obj.y;
   }
-  dragMove = (obj) => {
+  dragMove = (obj, event) => {
     if (obj.dragging) {
-      let newPosition = obj.data.getLocalPosition(obj.parent);
+
+      const newPosition = event.data.getLocalPosition(obj.parent);
 
       newPosition.x -= obj.offset.x;
       newPosition.y -= obj.offset.y;
 
       if (obj !== this.container) {
-        newPosition.x = Math.floor(newPosition.x / this.options.snap) * this.options.snap;
-        newPosition.y = Math.floor(newPosition.y / this.options.snap) * this.options.snap;
+
+        // Snap position to grid
+        newPosition.x = this.getSnapPosition(newPosition.x);
+        newPosition.y = this.getSnapPosition(newPosition.y);
 
         // Check bounds and clamp
         const maxWidth = this.options.bounds.w + (this.options.bounds.x * 2);
@@ -437,7 +491,6 @@ class Engine {
         } else if (newPosition.x + obj.w > maxWidth) {
           newPosition.x = maxWidth - obj.w;
         }
-
         const maxHeight = this.options.bounds.h + (this.options.bounds.y * 2);
         if (newPosition.y < 0) {
           newPosition.y = 0;
@@ -449,42 +502,37 @@ class Engine {
       obj.position.set(newPosition.x, newPosition.y);
 
       if (obj.isControl) {
-        this.resizeParent(obj);
-        update(obj.parent);
+        this.resizeParent(obj, event);
+        update(obj.parent, true);
       } else if (obj !== this.container) {
-        update(obj);
+        update(obj, true);
       }
 
     }
   }
-  resizeParent(control) {
-    let obj = control.parent,
-        dragPos = control.data.getLocalPosition(obj.parent),
-        newPosition = { x: 0, y: 0 },
-        newSize = { width: 0, height: 0 };
+  resizeParent(control, event) {
+    
+    const obj = control.parent,
+          dragOffset = event.data.getLocalPosition(control),
+          dragPos = event.data.getLocalPosition(obj.parent),
+          newSize = { width: obj.w, height: obj.h },
+          newPosition = { x: obj.x, y: obj.y };
 
-    dragPos.x = this.getSnapPosition(dragPos.x);
-    dragPos.y = this.getSnapPosition(dragPos.y);
+    dragOffset.x = constrain(dragOffset.x, 0, control.width);
+    dragOffset.y = constrain(dragOffset.y, 0, control.height);
 
     // Calculate new width.
     if (control.controlPosition.x === 0) {
       // This is a left-side control.
-      dragPos.x += control.width / 2; // Snap offset
-      newPosition.x = dragPos.x + (control.width / 2);
+      newPosition.x = this.getSnapPosition(dragPos.x + (control.width / 2));
 
-      // Clamp to dragging bounds (prevents sliding element):
-      let xMax = (obj.x + obj.w) - this.options.snap;
-      newPosition.x = Math.min(newPosition.x, xMax);
-
-      // Clamp to grid area.
-      let xMin = 0;
-      newPosition.x = Math.max(newPosition.x, xMin);
+      // Clamp to grid area and dragging bounds (prevents sliding element)
+      newPosition.x = constrain(newPosition.x, 0, (obj.x + obj.w) - this.options.snap);
 
       newSize.width = (obj.x + obj.w) - newPosition.x;
     } else {
       // This is a right-side control.
-      newPosition.x = obj.x;
-      newSize.width = dragPos.x - obj.x;
+      newSize.width = this.getSnapPosition(dragPos.x - (control.width / 2)) - obj.x;
 
       // Clamp to grid boundary width.
       const maxWidth = this.options.bounds.w + (this.options.bounds.x * 2);
@@ -499,23 +547,16 @@ class Engine {
     // Calculate new height.
     if (control.controlPosition.y === 0) {
       // This is a top control.
-      dragPos.y += control.height / 2; // Snap offset.
-      newPosition.y = dragPos.y + (control.height / 2);
+      newPosition.y = this.getSnapPosition(dragPos.y + (control.height / 2));
 
-      // Clamp to dragging bounds (prevents sliding element):
-      let yMax = (obj.y + obj.h) - this.options.snap;
-      newPosition.y = Math.min(newPosition.y, yMax);
-
-      // Clamp to grid area.
-      let yMin = 0;
-      newPosition.y = Math.max(newPosition.y, yMin);
+      // Clamp to grid area and dragging bounds (prevents sliding element)
+      newPosition.y = constrain(newPosition.y, 0, (obj.y + obj.h) - this.options.snap);
 
       newSize.height = (obj.y + obj.h) - newPosition.y;
     } else {
       // This is a bottom control.
-      newPosition.y = obj.y;
-      newSize.height = dragPos.y - obj.y;
-
+      newSize.height = this.getSnapPosition(dragPos.y - (control.height / 2)) - obj.y;
+      
       // Clamp to grid boundary height.
       const maxHeight = this.options.bounds.h + (this.options.bounds.y * 2);
       if (newPosition.y + newSize.height > maxHeight) {
@@ -525,23 +566,21 @@ class Engine {
     // Clamp to minimum height.
     if (newSize.height < this.options.snap) { newSize.height = this.options.snap; }
 
-    events.broadcast('update-object', obj.group, obj.id, {
-      x: newPosition.x, y: newPosition.y, w: newSize.width, h: newSize.height,
-    }, true);
-
     obj.translate(newPosition.x, newPosition.y);
     obj.resize(newSize.width, newSize.height);
-    this.resetControlPositions(obj);
   }
-  dragEnd = (obj) => {
+  dragEnd = (obj, event) => {
     obj.alpha = 1.0;
     obj.dragging = false;
 
-    if (obj.isControl) {
-      this.resizeParent(obj);
-      update(obj.parent);
-    } else if (obj !== this.container) {
-      update(obj);
+    // Only update if position changed
+    if (obj.x !== obj.startX || obj.y !== obj.startY) {
+      if (obj.isControl) {
+        this.resizeParent(obj, event);
+        update(obj.parent);
+      } else if (obj !== this.container) {
+        update(obj);
+      }
     }
   }
 

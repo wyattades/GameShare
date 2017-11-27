@@ -27,3 +27,8 @@ $navbar-height: 3.5em;
     cursor: no-drop;
   }
 }
+
+// Overwrite perpetual scrollbar
+html {
+  overflow-y: auto;
+}
