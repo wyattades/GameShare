@@ -46,6 +46,11 @@ export const enablePhysics = (obj, type) => {
       // obj.body.setRectangle(obj.width, obj.height); // might not be necessary
       break;
 
+	case 'ellipse':
+	  obj.body.static = true;
+	  //obj.body.setEllipse(obj.width, obj.height); //not a thing
+	  break;
+	  
     case 'boundary':
       obj.name = 'wall';
       obj.body.static = true;

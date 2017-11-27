@@ -78,10 +78,18 @@ const bindHandlers = () => {
 
   socket.on('bullet_hit', (id, data) => {
     engine.removeBullet(id, data);
-    engine.despawnPlayer(data);
+	if (data.despawn) {
+      engine.despawnPlayer(data);
+	}
     engine.damageWall(data);
   });
-
+  
+  socket.on('spike_hit', (id, data) => {
+	if (data.despawn) {
+      engine.despawnPlayer(data); 
+	}
+  });
+  
   return Promise.resolve();
 };
 
@@ -96,6 +104,14 @@ export const sendShoot = data => {
 
 export const sendHit = data => {
   socket.emit('bullet_hit', userId, data);
+};
+
+export const sendSpike = data => {
+  socket.emit('spike_hit', userId, data);	
+};
+
+export const respawnPlayer = data => {
+  socket.emit('respawn', userId, data);
 };
 
 export const connect = id => new Promise((resolve, reject) => {
