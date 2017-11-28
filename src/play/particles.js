@@ -1,29 +1,40 @@
 /* global Phaser */
 import * as physics from './physics';
 
-const makeParticleBitmap = (game, w = 5, h = 5) => {
+const _makeParticleBitmap = (game, size, stroke, fill) => {
+  let w = size,
+      h = size;
   const bmd = game.add.bitmapData(w, h);
   bmd.ctx.beginPath();
   bmd.ctx.rect(0, 0, w, h);
-  bmd.ctx.strokeStyle = '#00FF00'; // intToHex(stroke);
-  bmd.ctx.fillStyle = '#00FF00'; // intToHex(fill);
+  bmd.ctx.strokeStyle = stroke;
+  bmd.ctx.fillStyle = fill;
   bmd.ctx.fill();
   return bmd;
 };
 
-export const addEmitter = (game, x, y) => {
+// Create and add an emitter to the game. An emitter is an extended sprite used for particle effects.
+// dataOptions is an object holding modifications to the emitter's data object.
+const _addEmitter = (game, x, y, dataOptions = null) => {
   const emitter = game.add.sprite(x, y, null);
   
+  // setup
   emitter.data.particles = [];
-  emitter.data.nParticles = 0; // number of active particles.
-  emitter.data.maxParticles = 10;
-  emitter.data.particleFrequency = 0; // How many ms between emissions?
-  emitter.data.sinceEmit = 0;
-  
-  emitter.data.deleteMe = false;
-  
+  emitter.data.nParticles = 0; // Number of active particles.
+  emitter.data.sinceEmit = 0; // ms since last particle creation.
   emitter.data.collisionGroup = game.physics.p2.createCollisionGroup();
+  
+  // option defaults
+  emitter.data.maxParticles = 10;
+  emitter.data.particleFrequency = 0; // Number of ms between particles.
   emitter.data.selfCollision = false;
+  
+  // Particles are made with values returned from these functions.
+  emitter.data.pPos = () => ((Math.random() * 20) - 10); // Used for both x and y.
+  emitter.data.pSize = () => (Math.random() * 5); // Width and height, or radius.
+  emitter.data.pFill = () => '#00FF00';
+  emitter.data.pStroke = () => '#00FF00';
+  
   
   // Return true if not at particle limit.
   emitter.canEmitParticle = () => (emitter.data.nParticles < emitter.data.maxParticles);
@@ -33,8 +44,8 @@ export const addEmitter = (game, x, y) => {
     emitter.data.sinceEmit = 0;
     emitter.data.nParticles++;
     
-    const pbmd = makeParticleBitmap(game);
-    const particle = game.make.sprite((Math.random() * 20) - 10, (Math.random() * 20) - 10, pbmd);
+    const pbmd = _makeParticleBitmap(game, emitter.data.pSize(), emitter.data.pFill(), emitter.data.pStroke());
+    const particle = game.make.sprite(emitter.data.pPos(), emitter.data.pPos(), pbmd);
     particle.data.lifetimeMS = 0;
     particle.data.lifetimeMax = 4000;
     particle.data.finished = false; // Mark for deletion
@@ -81,5 +92,21 @@ export const addEmitter = (game, x, y) => {
     }
   };
   
+  if (dataOptions) Object.assign(emitter.data, dataOptions);
+  
   return emitter;
+};
+
+const burstOptions = {
+  maxParticles: 10,
+  particleFrequency: 0,
+  sinceEmit: 0,
+  selfCollision: false,
+};
+
+export const addEmitter = (game, x, y, template = null) => {
+  switch (template) {
+    case 'burst': return _addEmitter(game, x, y, burstOptions);
+    default: return _addEmitter(game, x, y);
+  }
 };

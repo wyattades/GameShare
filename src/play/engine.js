@@ -88,7 +88,6 @@ const createWall = ({ x, y, w = 1, h = 1, fill, stroke, objId }) => {
     sprite.setHealth(2);
   }
   
-  particles.addEmitter(game, x + 150, y + 150); //TESTING
   
   return sprite;
 };
@@ -398,6 +397,8 @@ export const addBullet = (id, data) => {
 
   bullet.body.rotation = angle;
   bullet.body.thrust(speed);
+  
+  const emitter = particles.addEmitter(game, bullet.x, bullet.y); //TESTING
 };
 
 // Returns the object with the given custom id.
