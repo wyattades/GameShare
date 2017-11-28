@@ -27,21 +27,19 @@ const _addEmitter = (game, x, y, dataOptions = null) => {
   emitter.data.lifetime = 0;
   
   // option defaults
-  emitter.data.maxParticles = 10;
+  emitter.data.nParticlesMax = 10;
   emitter.data.particleFrequency = 0; // Number of ms between particles.
   emitter.data.selfCollision = false;
-  emitter.data.maxLifetime = 1000;
+  emitter.data.lifetimeMax = 1000;
   
   // Particles are made with values returned from these functions.
+  emitter.data.pType = 'circle';
   emitter.data.pPos = () => ((Math.random() * 20) - 10); // Used for both x and y.
-  emitter.data.pSize = () => (Math.random() * 20); // Width and height, or radius.
+  emitter.data.pSize = () => (Math.random() * 10); // Width and height, or radius.
   emitter.data.pFill = () => '#00FF00';
   
   // Replace defaults with options, if given.
   if (dataOptions) Object.assign(emitter.data, dataOptions);
-  
-  // Return true if not at particle limit.
-  emitter.canEmitParticle = () => (emitter.data.nParticles < emitter.data.maxParticles);
   
   // Create a particle.
   emitter.emitParticle = () => {
@@ -51,9 +49,9 @@ const _addEmitter = (game, x, y, dataOptions = null) => {
     const pbmd = _makeParticleBitmap(game,
       emitter.data.pSize(),
       emitter.data.pFill(),
-      'rect');
+      'circle');
     const particle = game.make.sprite(emitter.data.pPos(), emitter.data.pPos(), pbmd);
-    particle.data.lifetimeMS = 0;
+    particle.data.lifetime = 0;
     particle.data.lifetimeMax = 4000;
     particle.data.finished = false; // Mark for deletion
     
@@ -68,8 +66,8 @@ const _addEmitter = (game, x, y, dataOptions = null) => {
     
     // Per-loop update function for particles, called by emitter object.
     particle.update = (elapsedMS) => {
-      particle.data.lifetimeMS += elapsedMS;
-      if (particle.data.lifetimeMS >= particle.data.lifetimeMax) {
+      particle.data.lifetime += elapsedMS;
+      if (particle.data.lifetime >= particle.data.lifetimeMax) {
         particle.data.finished = true;
       }
       return particle.data.finished;
@@ -77,17 +75,30 @@ const _addEmitter = (game, x, y, dataOptions = null) => {
     
     emitter.addChild(particle);
   };
+
+  // Return true if not at particle limit and the timer is ready.
+  emitter.shouldEmitParticle = () => (
+    (emitter.data.nParticles < emitter.data.nParticlesMax) &&
+    (emitter.data.sinceEmit >= emitter.data.particleFrequency));
   
+  // Update, called automatically by phaser in game loop.
   emitter.update = () => {
+    emitter.data.lifetime += game.time.elapsedMS;
     emitter.data.sinceEmit += game.time.elapsedMS;
     
-    while (emitter.data.sinceEmit >= emitter.data.particleFrequency
-        && emitter.canEmitParticle()) {
-      emitter.data.sinceEmit -= emitter.data.particleFrequency;
-      emitter.emitParticle();
+
+    if (emitter.data.lifetime < emitter.data.lifetimeMax) {
+      // Emitter is alive, so try to make new particles.
+      while (emitter.shouldEmitParticle()) {
+        emitter.data.sinceEmit -= emitter.data.particleFrequency;
+        emitter.emitParticle();
+      }
+    } else if (emitter.data.nParticles === 0) {
+      // Emitter is dead and particles have self-destructed.
+      emitter.destroy();
     }
     
-    
+    // Update particles.
     for (let i = 0, l = emitter.children.length; i < l; i++) {
       const particle = emitter.children[i];
       const isFinished = particle.update(game.time.elapsedMS);

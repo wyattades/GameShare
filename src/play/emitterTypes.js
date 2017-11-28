@@ -3,8 +3,8 @@
 
 // Burst emitters explode, firing all their particles quickly.
 export const burst = {
-  maxParticles: 10,
+  maxParticles: 20,
   particleFrequency: 0,
-  sinceEmit: 0,
+  lifetimeMax: 1,
   selfCollision: false,
 };
