@@ -1,7 +1,7 @@
 /* global Phaser */
 import * as physics from './physics';
 
-const makeParticleBitmap = (game, w = 10, h = 10) => {
+const makeParticleBitmap = (game, w = 5, h = 5) => {
   const bmd = game.add.bitmapData(w, h);
   bmd.ctx.beginPath();
   bmd.ctx.rect(0, 0, w, h);
@@ -15,18 +15,21 @@ export const addEmitter = (game, x, y) => {
   const emitter = game.add.sprite(x, y, null);
   
   emitter.data.particles = [];
-  emitter.data.nParticles = 0;
+  emitter.data.nParticles = 0; // number of active particles.
   emitter.data.maxParticles = 10;
-  emitter.data.particleFrequency = 100; // How many ms between emissions?
+  emitter.data.particleFrequency = 0; // How many ms between emissions?
   emitter.data.sinceEmit = 0;
+  
   emitter.data.deleteMe = false;
   
   emitter.data.collisionGroup = game.physics.p2.createCollisionGroup();
   emitter.data.selfCollision = false;
   
-  // Build a particle emitter
+  // Return true if not at particle limit.
+  emitter.canEmitParticle = () => (emitter.data.nParticles < emitter.data.maxParticles);
+  
+  // Create a particle.
   emitter.emitParticle = () => {
-    if (emitter.data.nParticles >= emitter.data.maxParticles) return;
     emitter.data.sinceEmit = 0;
     emitter.data.nParticles++;
     
@@ -34,6 +37,7 @@ export const addEmitter = (game, x, y) => {
     const particle = game.make.sprite((Math.random() * 20) - 10, (Math.random() * 20) - 10, pbmd);
     particle.data.lifetimeMS = 0;
     particle.data.lifetimeMax = 4000;
+    particle.data.finished = false; // Mark for deletion
     
     // Initialize physics
     physics.enablePhysics(particle, 'particle');
@@ -48,21 +52,23 @@ export const addEmitter = (game, x, y) => {
     particle.update = (elapsedMS) => {
       particle.data.lifetimeMS += elapsedMS;
       if (particle.data.lifetimeMS >= particle.data.lifetimeMax) {
-        particle.data.deleteMe = true;
+        particle.data.finished = true;
       }
-      return particle.data.deleteMe;
+      return particle.data.finished;
     };
     
     emitter.addChild(particle);
   };
   
   emitter.update = () => {
-    
     emitter.data.sinceEmit += game.time.elapsedMS;
-    if (emitter.data.sinceEmit >= emitter.data.particleFrequency) {
-      emitter.data.sinceEmit = 0;
+    
+    while (emitter.data.sinceEmit >= emitter.data.particleFrequency
+        && emitter.canEmitParticle()) {
+      emitter.data.sinceEmit -= emitter.data.particleFrequency;
       emitter.emitParticle();
     }
+    
     
     for (let i = 0, l = emitter.children.length; i < l; i++) {
       const particle = emitter.children[i];
