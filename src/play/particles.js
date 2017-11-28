@@ -1,15 +1,16 @@
 /* global Phaser */
 import * as physics from './physics';
+import * as EmitterTypes from './emitterTypes';
 
-const _makeParticleBitmap = (game, size, stroke, fill) => {
+const _makeParticleBitmap = (game, size, fill, type) => {
   let w = size,
       h = size;
   const bmd = game.add.bitmapData(w, h);
-  bmd.ctx.beginPath();
-  bmd.ctx.rect(0, 0, w, h);
-  bmd.ctx.strokeStyle = stroke;
-  bmd.ctx.fillStyle = fill;
-  bmd.ctx.fill();
+  if (type === 'rect') {
+    bmd.rect(0, 0, w, h, fill);
+  } else if (type === 'circle') {
+    bmd.circle(w / 2, h / 2, size / 2, fill);
+  }
   return bmd;
 };
 
@@ -23,18 +24,21 @@ const _addEmitter = (game, x, y, dataOptions = null) => {
   emitter.data.nParticles = 0; // Number of active particles.
   emitter.data.sinceEmit = 0; // ms since last particle creation.
   emitter.data.collisionGroup = game.physics.p2.createCollisionGroup();
+  emitter.data.lifetime = 0;
   
   // option defaults
   emitter.data.maxParticles = 10;
   emitter.data.particleFrequency = 0; // Number of ms between particles.
   emitter.data.selfCollision = false;
+  emitter.data.maxLifetime = 1000;
   
   // Particles are made with values returned from these functions.
   emitter.data.pPos = () => ((Math.random() * 20) - 10); // Used for both x and y.
-  emitter.data.pSize = () => (Math.random() * 5); // Width and height, or radius.
+  emitter.data.pSize = () => (Math.random() * 20); // Width and height, or radius.
   emitter.data.pFill = () => '#00FF00';
-  emitter.data.pStroke = () => '#00FF00';
   
+  // Replace defaults with options, if given.
+  if (dataOptions) Object.assign(emitter.data, dataOptions);
   
   // Return true if not at particle limit.
   emitter.canEmitParticle = () => (emitter.data.nParticles < emitter.data.maxParticles);
@@ -44,13 +48,16 @@ const _addEmitter = (game, x, y, dataOptions = null) => {
     emitter.data.sinceEmit = 0;
     emitter.data.nParticles++;
     
-    const pbmd = _makeParticleBitmap(game, emitter.data.pSize(), emitter.data.pFill(), emitter.data.pStroke());
+    const pbmd = _makeParticleBitmap(game,
+      emitter.data.pSize(),
+      emitter.data.pFill(),
+      'rect');
     const particle = game.make.sprite(emitter.data.pPos(), emitter.data.pPos(), pbmd);
     particle.data.lifetimeMS = 0;
     particle.data.lifetimeMax = 4000;
     particle.data.finished = false; // Mark for deletion
     
-    // Initialize physics
+    // Initialize physics on particle.
     physics.enablePhysics(particle, 'particle');
     particle.body.setCollisionGroup(emitter.data.collisionGroup);
     if (emitter.data.selfCollision) {
@@ -92,21 +99,12 @@ const _addEmitter = (game, x, y, dataOptions = null) => {
     }
   };
   
-  if (dataOptions) Object.assign(emitter.data, dataOptions);
-  
   return emitter;
-};
-
-const burstOptions = {
-  maxParticles: 10,
-  particleFrequency: 0,
-  sinceEmit: 0,
-  selfCollision: false,
 };
 
 export const addEmitter = (game, x, y, template = null) => {
   switch (template) {
-    case 'burst': return _addEmitter(game, x, y, burstOptions);
+    case 'burst': return _addEmitter(game, x, y, EmitterTypes.burst);
     default: return _addEmitter(game, x, y);
   }
 };
