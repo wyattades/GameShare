@@ -81,6 +81,9 @@ const bindHandlers = () => {
 	if (data.despawn) {
       engine.despawnPlayer(data);
 	}
+	if (!data.invul) {
+	  engine.serverToggleInvul(data.player);
+	}
     engine.damageWall(data);
   });
   
@@ -88,8 +91,11 @@ const bindHandlers = () => {
 	if (data.despawn) {
       engine.despawnPlayer(data); 
 	}
+	if (!data.invul) {
+	  engine.serverToggleInvul(data.player);
+	}
   });
-  
+
   return Promise.resolve();
 };
 

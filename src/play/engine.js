@@ -35,6 +35,9 @@ let nextFire = 0,
 const GUN_LENGTH = 48;
 const GUN_BODY_RATIO = 0.25;
 const BULLET_DMG = 1;
+const INVUL_TIME = 1000;
+const INVUL_COLOR = 0xFF0000;
+let player_color = {};
 
 const parent = document.getElementById('root');
 // const grandParent = parent.parentElement;
@@ -109,6 +112,23 @@ const createCircle = ({ x, y, r = 1, fill, stroke }) => {
   return graphic;
 };
 
+export function serverToggleInvul(id) {
+	toggleInvul(id);
+	game.time.events.add(INVUL_TIME, toggleInvul, this, id).autoDestroy = true; 
+}
+function toggleInvul(id) {
+	var plyr = playerMap[id];
+	if (plyr) {
+	plyr.invul = !plyr.invul;
+	if (plyr.invul) {
+		player_color[id] = plyr.tint;
+		plyr.tint = INVUL_COLOR;
+	} else {
+		plyr.tint = player_color[id];
+	}
+	}
+};
+
 const generateTextures = () => {
 
   // Create textures from temporary graphics objects
@@ -154,9 +174,22 @@ const createSpike = (graphic,x,y,dmg) => {
 	if (collider.name === 'player') {
        console.log(`Player hit: ${collider.id}`);
 	   const plyr = playerMap[collider.id];
-	   sendSpike({
-             player: collider.id,
-       });
+	   if (!plyr.invul) {
+		 toggleInvul(collider.id);
+		 game.time.events.add(INVUL_TIME, toggleInvul, this, collider.id).autoDestroy = true; 
+	     sendSpike({
+           player: collider.id,
+		   invul: false,
+		   dmg: dmg
+         });
+	   } else {
+		 sendSpike({
+           player: collider.id,
+		   invul: true,
+		   dmg: dmg
+         });
+	   }
+
 	}
   });
 };
@@ -273,11 +306,11 @@ export const addPlayer = (id, data) => {
     const plyr = players.getFirstExists(false, false, x + (width / 2), y + (height / 2));
     plyr.tint = color;
     plyr.turret.tint = color;
-
+	
     // Store player id
     plyr.id = id;
     // Store player reference
-    playerMap[id] = plyr;
+    playerMap[id] = plyr; 
   }
 };
 
@@ -335,10 +368,22 @@ export const initUser = (id, name) => {
       } else {
         player.score++;
       }
-      sendHit({
-        index: i,
-        player: collider.id,
-      });
+		var plyr = playerMap[collider.id];
+		if (!plyr.invul) { 
+		  //toggleInvul(collider.id);
+		  //game.time.events.add(INVUL_TIME, toggleInvul, this, collider.id).autoDestroy = true;
+		  sendHit({
+            index: i,
+            player: collider.id,
+			invul: false
+          });
+        } else {
+		  sendHit({
+            index: i,
+            player: collider.id,
+			invul: true,
+        });
+		}
     } else if (collider.name === 'bullet') {
       // We don't immediately kill the bullet here because we want to make sure
       // the other client's bullet detects the collision as well
@@ -376,7 +421,7 @@ export const initUser = (id, name) => {
     const bullet = bullets.getAt(start + i);
 	
     physics.collideStart(bullet, onCollideStart(bullet, i));
-
+	
     bullet.events.onKilled.add(allowBullet);
   }
 
@@ -602,6 +647,7 @@ const update = () => {
     turret: player.turret.rotation,
     score: player.score,
     username: player.username,
+	invul: player.invul
   });
 };
 
