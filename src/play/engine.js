@@ -122,6 +122,23 @@ export function serverToggleInvul(id) {
   game.time.events.add(INVUL_TIME, toggleInvul, this, id).autoDestroy = true;
 }
 
+export function serverToggleInvul(id) {
+	toggleInvul(id);
+	game.time.events.add(INVUL_TIME, toggleInvul, this, id).autoDestroy = true; 
+}
+function toggleInvul(id) {
+	var plyr = playerMap[id];
+	if (plyr) {
+	plyr.invul = !plyr.invul;
+	if (plyr.invul) {
+		player_color[id] = plyr.tint;
+		plyr.tint = INVUL_COLOR;
+	} else {
+		plyr.tint = player_color[id];
+	}
+	}
+};
+
 const generateTextures = () => {
 
   // Create textures from temporary graphics objects
@@ -257,18 +274,18 @@ export const addPlayer = (id, data) => {
   if (playerMap.hasOwnProperty(id)) {
     console.log(`Invalid addPlayer: ${id}`);
   } else {
-
+	
     const { x, y, color } = data;
     const { width, height } = textures.player;
 
     const plyr = players.getFirstExists(false, false, x + (width / 2), y + (height / 2));
     plyr.tint = color;
     plyr.turret.tint = color;
-
+	
     // Store player id
     plyr.id = id;
     // Store player reference
-    playerMap[id] = plyr;
+    playerMap[id] = plyr; 
   }
 };
 
