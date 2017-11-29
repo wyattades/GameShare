@@ -3,6 +3,7 @@ import * as physics from './physics';
 import * as EmitterTypes from './emitterTypes';
 
 const _makeParticleBitmap = (game, size, fill, type) => {
+  if (size < 1) size = 1;
   let w = size,
       h = size;
   const bmd = game.add.bitmapData(w, h);
