@@ -111,19 +111,20 @@ block page_content
                         id="type-color"
                         value="#FFFFFF"
                       )
-            .panel-block
-              .field.is-horizontal
-                .field-label.is-small(style="flex-grow: 5;")
-                  label.label(for="object-health") Object Health
-                .field-body
-                  .field
-                    .control
-                      input.input.is-small.is-expanded(
-                        id="object-health"
-                        name="object-health"
-                        type="number"
-                        value="0"
-                      )
+            each opt in ['health', 'damage']
+              .panel-block
+                .field.is-horizontal
+                  .field-label.is-small(style="flex-grow: 5;")
+                    label.label(for=`type-${opt}`)= `Object ${opt.charAt(0).toUpperCase() + opt.slice(1)}`
+                  .field-body
+                    .field
+                      .control
+                        input.input.is-small.is-expanded(
+                          id=`type-${opt}`
+                          name=`type-${opt}`
+                          type="number"
+                          value="0"
+                        )
             .panel-block(style="justify-content: space-around;")
               .field.is-grouped
                 .control
@@ -165,19 +166,20 @@ block page_content
                         id="object-color"
                         value="#FFFFFF"
                       )
-            .panel-block
-              .field.is-horizontal
-                .field-label.is-small(style="flex-grow: 5;")
-                  label.label(for="object-health") Object Health
-                .field-body
-                  .field
-                    .control
-                      input.input.is-small.is-expanded(
-                        id="object-health"
-                        name="object-health"
-                        type="number"
-                        value="0"
-                      )
+            each opt in ['health', 'damage']
+              .panel-block
+                .field.is-horizontal
+                  .field-label.is-small(style="flex-grow: 5;")
+                    label.label(for=`object-${opt}`)= `Object ${opt.charAt(0).toUpperCase() + opt.slice(1)}`
+                  .field-body
+                    .field
+                      .control
+                        input.input.is-small.is-expanded(
+                          id=`object-${opt}`
+                          name=`object-${opt}`
+                          type="number"
+                          value="0"
+                        )
             .panel-block(style="justify-content: space-around;")
               .field.is-grouped
                 .control
