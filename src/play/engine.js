@@ -135,27 +135,9 @@ const generateTextures = () => {
   ]);
   bulletGraphic.endFill();
   createTexture(bulletGraphic, 'bullet');
+
 };
 
-const createSpike = (graphic,x,y) => {
-  textures['spike'] = graphic.generateTexture();
-  //graphic.destroy();
-  var spike=spikes.create(x, y, textures.spike);
-  spike.enableBody = true;
-  physics.enablePhysics(spike, 'spike');
-  physics.collideStart(spike, collider => {
-	if (collider.name === 'player') {
-       console.log(`Player hit: ${collider.id}`);
-	   const plyr = playerMap[collider.id];
-	   if (plyr) {
-		  plyr.kill();
-	      game.time.events.add(respawn_timer, respawn, this, collider.id).autoDestroy = true;
-	   } else {
-		  console.log(`Invalid despawnPlayer: ${id}`);
-	  }
-	}
-  });
-};
 const create = (focusX, focusY) => {
 
   window.addEventListener('resize', () => {
@@ -306,13 +288,16 @@ export const updatePlayer = (id, data) => {
     plyr.body.angularVelocity = data.vangle;
     plyr.turret.rotation = data.turret;
     plyr.score = data.score;
+    plyr.username = data.username;
   } else {
     console.log(`Invalid updatePlayer: ${id}`);
   }
 };
 
-export const initUser = id => {
+export const initUser = (id, name) => {
   player = playerMap[id];
+  player.score = 0;
+  player.username = name;
 
   const allowBullet = () => {
     bulletsShot = Math.max(0, bulletsShot - 1);
@@ -328,6 +313,12 @@ export const initUser = id => {
       if (collider.name === 'player') {
         console.log(`Player hit: ${collider.id}`);
         bullet.kill();
+        if (collider.id == id){
+          player.score--;
+        }
+        else{
+          player.score++;
+        }
         sendHit({
           index: i,
           player: collider.id,
@@ -358,7 +349,6 @@ export const initUser = id => {
         }
       }
     });
-
 
     bullet.events.onKilled.add(allowBullet);
   }
@@ -488,12 +478,27 @@ const render = DEV ? () => {
     game.debug.line(`FPS: ${game.time.fps}`);
     game.debug.line();
     game.debug.line('Players:');
+    let scores = [];
     for (let i = 0, ids = Object.keys(playerMap); i < ids.length; i++) {
       const id = ids[i],
             plyr = playerMap[id];
       game.debug.line(`${i + 1}) id=${id}, x=${Math.round(plyr.x)}, y=${Math.round(plyr.y)} score = ${plyr.score}`);
+            scores.push({
+              id: id,
+              username: plyr.username,
+              score: plyr.score,
+            });
     }
     game.debug.line();
+    game.debug.line('Score:');
+    scores.sort(function (a,b){
+        return b.score - a.score;
+    });
+    for (let i = 0; i < scores.length; i++){
+      const plyr = scores[i];
+      game.debug.line(`${i + 1}) ${plyr.username} ${plyr.score}`);
+    }
+
     game.debug.line(`Bullets Shot: ${bulletsShot}`);
     game.debug.stop();
     // game.debug.cameraInfo(game.camera, 20, 400);
@@ -561,6 +566,7 @@ const update = () => {
     vangle: player.body.angularVelocity,
     turret: player.turret.rotation,
     score: player.score,
+    username: player.username,
   });
 };
 

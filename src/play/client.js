@@ -3,14 +3,15 @@ import * as engine from './engine';
 
 let socket,
     userId;
+    name;
 
-// const createLevel2 = (groups = [], objects = []) => Promise.all(groups.map(groupData => new Promise(resolve => {
-//   const group = engine.createGroup(groupData);
+const createLevel = (groups = [], objects = []) => Promise.all(groups.map(groupData => new Promise(resolve => {
+  const group = engine.createGroup(groupData);
 
-//   if (groupData.objects && groupData.objects.length > 0) {
-//     let i = 0;
-//     const interval = setInterval(() => {
-//       const objData = objects[groupData.objects[i]];
+  if (groupData.objects && groupData.objects.length > 0) {
+    let i = 0;
+    const interval = setInterval(() => {
+      const objData = objects[groupData.objects[i]];
       
 //       group.add(Object.assign(groupData, objData));
 
@@ -44,7 +45,9 @@ const createLevel = (groups = {}, objects = {}) => {
           group.add(Object.assign(groupData, objData));
         }
       }
-    }
+    }, 2000 / groupData.objects.length); // Take 2 seconds to spawn all the objects
+  } else {
+    resolve();
   }
   
   return Promise.resolve();
@@ -58,7 +61,7 @@ const addPlayers = players => {
     engine.addPlayer(id, players[id]);
   }
 
-  return engine.initUser(userId);
+  return engine.initUser(userId, name);
 };
 
 // Apply level object changes that occured before this player joined.
@@ -124,8 +127,13 @@ export const connect = id => new Promise((resolve, reject) => {
     },
   });
 
+  name = window.prompt("Choose a username:", "GuestUserBestUser");
+
+
   socket.on('onconnected', data => {
     userId = data.id;
+
+    socket.emit('user_named', userId, {username: name});
 
     const { x, y, w, h } = data.users[userId];
 

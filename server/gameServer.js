@@ -101,6 +101,7 @@ class Game {
         vangle: user.vangle,
         turret: user.turret,
         score: user.score,
+        username: user.username,
       };
     }
 
@@ -134,6 +135,7 @@ class Game {
       turret: 0,
       color: Math.random() * 0xFFFFFF << 0,
       score: 0,
+      username: null,
     };
 
     const bounds = this.gameData.options.bounds;
@@ -197,6 +199,18 @@ class Game {
       Object.assign(user, data);
     });
 
+    socket.on('user_named', (id, data) => {
+      const user = this.users[id];
+
+      if(!user) {
+        console.warn(`Invalid id: ${id}`);
+        return;
+      }
+
+      Object.assign(user, data);
+      //console.log(user.username);
+
+    });
     socket.on('bullet_create', (id, data) => {
       this.io.emit('bullet_create', id, data);
     });
@@ -211,6 +225,7 @@ class Game {
         return;
       }
  
+
       if (hit) {
         if (hit === user) {
           Object.assign(user, { score: user.score - 1 });
