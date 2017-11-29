@@ -122,23 +122,6 @@ export function serverToggleInvul(id) {
   game.time.events.add(INVUL_TIME, toggleInvul, this, id).autoDestroy = true;
 }
 
-export function serverToggleInvul(id) {
-	toggleInvul(id);
-	game.time.events.add(INVUL_TIME, toggleInvul, this, id).autoDestroy = true; 
-}
-function toggleInvul(id) {
-	var plyr = playerMap[id];
-	if (plyr) {
-	plyr.invul = !plyr.invul;
-	if (plyr.invul) {
-		player_color[id] = plyr.tint;
-		plyr.tint = INVUL_COLOR;
-	} else {
-		plyr.tint = player_color[id];
-	}
-	}
-};
-
 const generateTextures = () => {
 
   // Create textures from temporary graphics objects
