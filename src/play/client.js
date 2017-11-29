@@ -3,6 +3,7 @@ import * as engine from './engine';
 
 let socket,
     userId;
+    name;
 
 const createLevel = (groups = [], objects = []) => Promise.all(groups.map(groupData => new Promise(resolve => {
   const group = engine.createGroup(groupData);
@@ -32,7 +33,7 @@ const addPlayers = players => {
     engine.addPlayer(id, players[id]);
   }
 
-  return engine.initUser(userId);
+  return engine.initUser(userId, name);
 };
 
 const bindHandlers = () => {
@@ -84,8 +85,13 @@ export const sendHit = data => {
 export const connect = id => new Promise((resolve, reject) => {
   socket = io(`/${id}`);
 
+  name = window.prompt("Choose a username:", "GuestUserBestUser");
+
+
   socket.on('onconnected', data => {
     userId = data.id;
+
+    socket.emit('user_named', userId, {username: name});
 
     const { x, y, w, h } = data.users[userId];
 

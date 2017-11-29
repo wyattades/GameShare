@@ -240,14 +240,16 @@ export const updatePlayer = (id, data) => {
     plyr.body.angularVelocity = data.vangle;
     plyr.turret.rotation = data.turret;
     plyr.score = data.score;
+    plyr.username = data.username;
   } else {
     console.log(`Invalid updatePlayer: ${id}`);
   }
 };
 
-export const initUser = id => {
+export const initUser = (id, name) => {
   player = playerMap[id];
   player.score = 0;
+  player.username = name;
 
   const allowBullet = () => {
     bulletsShot = Math.max(0, bulletsShot - 1);
@@ -398,6 +400,7 @@ const render = DEV ? () => {
       game.debug.line(`${i + 1}) id=${id}, x=${Math.round(plyr.x)}, y=${Math.round(plyr.y)} score = ${plyr.score}`);
             scores.push({
               id: id,
+              username: plyr.username,
               score: plyr.score,
             });
     }
@@ -408,7 +411,7 @@ const render = DEV ? () => {
     });
     for (let i = 0; i < scores.length; i++){
       const plyr = scores[i];
-      game.debug.line(`${i + 1}) id=${plyr.id} ${plyr.score}`);
+      game.debug.line(`${i + 1}) ${plyr.username} ${plyr.score}`);
     }
 
     game.debug.line(`Bullets Shot: ${bulletsShot}`);
@@ -478,6 +481,7 @@ const update = () => {
     vangle: player.body.angularVelocity,
     turret: player.turret.rotation,
     score: player.score,
+    username: player.username,
   });
 };
 
