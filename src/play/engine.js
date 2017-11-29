@@ -21,8 +21,7 @@ let input,
     player,
     bullets,
     boundary,
-    players,
-    spikes;
+    players;
 
 // Game options
 let options;
@@ -67,7 +66,7 @@ const intToHex = int => {
 };
 
 // Creates and returns a new Sprite wall object.
-const createWall = ({ x, y, w = 1, h = 1, fill, stroke, objId, shape = "rect"}) => {
+const createWall = ({ x, y, w = 1, h = 1, fill, stroke, objId, shape = "rect", damage = 0, health = 0}) => {
   x += w / 2;
   y += h / 2;
   
@@ -92,10 +91,14 @@ const createWall = ({ x, y, w = 1, h = 1, fill, stroke, objId, shape = "rect"}) 
   sprite.h = h;
   // TODO: destructible variables should be defined by group, not the color red.
   let color = intToHex(fill);
-  sprite.data.destructible = (color === '#ff0000');
+  sprite.data.destructible = (health > 0);
   if (sprite.data.destructible) {
-    sprite.maxHealth = 2;
-    sprite.setHealth(2);
+    sprite.maxHealth = health;
+    sprite.setHealth(health);
+  }
+  sprite.data.spike = (damage > 0);
+  if (sprite.data.spike) {
+	  sprite.damage = damage;
   }
   
   return sprite;
@@ -164,35 +167,6 @@ const generateTextures = () => {
   bulletGraphic.endFill();
   createTexture(bulletGraphic, 'bullet');
 
-const createSpike = (graphic,x,y,dmg) => {
-  textures['spike'] = graphic.generateTexture();
-  //graphic.destroy();
-  var spike=spikes.create(x, y, textures.spike);
-  spike.enableBody = true;
-  physics.enablePhysics(spike, 'spike');
-  physics.collideStart(spike, collider => {
-	if (collider.name === 'player') {
-       console.log(`Player hit: ${collider.id}`);
-	   const plyr = playerMap[collider.id];
-	   if (!plyr.invul) {
-		 toggleInvul(collider.id);
-		 game.time.events.add(INVUL_TIME, toggleInvul, this, collider.id).autoDestroy = true; 
-	     sendSpike({
-           player: collider.id,
-		   invul: false,
-		   dmg: dmg
-         });
-	   } else {
-		 sendSpike({
-           player: collider.id,
-		   invul: true,
-		   dmg: dmg
-         });
-	   }
-
-	}
-  });
-};
 
 const create = (focusX, focusY) => {
 
@@ -276,12 +250,6 @@ const create = (focusX, focusY) => {
     });
   });
 
-  spikes = game.add.group();
-  /* test code for spikes
-  var graphic = createCircle({r:100,fill:0xff0000});
-  createSpike(graphic,350,350,1);
-  createSpike(graphic,500,500,3);
-  graphic.destroy();*/
   const { x, y, w, h } = options.bounds;
 
   game.world.setBounds(0, 0, w + (x * 2), h + (y * 2));
@@ -370,8 +338,6 @@ export const initUser = (id, name) => {
       }
 		var plyr = playerMap[collider.id];
 		if (!plyr.invul) { 
-		  //toggleInvul(collider.id);
-		  //game.time.events.add(INVUL_TIME, toggleInvul, this, collider.id).autoDestroy = true;
 		  sendHit({
             index: i,
             player: collider.id,
@@ -516,8 +482,31 @@ export const createGroup = () => {
 
   return {
     add: obj => {
+		obj.damage = 1;
         const wall = createWall(obj);
         physics.enablePhysics(wall, 'wall');
+		if (obj.damage > 0) {
+		  physics.collideStart(wall, collider => {
+			if (collider.name === 'player') {
+			   console.log(`Player hit: ${collider.id}`);
+			   const plyr = playerMap[collider.id];
+			   if (!plyr.invul) { 
+				 sendSpike({
+				   player: collider.id,
+				   invul: false,
+				   dmg: obj.damage
+				 });
+			   } else {
+				 sendSpike({
+				   player: collider.id,
+				   invul: true,
+				   dmg: obj.damage
+				 });
+			   }
+
+			}
+		  });
+	    }
         group.add(wall);
     },
 
