@@ -4,116 +4,187 @@ block page_content
 
   include ./templates/editHeader
 
+  -
+    const options = [
+      ['playerHealth', 'Player Health'],
+      ['maxBulletsPerPlayer', 'Max Bullets Per Player'],
+      ['maxPlayers', 'Max Players'],
+      ['bulletSpeed', 'Bullet Speed'],
+      ['fireRate', 'Fire Rate'],
+      ['playerSpeed', 'Player Speed'],
+      ['bulletHealth', 'Bullet Health'],
+    ];
+
   .layers
     .layer
-      .columns.edit-body
-        .column.is-one-quarter.sidebar
-          .settings-panel.panel
+      .edit-body
+        .edit-sidebar
+          .panel
             p.panel-heading Settings
             p.panel-tabs
-              a#object-tab.is-active Objects
-              a#grid-tab Grid
+              a#objects-tab.is-active Objects
               a#level-tab Level
-            .object-block.panel-block(
-              id="new-buttons"
-              style="justify-content: center;"
-            )
-              button.button.is-small#new-type-button New Type
-            .grid-block.panel-block
-              .field
-                label(
-                  class="label is-small"
-                  for="snap-input"
-                ) Grid Spacing
-                .control
-                  input(
-                    class="input is-small"
-                    id="snap-input"
-                    max="100"
-                    name="snap"
-                    type="number"
-                    value="10"
-                  )
-            .grid-block.panel-block
-              .field
-                label(
-                  class="label is-small"
-                  for="boundary-x"
-                ) Width of Playable Area
-                .control
-                  input(
-                    class="input is-small"
-                    id="boundary-x"
-                    max="10000"
-                    name="boundary-x"
-                    type="number"
-                    value="7000"
-                  )
-            .grid-block.panel-block
-              .field
-                label(
-                  class="label is-small"
-                  for="boundary-y"
-                ) Height of Playable Area
-                .control
-                  input(
-                    class="input is-small"
-                    id="boundary-y"
-                    max="10000"
-                    name="boundary-y"
-                    type="number"
-                    value="7000"
-                  )
-            .level-block.panel-block
-              .field
-                label(for="background-color") Level Background Color
-                .control
-                  input(
-                    id="background-color"
-                    name="background-color"
-                    type="color"
-                    value="#000000"
-                  )
+            #objects-settings
+              #object-list-container
+                #object-list
+              .panel-block(
+                style="justify-content: space-around"
+              )
+                button.button.is-small#new-type-button New Type
+            #level-settings
+              each option in options  
+                - const optionId = `opt-${option[0]}`;
+                .panel-block
+                  .field.is-horizontal
+                    .field-label.is-small(style="flex-grow: 5;")
+                      label.label(for=optionId)= option[1]
+                    .field-body
+                      .field
+                        .control
+                          input.input.is-small.is-expanded(
+                            id=optionId
+                            name=optionId
+                            type="number"
+                            value="0"
+                          )
+        #root
+        .edit-sidebar
+          #grid-settings.panel
+            p.panel-heading Grid
+            each arr in [['x', 'y'], ['w', 'h']]
+              .panel-block(style="border-bottom: none;")
+                .field.is-horizontal
+                  each prop in arr
+                    - const optionId = `opt-bounds-${prop}`;
+                      .field-label.is-small(style = "margin-right: 0.5rem;")
+                        label.label(for=optionId)= prop.toUpperCase()
+                      .field-body(style="flex-grow: 3;")
+                        .field
+                          .control
+                            input.input.is-small.is-expanded(
+                              id=optionId
+                              name=optionId
+                              type="number"
+                              value="0"
+                            )
+            .panel-block(style="border-top: 1px solid #dbdbdb;")
+              .field.is-horizontal
+                .field-label.is-small(style="flex-grow: 5;")
+                  label.label(
+                    for="opt-snap"
+                  ) Spacing
+                .field-body
+                  .field
+                    .control
+                      input.input.is-small.is-expanded(
+                        id="opt-snap"
+                        max="100"
+                        name="snap"
+                        type="number"
+                        value="10"
+                      )
+            .panel-block
+              .field.is-horizontal
+                .field-label.is-small(style="flex-grow: 5;")
+                  label.label(for="opt-backgroundColor") Background Color
+                .field-body
+                  .field
+                    .control
+                      input.input.is-small.is-expanded(
+                        id="opt-backgroundColor"
+                        name="opt-backgroundColor"
+                        type="color"
+                        value="#000000"
+                      )
           #type-settings.panel
             p.panel-heading Type Settings
             .panel-block
-              .field
-                label(for="background-color") Type Color
-                .control
-                  input(
-                    type="color"
-                    name="type-color"
-                    id="type-color"
-                    value="#FFAABB"
-                    style="margin-left: auto;"
-                  )
+              .field.is-horizontal
+                .field-label.is-small
+                  label.label(for="type-color") Type Color
+                .field-body
+                  .field
+                    .control
+                      input.input.is-small(
+                        type="color"
+                        name="type-color"
+                        id="type-color"
+                        value="#FFFFFF"
+                      )
             .panel-block
+              .field.is-horizontal
+                .field-label.is-small(style="flex-grow: 5;")
+                  label.label(for="object-health") Object Health
+                .field-body
+                  .field
+                    .control
+                      input.input.is-small.is-expanded(
+                        id="object-health"
+                        name="object-health"
+                        type="number"
+                        value="0"
+                      )
+            .panel-block(style="justify-content: space-around;")
               .field.is-grouped
                 .control
-                  button.button(
+                  button.button.is-small(
                     id="type-rename"
                   ) Rename
                 .control
-                  button.button(
+                  button.button.is-small(
                     id="type-delete"
                   ) Delete
           #object-settings.panel
             p.panel-heading Object Settings
+            each arr in [['x', 'y'], ['w', 'h']]
+              .grid-block.panel-block(style="border-bottom: none;")
+                .field.is-horizontal
+                  each prop in arr
+                    - const optionId = `object-${prop}`;
+                      .field-label.is-small(style = "margin-right: 0.5rem;")
+                        label.label(for=optionId)= prop.toUpperCase()
+                      .field-body(style="flex-grow: 3;")
+                        .field
+                          .control
+                            input.input.is-small(
+                              id=optionId
+                              name=optionId
+                              type="number"
+                              value="0"
+                            )
+            .panel-block(style="border-top: 1px solid #dbdbdb;")
+              .field.is-horizontal
+                .field-label.is-small
+                  label.label(for="object-color") Object Color
+                .field-body
+                  .field
+                    .control
+                      input.input.is-small(
+                        type="color"
+                        name="object-color"
+                        id="object-color"
+                        value="#FFFFFF"
+                      )
             .panel-block
-              .field
-                label(for="object-color") Object Color
-                .control
-                  input(
-                    type="color"
-                    name="object-color"
-                    id="object-color"
-                    value="#FFAABB"
-                    style="margin-left: auto;"
-                  )
-            .panel-block
+              .field.is-horizontal
+                .field-label.is-small(style="flex-grow: 5;")
+                  label.label(for="object-health") Object Health
+                .field-body
+                  .field
+                    .control
+                      input.input.is-small.is-expanded(
+                        id="object-health"
+                        name="object-health"
+                        type="number"
+                        value="0"
+                      )
+            .panel-block(style="justify-content: space-around;")
               .field.is-grouped
                 .control
-                  button.button(
+                  button.button.is-small(
                     id="object-delete"
                   ) Delete
-        .column.root-column#root
+                .control
+                  button.button.is-small(
+                    id="object-duplicate"
+                  ) Duplicate

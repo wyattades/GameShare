@@ -2,28 +2,36 @@ const socketIO = require('socket.io');
 const UUID = require('node-uuid');
 
 let io,
-    connections,
-    games;
+    connections;
+
+const games = {};
 
 const MAX_CONNECTIONS = 5;
 
 const createGameLoop = (fn, fps) => {
   
-  let delta,
-      lastUpdate = Date.now(),
-      now;
-
-  const intervalId = setInterval(() => {
-    now = Date.now();
-    delta = now - lastUpdate;
-    lastUpdate = now;
-
-    fn(delta / 16.66); // 16.66 is the deltaTime of client i.e. 60fps
-  }, 1000 / fps);
+  let intervalId;
 
   return {
+    start: () => {
+      if (intervalId) clearInterval(intervalId);
+
+      let delta,
+          lastUpdate = Date.now(),
+          now;
+
+      intervalId = setInterval(() => {
+        now = Date.now();
+        delta = now - lastUpdate;
+        lastUpdate = now;
+
+        fn(delta / 16.66); // 16.66 is the deltaTime of client i.e. 60fps
+      }, 1000 / fps);
+    },
+
     stop: () => {
-      clearInterval(intervalId);
+      if (intervalId) clearInterval(intervalId);
+      intervalId = null;
     },
   };
 };
@@ -40,7 +48,11 @@ class Game {
     this.gameData = gameData;
     this.users = {};
     this.connections = 0;
-
+    this.maxConnections = gameData.options.maxPlayers || MAX_CONNECTIONS;
+    
+    // Stores changes since server start, to synchronize level objects.
+    // TODO: build out actual gameData.objects to add properties based on group (like health) and remove change system
+    this.gameData.objChanges = [];
     this.io = io.of(`/${id}`);
   }
 
@@ -70,9 +82,11 @@ class Game {
 
   update(delta) {
 
-    const update = {};
+    const ids = Object.keys(this.users);
 
-    for (let i = 0, ids = Object.keys(this.users); i < ids.length; i++) {
+    const update = {};
+    
+    for (let i = 0; i < ids.length; i++) {
       const user = this.users[ids[i]];
 
       // if (user.vx) user.x += user.vx * delta;
@@ -96,10 +110,14 @@ class Game {
 
   onConnection(socket) {
 
-    if (this.connections >= MAX_CONNECTIONS) {
+    if (this.connections >= this.maxConnections) {
       socket.emit('lobby_full');
-      socket.disconnect();
+      socket.disconnect(true);
       return;
+    }
+
+    if (this.connections === 0) {
+      this.gameLoop.start();
     }
 
     this.connections++;
@@ -144,9 +162,11 @@ class Game {
     // }
 
     this.users[userId] = newUser;
+    
   
     // Send initial data to connected client
-    socket.emit('onconnected', { users: this.users, id: userId, gameData: this.gameData });
+    const onConnectData = { users: this.users, id: userId, gameData: this.gameData };
+    socket.emit('onconnected', onConnectData);
   
     // const address = socket.request.connection.remoteAddress; 
     // const address = socket.handshake.address;
@@ -162,6 +182,10 @@ class Game {
       socket.broadcast.emit('user_disconnect', userId);
   
       delete this.users[userId];
+
+      if (this.connections <= 0) {
+        this.gameLoop.stop();
+      }
     });
   
     socket.on('update', (id, data) => {
@@ -196,19 +220,28 @@ class Game {
       const user = this.users[id];
       const hit = this.users[data.player];
  
-      if(!user) {
+      if (!user) {
         console.warn(`Invalid id: ${id}`);
         return;
       }
  
-      if(hit) {
-        if(hit == user){
-          Object.assign(user, {score: user.score - 1});
-          //console.log(user.score);
+
+      if (hit) {
+        if (hit === user) {
+          Object.assign(user, { score: user.score - 1 });
+          // console.log(user.score);
         } else {
-          Object.assign(user, {score: user.score + 1});
-          //console.log(user.score);
-        }}});
+          Object.assign(user, { score: user.score + 1 });
+          // console.log(user.score);
+        }
+      }
+      
+      // If we get a valid wall_id, a wall has taken damage.
+      if (Number.isInteger(data.wall_id)) {
+        // Add the damage to the changes list.
+        this.gameData.objChanges.push({ damageWall: true, wall_id: data.wall_id, damage: data.damage });
+      }
+    });
     
   }
 
@@ -222,10 +255,14 @@ module.exports = server => {
 
   io = socketIO(server);
   connections = 0;
-
-  // TODO: handle connection to invalid game id
-
-  games = {};
+  
+  // Handle connection to invalid game id
+  io.on('connection', socket => {
+    const game_id = socket.handshake.query.game_id;
+    if (!game_id || !games.hasOwnProperty(game_id)) {
+      socket.disconnect(true);
+    }
+  });
 
   const app = {};
 
@@ -233,12 +270,15 @@ module.exports = server => {
 
   app.create = (id, gameData) => {
     if (games.hasOwnProperty(id)) {
-      console.log(`A game with id ${id} already exists`);
+      games[id].stop();
+      console.log(`Restarted game: ${id}`);
     } else {
-      games[id] = new Game(id, gameData);
-      games[id].start();
       console.log(`Created game: ${id}`);
     }
+
+    games[id] = new Game(id, gameData);
+    games[id].start();
+    
   };
 
   app.destroy = id => {
@@ -250,6 +290,11 @@ module.exports = server => {
       console.log(`A game with id ${id} does not exist`);
     }
   };
+
+  // Destroy previous games
+  for (let id in games) {
+    app.destroy(id);
+  }
 
   return app;
 };

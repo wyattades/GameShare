@@ -1,36 +1,52 @@
-extends ./navbar
+nav.navbar.is-primary(role="navigation" aria-label="dropdown navigation")
+  .navbar-brand
+    #navbar-burger.navbar-burger.burger
+      span
+      span
+      span
+  #navbar-menu.navbar-menu
 
-block headerContent
-
-  .navbar-start
-    .navbar-item.has-dropdown.is-hoverable
-      a.navbar-link Menu
-      .navbar-dropdown.is-boxed
-        a.navbar-item(class=(self.page === 'games') && 'is-active' href="/games")
-          span My Games
-        a.navbar-item(class=(self.page === 'browse') && 'is-active' href="/play")
-          span Browse Games
-        hr.navbar-divider
-        a.navbar-item(class=(self.page === 'account') && 'is-active' href="/account")
-          span Account
-    .navbar-item
-      //- .field.has-addons
-      //-   .control
-      //-     a.button.is-static Name
-      .control
-        input#game-name.input(type="text" placeholder="Game Name" required maxlength=32)
-    
-  .navbar-end
-    .navbar-item
-      .field.is-grouped
-        .control
-          a.button.is-primary.is-outlined.is-inverted#save
+    .navbar-start
+      .navbar-item.has-dropdown.is-hoverable
+        a.navbar-link(href="/")
+          h1.is-size-4
+            strong GameShare
+        .navbar-dropdown.is-boxed
+          a.navbar-item(href="/games")
+            span My Games
+          a.navbar-item(href="/play")
+            span Browse Games
+          hr.navbar-divider
+          a.navbar-item(href="/edit")
             span.icon
-              i.fa.fa-save
-            span Save
-
+              i.fa.fa-plus
+            span Create
+          hr.navbar-divider
+          a.navbar-item(href="/account")
+            span Account
+      .navbar-item
         .control
-          a.button.is-success#publish
-            span.icon
-              i.fa.fa-play
-            span Publish
+          input#game-name.input(type="text" placeholder="Game Name" required maxlength=32)
+      
+    .navbar-end
+      .navbar-item
+        .field.is-grouped
+          .control
+            a.button.is-primary#undo
+              span.icon
+                i.fa.fa-undo
+          .control
+            a.button.is-primary#redo
+              span.icon
+                i.fa.fa-repeat
+          .control
+            .has-text-grey-lighter#save
+              span.icon
+                i.fa.fa-check
+              span Saved
+
+          .control
+            a.button.is-success#publish
+              span.icon
+                i.fa.fa-play
+              span Publish

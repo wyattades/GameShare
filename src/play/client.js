@@ -13,17 +13,45 @@ const createLevel = (groups = [], objects = []) => Promise.all(groups.map(groupD
     const interval = setInterval(() => {
       const objData = objects[groupData.objects[i]];
       
-      group.add(Object.assign(groupData, objData));
+//       group.add(Object.assign(groupData, objData));
 
-      if (++i >= groupData.objects.length) {
-        clearInterval(interval);
-        resolve();
+//       if (++i >= groupData.objects.length) {
+//         clearInterval(interval);
+//         resolve();
+//       }
+//     }, 2000 / groupData.objects.length); // Take 2 seconds to spawn all the objects
+//   } else {
+//     resolve();
+//   }
+// })));
+
+const createLevel = (groups = {}, objects = {}) => {
+
+  if (Array.isArray(groups) || Array.isArray(objects)) {
+    return Promise.reject('Incorrect data type Array for objects and/or groups');
+  }
+
+  for (let groupId in groups) {
+    if (groups.hasOwnProperty(groupId)) {
+
+      const groupData = groups[groupId];
+      groupData.objects = groupData.objects || {};
+
+      const group = engine.createGroup(groupData);
+
+      for (let objId in groupData.objects) {
+        if (groupData.objects.hasOwnProperty(objId)) {
+          const objData = objects[objId];
+          group.add(Object.assign(groupData, objData));
+        }
       }
     }, 2000 / groupData.objects.length); // Take 2 seconds to spawn all the objects
   } else {
     resolve();
   }
-})));
+  
+  return Promise.resolve();
+};
 
 const addPlayers = players => {
 
@@ -34,6 +62,15 @@ const addPlayers = players => {
   }
 
   return engine.initUser(userId, name);
+};
+
+// Apply level object changes that occured before this player joined.
+const applyChanges = changes => {
+  for (let i = 0; i < changes.length; i++) {
+    if (changes[i].damageWall) {
+      engine.damageWall(changes[i]);
+    }
+  }
 };
 
 const bindHandlers = () => {
@@ -64,6 +101,7 @@ const bindHandlers = () => {
   socket.on('bullet_hit', (id, data) => {
     engine.removeBullet(id, data);
     engine.despawnPlayer(data);
+    engine.damageWall(data);
   });
 
   return Promise.resolve();
@@ -83,7 +121,11 @@ export const sendHit = data => {
 };
 
 export const connect = id => new Promise((resolve, reject) => {
-  socket = io(`/${id}`);
+  socket = io(`/${id}`, {
+    query: {
+      game_id: id,
+    },
+  });
 
   name = window.prompt("Choose a username:", "GuestUserBestUser");
 
@@ -96,15 +138,19 @@ export const connect = id => new Promise((resolve, reject) => {
     const { x, y, w, h } = data.users[userId];
 
     engine.setup(data.gameData.options, x + (w / 2), y + (h / 2))
-    .then(() => {
-      resolve();
+    .then(() => createLevel(data.gameData.groups, data.gameData.objects))
+    .then(() => addPlayers(data.users))
+    .then(() => applyChanges(data.gameData.objChanges))
+    .then(() => bindHandlers())
+    .then(() => engine.resume())
+    .then(resolve)
+    .catch(reject);
+  });
 
-      createLevel(data.gameData.groups, data.gameData.objects)
-      .then(() => addPlayers(data.users))
-      .then(() => bindHandlers())
-      .then(() => engine.resume());
+  socket.on('invalid_gameid', () => {
+    socket.close();
 
-    });
+    reject('Invalid game id');
   });
 
   socket.on('lobby_full', () => {
@@ -114,7 +160,11 @@ export const connect = id => new Promise((resolve, reject) => {
   });
 
   socket.on('connect_error', err => {
-    reject(err.msg);
+    reject(`Connection error: ${err}`);
+  });
+
+  socket.on('disconnect', () => {
+    reject('The game your are trying to connect to is unavailable');
   });
 
   // TODO: handle network timeouts?
@@ -130,4 +180,3 @@ export const destroy = () => {
   disconnect();
   engine.destroy();
 };
-

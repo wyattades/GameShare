@@ -1,38 +1,58 @@
 import * as Pixi from 'pixi.js';
+
 import Colors from './Colors';
+import EE from './EventEmitter';
+import { constrain, deepClone } from '../utils/helpers';
 
-// Defaults
-const DEFAULT_GRID_SPACING = 20; // SNAP
-const DEFAULT_GRID_SIZE = { w: DEFAULT_GRID_SPACING * 35, h: DEFAULT_GRID_SPACING * 25 };
-const DEFAULT_BORDER_SIZE = 100; // Size of the border around the playable area (one side)
-const DEFAULT_OPTIONS = {
-  snap: 8,
-  backgroundColor: 0xDDEEDD,
-  maxBulletsPerPlayer: 4,
-  maxPlayers: 20,
-  bounds: {
-    x: DEFAULT_BORDER_SIZE,
-    y: DEFAULT_BORDER_SIZE,
-    w: DEFAULT_GRID_SIZE.w - DEFAULT_BORDER_SIZE,
-    h: DEFAULT_GRID_SIZE.h - DEFAULT_BORDER_SIZE,
-  },
-  bulletSpeed: 1000,
-  fireRate: 200,
-  playerSpeed: 500,
-  bulletHealth: 2,
+const events = new EE();
+
+const update = (obj, silent) => events.broadcast('update-object', obj.group, obj.id, {
+  x: obj.x, y: obj.y, w: obj.w, h: obj.h,
+}, silent);
+
+// Add shaded rectangles over the unplayable region of the map
+// Add grid lines
+const drawGrid = (sprite, snap, bounds) => {
+  
+  const grid = new Pixi.Graphics();
+  
+  const w = (bounds.x * 2) + bounds.w;
+  const h = (bounds.y * 2) + bounds.h;
+
+  grid.beginFill(0xFFFFFF);
+  grid.drawRect(0, 0, w, h);
+  grid.endFill();
+
+  grid.lineStyle();
+  grid.beginFill(Colors.GRID_LINE, 0.4);
+  grid.drawRect(0, 0, w, bounds.y);
+  grid.drawRect(0, bounds.y + bounds.h, w, bounds.y);
+  grid.drawRect(0, bounds.y, bounds.x, bounds.h);
+  grid.drawRect(bounds.x + bounds.w, bounds.y, bounds.x, bounds.h);
+  grid.endFill();
+
+  for (let x = 0; x <= w; x += snap) {
+    grid.lineStyle(x % 100 === 0 || x === w ? 2 : 1, Colors.GRID_LINE, 1);
+    grid.moveTo(x, 0);
+    grid.lineTo(x, h);
+  }
+  for (let y = 0; y <= h; y += snap) {
+    grid.lineStyle(y % 100 === 0 || y === h ? 2 : 1, Colors.GRID_LINE, 1);
+    grid.moveTo(0, y);
+    grid.lineTo(w, y);
+  }
+
+  grid.lineStyle(2, Colors.GRID_BORDER, 1);
+  grid.drawRect(bounds.x, bounds.y, bounds.w, bounds.h);
+
+  sprite.texture = grid.generateCanvasTexture();
 };
-const DEFAULT_RECT_SIZE = DEFAULT_GRID_SPACING * 4;
-const DEFAULT_GROUP_DATA = {
-  fill: 0xCCCCCC,
-  stroke: 0x222222,
-};
-
-// Constraints
-const RECT_MIN_SIZE = 20; // Minimum size of a rectangle object.
-const RESIZE_CONTROL_SIZE = 20;
-
 
 class Engine {
+
+  groups = {};
+
+  resizeControlSize = 16; // Size of resize control elements.
 
   constructor(parent, options) {
 
@@ -42,104 +62,162 @@ class Engine {
     this.app = new Pixi.Application({
       width: this.width,
       height: this.height,
-      transparent: true,
     });
 
     parent.appendChild(this.app.view);
 
-    this.options = options;
-    this.setOptions(DEFAULT_OPTIONS);
+    const bounds = options.bounds,
+          w = bounds.w + (bounds.x * 2),
+          h = bounds.h + (bounds.y * 2);
 
-    this.gridSpacing = DEFAULT_GRID_SPACING;
-    this.gridBorderSize = DEFAULT_BORDER_SIZE;
-    this.gridLineColor = Colors.GRID;
-    this.gridBorderColor = Colors.BLACK;
-    this.container = this.createGrid();
+    this.container = this.createObject({ x: 0, y: 0, w, h, draggable: true });
     this.app.stage.addChild(this.container);
+    this.grid = new Pixi.Sprite();
+    this.container.addChild(this.grid);
+
+    this.options = deepClone(options);
+
+    this.resizeGrid();
+    this.setBackgroundColor();
 
     this.selectedObject = null; // The currently selected object.
     this.lockSelect = false; // When true, objects won't be selected.
 
-    this.rectMinSize = RECT_MIN_SIZE;
-    this.resizeControlSize = RESIZE_CONTROL_SIZE; // Size of resize control elements.
+    this.bindListeners();
 
+    window.addEventListener('resize', () => {
+      this.width = parent.clientWidth;
+      this.height = parent.clientHeight;
+      this.app.renderer.resize(this.width, this.height);
+    });
+
+  }
+
+  bindListeners = () => {
+    const listeners = {
+
+      'add-object': this.addObject,
+
+      'add-group': this.addGroup,
+    
+      'remove-group': (groupId) => {
+        if (this.groups.hasOwnProperty(groupId)) {
+          this.groups[groupId].destroy();
+          delete this.groups[groupId];
+        }
+      },
+      'remove-object': (groupId, objId) => {
+        const objects = this.groups[groupId].objects;
+        if (objects.hasOwnProperty(objId)) {
+          objects[objId].destroy();
+          delete objects[objId];
+        }
+      },
+    
+      'update-object': (groupId, objId, newData) => {
+        const obj = this.groups[groupId].objects[objId];
+        if (obj) {
+          const { x, y, w, h, stroke, fill } = newData;
+          const groupData = this.groups[groupId];
+
+          if (x !== undefined || y !== undefined) obj.translate(x, y);
+          if (w !== undefined || h !== undefined) obj.resize(w, h);
+
+          if (newData.hasOwnProperty('fill')) {
+            obj.fill = fill;
+            obj.tint = typeof fill === 'number' ? fill : groupData.fill;
+          }
+
+          if (stroke !== undefined) ;
+        }
+      },
+
+      'update-group': (groupId, newData) => {
+        const group = this.groups[groupId];
+        if (group) {
+          const { fill, stroke } = newData;
+
+          if (newData.hasOwnProperty('fill')) {
+            group.fill = fill;
+            for (let objId in group.objects) {
+              const obj = group.objects[objId];
+              obj.tint = typeof obj.fill === 'number' ? obj.fill : fill;
+            }
+          }
+
+          if (stroke !== undefined) ;
+        }
+      },
+    
+      'update-option': this.updateOption,
+
+      select: (groupId, objId) => {
+        if (objId && groupId) {
+          const obj = this.groups[groupId].objects[objId];
+          if (obj) this.selectObject(obj);
+        } else {
+          // TODO: Select group?
+          this.clearSelection();
+        }
+      },
+
+      translate: (dx, dy) => {
+        this.container.x -= dx;
+        this.container.y -= dy;
+      },
+
+      zoom: (x, y, scaleFactor) => {
+
+        const oldScale = this.container.scale.x;
+        const newScale = constrain(oldScale * scaleFactor, 0.3, 2.0);
+        
+        if (oldScale !== newScale) {
+          this.container.scale.set(newScale, newScale);
+          this.container.x = (scaleFactor * (this.container.x - x)) + x;
+          this.container.y = (scaleFactor * (this.container.y - y)) + y;
+        }
+      },
+    };
+
+    for (let event in listeners) {
+      events.on(event, listeners[event]);
+    }
   }
 
   // Catch-all for modifying game options.
-  setOptions = (opt) => {
-    Object.assign(this.options, opt);
-  }
-
-  // Add shaded rectangles over the unplayable region of the map.
-  drawBorderShading = (grid = this.container, borderSize = this.gridBorderSize, tint = this.gridBorderColor) => {
-    grid.lineStyle(0, tint, 0.08);
-    grid.beginFill(tint, 0.08);
-    grid.drawRect(0, 0, grid.width, borderSize);
-    grid.drawRect(0, borderSize, borderSize, grid.height - (borderSize * 2));
-    grid.drawRect(grid.width - borderSize - 2, borderSize, borderSize, grid.height - (borderSize * 2));
-    grid.drawRect(0, grid.height - borderSize - 2, grid.width - 2, borderSize);
-  }
-  // Add gridline primitives to grid object.
-  drawGridlines = (grid = this.container, tint = this.gridLineColor) => {
-    let w = grid.w,
-        h = grid.h;
-
-    grid.lineStyle(1, tint, 1);
-    for (let x = 0; x <= w; x += this.gridSpacing) {
-      grid.lineStyle(x % 100 === 0 || x === w ? 2 : 1, tint, 1);
-      grid.moveTo(x, 0);
-      grid.lineTo(x, h);
+  updateOptions = (opt) => {
+    for (let option in opt) {
+      this.updateOption(option, opt[option]);
     }
-    for (let y = 0; y <= h; y += this.gridSpacing) {
-      grid.lineStyle(y % 100 === 0 || y === h ? 2 : 1, tint, 1);
-      grid.moveTo(0, y);
-      grid.lineTo(w, y);
+  }
+
+
+  updateOption = (key, value, keyDeep) => {
+    if (keyDeep) this.options[key][keyDeep] = value;
+    else this.options[key] = value;
+
+    // Handle grid change
+    if (key === 'bounds' || key === 'snap') {
+      this.resizeGrid();
+    } else if (key === 'backgroundColor') {
+      this.setBackgroundColor();
     }
-
   }
-  // Generate the grid container. Width and height define the playable area.
-  createGrid = (width = this.options.bounds.w, height = this.options.bounds.h) => {
-    let w = width + (this.gridBorderSize * 2),
-        h = height + (this.gridBorderSize * 2);
+  
+  // Resize the grid to the options bounds parameters. Adds border region to given values.
+  resizeGrid = () => {
 
-    let grid = this.createObject({
-      x: 0, y: 0, w, h, draggable: true,
-    });
-    grid.bounds = { x: w, y: h };
+    const bounds = this.options.bounds,
+          w = bounds.w + (bounds.x * 2),
+          h = bounds.h + (bounds.y * 2);
 
-    this.drawGridlines(grid);
-    this.drawBorderShading(grid);
-    return grid;
-  }
-  // Resize the grid to the given parameters. Adds border region to given values.
-  resizeGrid = (width = this.options.bounds.w, height = this.options.bounds.h,
-    spacing = this.gridSpacing, grid = this.container) => {
+    this.container.hitArea = new Pixi.Rectangle(0, 0, w, h);
 
-    this.options.bounds.w = +width;
-    this.options.bounds.h = +height;
-    this.gridSpacing = +spacing;
-
-    let w = this.options.bounds.w + (this.gridBorderSize * 2),
-        h = this.options.bounds.h + (this.gridBorderSize * 2);
-
-    grid.x = 0;
-    grid.y = 0;
-    grid.w = w;
-    grid.h = h;
-    grid.hitArea = new Pixi.Rectangle(0, 0, w, h);
-    grid.bounds = { x: w, y: h };
-
-    // Clear gridline primitives
-    grid.graphicsData.length = 0;
-    grid.dirty++;
-    grid.clearDirty++;
-
-    this.drawGridlines(grid);
-    this.drawBorderShading(grid);
+    drawGrid(this.grid, this.options.snap, bounds);
   }
 
-  addUpdate = fn => {
-    this.app.ticker.add(fn);
+  setBackgroundColor = () => {
+    this.grid.tint = this.options.backgroundColor || 0xFFFFFF;
   }
 
   start = () => {
@@ -169,104 +247,123 @@ class Engine {
       obj.buttonMode = true;
 
       // Set event hooks.
-      let engine = this;
       obj
       // Mouse down
-      .on('mousedown', (e) => { engine.onMouseDown(obj, e); })
-      .on('touchstart', (e) => { engine.onMouseDown(obj, e); })
+      .on('mousedown', this.onMouseDown)
+      .on('touchstart', this.onMouseDown)
       // Mouse up
-      .on('mouseup', (e) => { engine.onMouseUp(obj, e); })
-      .on('mouseupoutside', (e) => { engine.onMouseUp(obj, e); })
-      .on('touchend', (e) => { engine.onMouseUp(obj, e); })
-      .on('touchendoutside', (e) => { engine.onMouseUp(obj, e); })
+      .on('mouseup', this.onMouseUp)
+      .on('mouseupoutside', this.onMouseUp)
+      .on('touchend', this.onMouseUp)
+      .on('touchendoutside', this.onMouseUp)
       // Mouse move
-      .on('mousemove', (e) => { engine.onMouseMove(obj, e); })
-      .on('touchmove', (e) => { engine.onMouseMove(obj, e); });
+      .on('mousemove', this.onMouseMove)
+      .on('touchmove', this.onMouseMove);
     }
 
     return obj;
   };
 
-  createRect = ({ w = 1, h = 1, fill, stroke, ...rest }) => {
+  createShape = ({ w = 1, h = 1, fill, groupData, stroke, strokeWeight = 1, shape = 'rect', borderRadius = 0, ...rest }) => {
 
-    const rect = this.createObject({ w, h, ...rest });
+    const obj = this.createObject({ w, h, ...rest });
 
-    if (typeof stroke === 'number') rect.lineStyle(1, stroke, 1);
-    if (typeof fill === 'number') rect.beginFill(fill);
-    rect.drawRect(0, 0, w, h);
-    rect.endFill();
-    rect.shape = rect.graphicsData[0].shape;
+    if (typeof stroke === 'number') obj.lineStyle(strokeWeight, stroke, 1);
 
-    rect.resize = (width, height) => {
-      rect.shape.width = width;
-      rect.shape.height = height;
-      rect.hitArea = new Pixi.Rectangle(0, 0, width, height);
-      rect.dirty++;
-      rect.clearDirty++;
+    obj.fill = fill;
+    if (typeof fill === 'number' || typeof groupData.fill === 'number') {
+      obj.beginFill(0xFFFFFF);
+      obj.tint = typeof fill === 'number' ? fill : groupData.fill;
+    }
+
+    let getHitArea;
+    switch (shape) {
+      case 'rect':
+      default:
+        obj.drawRect(0, 0, w, h);
+        getHitArea = (_w, _h) => new Pixi.Rectangle(0, 0, _w, _h);
+        break;
+      case 'round_rect':
+        obj.drawRoundedRect(0, 0, w, h, borderRadius);
+        getHitArea = (_w, _h) => new Pixi.RoundedRectangle(0, 0, _w, _h, borderRadius);
+        break;
+      case 'ellipse':
+        obj.drawEllipse(w / 2, h / 2, w / 2, h / 2);
+        getHitArea = (_w, _h) => new Pixi.Ellipse(_w / 2, _h / 2, _w / 2, _h / 2);
+        break;
+    }
+
+    obj.endFill();
+    obj.shape = obj.graphicsData[0].shape;
+
+    obj.resize = (width, height) => {
+
+      width = typeof width === 'number' ? width : obj.w;
+      height = typeof height === 'number' ? height : obj.h;
+
+      obj.hitArea = getHitArea(width, height);
+
+      obj.shape.x = obj.hitArea.x;
+      obj.shape.y = obj.hitArea.y;
+      obj.shape.width = obj.hitArea.width;
+      obj.shape.height = obj.hitArea.height;
+      
+      obj.w = width;
+      obj.h = height;
+      obj.dirty++;
+      obj.clearDirty++;
+
+      this.resetControlPositions(obj);
     };
 
-    rect.translate = (xp, yp) => {
-      rect.position.x = xp;
-      rect.position.y = yp;
+    obj.translate = (xp = obj.x, yp = obj.y) => {
+      obj.position.set(xp, yp);
     };
 
-    return rect;
+    return obj;
   };
 
   // Add a new wall rectangle to the level.
   // Returns the wall object that was just added.
-  addWall = (group, groupData, objData) => {
+  addObject = (groupId, groupData, objId, objData) => {
 
     const {
-      x = this.getSnapPosition(-this.container.x + (this.width / 2)),
-      y = this.getSnapPosition(-this.container.y + (this.height / 2)),
-      w = DEFAULT_RECT_SIZE, h = DEFAULT_RECT_SIZE,
+      x, y, w, h,
       ...rest
     } = objData;
 
-    if (!group) {
-      console.error('Must provide group');
-      return null;
-    }
-
-
-    // Object.assign(rest, {
-    //   fill: groupData.fill,
-    //   stroke: groupData.stroke,
-    // }, rest);
-    rest.stroke = rest.stroke || groupData.stroke;
-    rest.fill = rest.fill || groupData.fill;
-
-    const wall = this.createRect({
-      x,
-      y,
-      w,
-      h,
+    const obj = this.createShape({
+      x, y, w, h,
       draggable: true,
       selectable: true,
+      groupData,
       ...rest,
     });
+    obj.group = groupId;
+    obj.id = objId;
 
     Object.assign(objData, { x, y, w, h });
 
-    group.addChild(wall);
-
-    return wall;
+    this.groups[groupId].addChild(obj);
+    this.groups[groupId].objects[objId] = obj;
   }
-  getSnapPosition = (pos) => Math.floor(pos / this.gridSpacing) * this.gridSpacing;
+
+  getSnapPosition = (pos) => {
+    if (this.options.snap <= 1) return Math.round(pos);
+    else return Math.round(pos / this.options.snap) * this.options.snap;
+  };
 
   // Add a new object group to the level.
-  // Returns the group object that was just added.
-  addGroup = (groupData, id) => { // TEMP id
+  addGroup = (groupId, { fill }) => {
 
-    Object.assign(groupData, Object.assign(DEFAULT_GROUP_DATA, groupData));
+    // groupData = Object.assign(DEFAULT_GROUP_DATA, groupData);
 
     const newGroup = new Pixi.Container();
-    newGroup.id = id;
+    newGroup.objects = {};
+    newGroup.fill = fill;
 
     this.container.addChild(newGroup);
-
-    return newGroup;
+    this.groups[groupId] = newGroup;
   }
 
   // Control manipulation.
@@ -277,13 +374,16 @@ class Engine {
 
     for (let x = 0; x < 2; x++) {
       for (let y = 0; y < 2; y++) {
-        let ctl = this.createRect({
+        let ctl = this.createShape({
           x: x === 0 ? -this.resizeControlSize : obj_width,
           y: y === 0 ? -this.resizeControlSize : obj_height,
           w: this.resizeControlSize,
           h: this.resizeControlSize,
           fill: Colors.CONTROL,
-          stroke: Colors.BLACK,
+          // stroke: Colors.BLACK,
+          // strokeWeight: 3,
+          // shape: 'round_rect',
+          // borderRadius: 2,
           draggable: true,
         });
         ctl.isControl = true;
@@ -293,8 +393,8 @@ class Engine {
         ctl.controlPosition = { x, y };
 
         ctl.resetPosition = () => {
-          ctl.x = ctl.controlPosition.x === 0 ? -ctl.width : ctl.parent.shape.width;
-          ctl.y = ctl.controlPosition.y === 0 ? -ctl.height : ctl.parent.shape.height;
+          ctl.x = ctl.controlPosition.x === 0 ? -ctl.width : ctl.parent.w;
+          ctl.y = ctl.controlPosition.y === 0 ? -ctl.height : ctl.parent.h;
         };
 
         obj.addChild(ctl);
@@ -302,6 +402,7 @@ class Engine {
     }
   };
   removeControls = (obj) => {
+    // TODO: remove with reverse forloop
     for (let i = 0; i < obj.children.length; i++) {
       if (obj.children[i].isControl) {
         obj.removeChildAt(i);
@@ -321,7 +422,6 @@ class Engine {
   // Clear the current object selection.
   clearSelection = () => {
     if (this.selectedObject) {
-      this.selectedObject.tint = Colors.WHITE;
       this.removeControls(this.selectedObject);
     }
 
@@ -342,9 +442,7 @@ class Engine {
     if (!obj.selectable) { return; }
 
     this.selectedObject = obj;
-    // this.moveToTop(this.selectedObject);
-
-    this.selectedObject.tint = Colors.GREEN;
+    this.moveToTop(this.selectedObject);
 
     this.createControls(obj);
   }
@@ -352,143 +450,153 @@ class Engine {
   // Object dragging logic.
   // Called by event handler functions.
   dragStart = (obj, event) => {
-    obj.alpha = 0.8;
+    if (obj !== this.container) {
+      obj.alpha = 0.8;
+    }
     obj.dragging = true;
-    obj.data = event.data;
     obj.offset = event.data.getLocalPosition(obj); // Mouse offset within obj.
+
+    obj.offset.x *= obj.scale.x;
+    obj.offset.y *= obj.scale.x;
+
+    obj.startX = obj.x;
+    obj.startY = obj.y;
   }
-  dragMove = (obj) => {
+  dragMove = (obj, event) => {
     if (obj.dragging) {
-      let newPosition = obj.data.getLocalPosition(obj.parent);
+
+      const newPosition = event.data.getLocalPosition(obj.parent);
 
       newPosition.x -= obj.offset.x;
       newPosition.y -= obj.offset.y;
 
       if (obj !== this.container) {
-        newPosition.x = Math.floor(newPosition.x / this.gridSpacing) * this.gridSpacing;
-        newPosition.y = Math.floor(newPosition.y / this.gridSpacing) * this.gridSpacing;
+
+        // Snap position to grid
+        newPosition.x = this.getSnapPosition(newPosition.x);
+        newPosition.y = this.getSnapPosition(newPosition.y);
 
         // Check bounds and clamp
+        const maxWidth = this.options.bounds.w + (this.options.bounds.x * 2);
         if (newPosition.x < 0) {
           newPosition.x = 0;
-        } else if (newPosition.x + obj.shape.width > this.container.bounds.x) {
-          newPosition.x = this.container.bounds.x - obj.shape.width;
+        } else if (newPosition.x + obj.w > maxWidth) {
+          newPosition.x = maxWidth - obj.w;
         }
-
+        const maxHeight = this.options.bounds.h + (this.options.bounds.y * 2);
         if (newPosition.y < 0) {
           newPosition.y = 0;
-        } else if (newPosition.y + obj.shape.height > this.container.bounds.y) {
-          newPosition.y = this.container.bounds.y - obj.shape.height;
+        } else if (newPosition.y + obj.h > maxHeight) {
+          newPosition.y = maxHeight - obj.h;
         }
       }
 
       obj.position.set(newPosition.x, newPosition.y);
 
-      obj.onUpdate && obj.onUpdate({ x: newPosition.x, y: newPosition.y });
-
       if (obj.isControl) {
-        this.resizeParent(obj);
+        this.resizeParent(obj, event);
+        update(obj.parent, true);
+      } else if (obj !== this.container) {
+        update(obj, true);
       }
 
     }
   }
-  resizeParent(control) {
-    let obj = control.parent,
-        dragPos = control.data.getLocalPosition(obj.parent),
-        newPosition = { x: 0, y: 0 },
-        newSize = { width: 0, height: 0 };
+  resizeParent(control, event) {
+    
+    const obj = control.parent,
+          dragOffset = event.data.getLocalPosition(control),
+          dragPos = event.data.getLocalPosition(obj.parent),
+          newSize = { width: obj.w, height: obj.h },
+          newPosition = { x: obj.x, y: obj.y };
 
-    dragPos.x = this.getSnapPosition(dragPos.x);
-    dragPos.y = this.getSnapPosition(dragPos.y);
+    dragOffset.x = constrain(dragOffset.x, 0, control.width);
+    dragOffset.y = constrain(dragOffset.y, 0, control.height);
 
     // Calculate new width.
     if (control.controlPosition.x === 0) {
       // This is a left-side control.
-      dragPos.x += control.width / 2; // Snap offset
-      newPosition.x = dragPos.x + (control.width / 2);
+      newPosition.x = this.getSnapPosition(dragPos.x + (control.width / 2));
 
-      // Clamp to dragging bounds (prevents sliding element):
-      let xMax = (obj.x + obj.shape.width) - this.rectMinSize;
-      newPosition.x = Math.min(newPosition.x, xMax);
+      // Clamp to grid area and dragging bounds (prevents sliding element)
+      newPosition.x = constrain(newPosition.x, 0, (obj.x + obj.w) - this.options.snap);
 
-      // Clamp to grid area.
-      let xMin = 0;
-      newPosition.x = Math.max(newPosition.x, xMin);
-
-      newSize.width = (obj.x + obj.shape.width) - newPosition.x;
+      newSize.width = (obj.x + obj.w) - newPosition.x;
     } else {
       // This is a right-side control.
-      newPosition.x = obj.x;
-      newSize.width = dragPos.x - obj.x;
+      newSize.width = this.getSnapPosition(dragPos.x - (control.width / 2)) - obj.x;
 
       // Clamp to grid boundary width.
-      if (newPosition.x + newSize.width > this.container.bounds.x) {
-        newSize.width = this.container.bounds.x - newPosition.x;
+      const maxWidth = this.options.bounds.w + (this.options.bounds.x * 2);
+      if (newPosition.x + newSize.width > maxWidth) {
+        newSize.width = maxWidth - newPosition.x;
       }
     }
     // Clamp to minimum width.
-    if (newSize.width < this.rectMinSize) { newSize.width = this.rectMinSize; }
+    if (newSize.width < this.options.snap) { newSize.width = this.options.snap; }
 
 
     // Calculate new height.
     if (control.controlPosition.y === 0) {
       // This is a top control.
-      dragPos.y += control.height / 2; // Snap offset.
-      newPosition.y = dragPos.y + (control.height / 2);
+      newPosition.y = this.getSnapPosition(dragPos.y + (control.height / 2));
 
-      // Clamp to dragging bounds (prevents sliding element):
-      let yMax = (obj.y + obj.shape.height) - this.rectMinSize;
-      newPosition.y = Math.min(newPosition.y, yMax);
+      // Clamp to grid area and dragging bounds (prevents sliding element)
+      newPosition.y = constrain(newPosition.y, 0, (obj.y + obj.h) - this.options.snap);
 
-      // Clamp to grid area.
-      let yMin = 0;
-      newPosition.y = Math.max(newPosition.y, yMin);
-
-      newSize.height = (obj.y + obj.shape.height) - newPosition.y;
+      newSize.height = (obj.y + obj.h) - newPosition.y;
     } else {
       // This is a bottom control.
-      newPosition.y = obj.y;
-      newSize.height = dragPos.y - obj.y;
-
+      newSize.height = this.getSnapPosition(dragPos.y - (control.height / 2)) - obj.y;
+      
       // Clamp to grid boundary height.
-      if (newPosition.y + newSize.height > this.container.bounds.y) {
-        newSize.height = this.container.bounds.y - newPosition.y;
+      const maxHeight = this.options.bounds.h + (this.options.bounds.y * 2);
+      if (newPosition.y + newSize.height > maxHeight) {
+        newSize.height = maxHeight - newPosition.y;
       }
     }
     // Clamp to minimum height.
-    if (newSize.height < this.rectMinSize) { newSize.height = this.rectMinSize; }
-
-    obj.onUpdate && obj.onUpdate({ x: newPosition.x, y: newPosition.y, w: newSize.width, h: newSize.height });
+    if (newSize.height < this.options.snap) { newSize.height = this.options.snap; }
 
     obj.translate(newPosition.x, newPosition.y);
     obj.resize(newSize.width, newSize.height);
-    this.resetControlPositions(obj);
   }
-  dragEnd = (obj) => {
+  dragEnd = (obj, event) => {
     obj.alpha = 1.0;
     obj.dragging = false;
 
-    if (obj.isControl) {
-      this.resizeParent(obj);
+    // Only update if position changed
+    if (obj.x !== obj.startX || obj.y !== obj.startY) {
+      if (obj.isControl) {
+        this.resizeParent(obj, event);
+        update(obj.parent);
+      } else if (obj !== this.container) {
+        update(obj);
+      }
     }
   }
 
   // Event handler functions.
-  onMouseDown = (obj, event) => {
+  onMouseDown = (e) => {
+    const obj = e.currentTarget;
+
     if (this.lockSelect) { return; }
     this.lockSelect = true;
 
-    this.selectObject(obj);
-    obj.onUpdate && obj.onUpdate({ selected: true });
+    if (!obj.isControl) events.emit('select', obj.group, obj.id);
 
-    if (obj.draggable) { this.dragStart(obj, event); }
+    if (obj.draggable) { this.dragStart(obj, e); }
   }
-  onMouseUp = (obj, event) => {
-    if (obj.dragging) { this.dragEnd(obj, event); }
+  onMouseUp = (e) => {
+    const obj = e.currentTarget;
+
+    if (obj.dragging) { this.dragEnd(obj, e); }
     this.lockSelect = false;
   }
-  onMouseMove = (obj, event) => {
-    if (obj.dragging) { this.dragMove(obj, event); }
+  onMouseMove = (e) => {
+    const obj = e.currentTarget;
+    
+    if (obj.dragging) { this.dragMove(obj, e); }
   }
 
 }

@@ -12,5 +12,7 @@ assertLoggedIn(false)
     game.active = true; // Set active flag so gameEntry.pug knows to display activeGames info
     parent.insertAdjacentHTML('beforeend', gameEntry(game));
   }
+
+  parent.classList.remove('loading');
 })
 .catch(console.error);

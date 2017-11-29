@@ -69,6 +69,27 @@ html(lang=self.lang)
       if (item.inject !== 'body')
         script&attributes(item)
 
+    script.
+      // Toggle navbar menu
+      document.addEventListener('DOMContentLoaded', () => {
+
+        const $burger = document.getElementById('navbar-burger'),
+              $menu = document.getElementById('navbar-menu'),
+              $buttons = document.getElementsByClassName('button is-outlined');
+
+        $burger.addEventListener('click', function () {
+
+          // Toggle the class on both the "navbar-burger" and the "navbar-menu"
+          $burger.classList.toggle('is-active');
+          $menu.classList.toggle('is-active');
+          Array.prototype.forEach.call($buttons, $el => {
+            $el.classList.toggle('is-inverted')
+          });
+
+        });
+
+      });
+
   body
 
     noscript This website needs JavaScript enabled to work correctly.
