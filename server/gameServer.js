@@ -124,7 +124,8 @@ class Game {
       color: Math.random() * 0xFFFFFF << 0,
       score: 0,
 	  maxhp: PLAYER_MAX_HEALTH, 
-	  curhp: PLAYER_MAX_HEALTH
+	  curhp: PLAYER_MAX_HEALTH,
+	  invul: false
     };
 
     const bounds = this.gameData.options.bounds;
@@ -197,7 +198,7 @@ class Game {
         console.warn(`Invalid id: ${id}`);
         return;
       }
- 
+	  if (!data.invul) {
       if (hit) {
         if (hit === user) {
           Object.assign(user, { score: user.score - 1 });
@@ -205,16 +206,15 @@ class Game {
 		  if (user.curhp < 1) {
 	        data.despawn = true;
 		  }
-          // console.log(user.score);
         } else {
           Object.assign(user, { score: user.score + 1 });
 		  Object.assign(hit, { curhp: hit.curhp - 1 });
 		  if (hit.curhp < 1) {
 	        data.despawn = true;
 		  }
-          // console.log(user.score);
         }
       }
+	  }
 
 	  this.io.emit('bullet_hit', id, data);
       // If we get a valid wall_id, a wall has taken damage.
@@ -226,7 +226,9 @@ class Game {
     
 	socket.on('spike_hit', (id, data) => {
 		const user = this.users[id];
-		Object.assign(user, { curhp: user.curhp - 1});
+		if (!data.invul) {
+		  Object.assign(user, { curhp: user.curhp - data.dmg});
+		}
 		if (user.curhp < 1) {
 	      data.despawn = true;
 	    }
@@ -237,7 +239,6 @@ class Game {
 		const user = this.users[id];
 		Object.assign(user, {curhp: user.maxhp});
 	});
-	
   }
 
 }
