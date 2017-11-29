@@ -59,6 +59,7 @@
     "react/jsx-pascal-case": 0,
     "no-unused-vars": 1,
     "no-confusing-arrow": 0,
-    "no-prototype-builtins": 0
+    "no-prototype-builtins": 0,
+	"linebreak-style": 0
   }
 }

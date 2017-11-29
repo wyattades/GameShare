@@ -78,22 +78,22 @@ const bindHandlers = () => {
 
   socket.on('bullet_hit', (id, data) => {
     engine.removeBullet(id, data);
-	if (data.despawn) {
+    if (data.despawn) {
       engine.despawnPlayer(data);
-	}
-	if (!data.invul) {
-	  engine.serverToggleInvul(data.player);
-	}
+    }
+    if (!data.invul) {
+      engine.serverToggleInvul(data.player);
+    }
     engine.damageWall(data);
   });
   
   socket.on('spike_hit', (id, data) => {
-	if (data.despawn) {
-      engine.despawnPlayer(data); 
-	}
-	if (!data.invul) {
-	  engine.serverToggleInvul(data.player);
-	}
+    if (data.despawn) {
+      engine.despawnPlayer(data);
+    }
+    if (!data.invul) {
+      engine.serverToggleInvul(data.player);
+    }
   });
 
   return Promise.resolve();
@@ -113,7 +113,7 @@ export const sendHit = data => {
 };
 
 export const sendSpike = data => {
-  socket.emit('spike_hit', userId, data);	
+  socket.emit('spike_hit', userId, data);
 };
 
 export const respawnPlayer = data => {
