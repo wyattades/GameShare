@@ -118,7 +118,8 @@ const createCircle = ({ x, y, r = 1, fill, stroke }) => {
 export function serverToggleInvul(id) {
 	toggleInvul(id);
 	game.time.events.add(INVUL_TIME, toggleInvul, this, id).autoDestroy = true; 
-}
+};
+
 function toggleInvul(id) {
 	var plyr = playerMap[id];
 	if (plyr) {
@@ -166,7 +167,7 @@ const generateTextures = () => {
   ]);
   bulletGraphic.endFill();
   createTexture(bulletGraphic, 'bullet');
-
+};
 
 const create = (focusX, focusY) => {
 
@@ -450,12 +451,6 @@ export const damageWall = data => {
   }
 };
 
-
-const respawn = (id) => {
-  const plyr = playerMap[id];
-  plyr.reset(boundary.left + (Math.random() * boundary.width), boundary.top + (Math.random() * boundary.height));
-};
-
 export const despawnPlayer = ({ player: id }) => {
   const plyr = playerMap[id];
   if (plyr) {
@@ -482,7 +477,6 @@ export const createGroup = () => {
 
   return {
     add: obj => {
-		obj.damage = 1;
         const wall = createWall(obj);
         physics.enablePhysics(wall, 'wall');
 		if (obj.damage > 0) {
