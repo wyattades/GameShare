@@ -299,6 +299,47 @@ export const initUser = (id, name) => {
   player.score = 0;
   player.username = name;
 
+  const onCollideStart = (bullet, i) => (collider) => {
+    // Kill on bullet or player collision
+    if (collider.name === 'player') {
+      console.log(`Player hit: ${collider.id}`);
+      bullet.kill();
+      if (collider.id === id) {
+        player.score--;
+      } else {
+        player.score++;
+      }
+      sendHit({
+        index: i,
+        player: collider.id,
+      });
+    } else if (collider.name === 'bullet') {
+      // We don't immediately kill the bullet here because we want to make sure
+      // the other client's bullet detects the collision as well
+      sendHit({
+        index: i,
+      });
+    } else if (collider.name === 'wall') { // Bounce off walls until no health
+      
+      if (collider.data.destructible) bullet.health = 0; // No bouncing off destructible walls
+      
+      bullet.health--;
+      if (bullet.health <= 0) {
+        bullet.kill();
+        sendHit({
+          index: i,
+          wall_id: collider.data.destructible ? collider.data.id : null,
+          damage: bullet.data.damage || 1,
+        });
+      }
+    } else if (collider.name === 'spike') { // Bounce off walls until no health
+      bullet.health--;
+      if (bullet.health <= 0) {
+        bullet.kill();
+      }
+    }
+  };
+
   const allowBullet = () => {
     bulletsShot = Math.max(0, bulletsShot - 1);
   };
@@ -308,47 +349,7 @@ export const initUser = (id, name) => {
 
     const bullet = bullets.getAt(start + i);
 
-    physics.collideStart(bullet, collider => {
-      // Kill on bullet or player collision
-      if (collider.name === 'player') {
-        console.log(`Player hit: ${collider.id}`);
-        bullet.kill();
-        if (collider.id == id){
-          player.score--;
-        }
-        else{
-          player.score++;
-        }
-        sendHit({
-          index: i,
-          player: collider.id,
-        });
-      } else if (collider.name === 'bullet') {
-        // We don't immediately kill the bullet here because we want to make sure
-        // the other client's bullet detects the collision as well
-        sendHit({
-          index: i,
-        });
-      } else if (collider.name === 'wall') { // Bounce off walls until no health
-        
-        if (collider.data.destructible) bullet.health = 0; // No bouncing off destructible walls
-        
-        bullet.health--;
-        if (bullet.health <= 0) {
-          bullet.kill();
-          sendHit({
-            index: i,
-            wall_id: collider.data.destructible ? collider.data.id : null,
-            damage: bullet.data.damage || 1,
-          });
-        }
-      } else if (collider.name === 'spike') { // Bounce off walls until no health
-        bullet.health--;
-        if (bullet.health <= 0) {
-          bullet.kill();
-        }
-      }
-    });
+    physics.collideStart(bullet, onCollideStart(bullet, i));
 
     bullet.events.onKilled.add(allowBullet);
   }
@@ -412,7 +413,13 @@ export const damageWall = data => {
   }
 };
 
-export const despawnPlayer = ({ index, player: id }) => {
+
+const respawn = (id) => {
+  const plyr = playerMap[id];
+  plyr.reset(boundary.left + (Math.random() * boundary.width), boundary.top + (Math.random() * boundary.height));
+};
+
+export const despawnPlayer = ({ player: id }) => {
   const plyr = playerMap[id];
   if (plyr) {
     plyr.kill();
@@ -421,12 +428,6 @@ export const despawnPlayer = ({ index, player: id }) => {
     console.log(`Invalid despawnPlayer: ${id}`);
   }
 };
-
-
-function respawn(id) {
-  const plyr = playerMap[id];
-  plyr.reset(boundary.left + Math.random() * boundary.width, boundary.top + Math.random() * boundary.height);
-}
 
 export const createGroup = () => {
 
@@ -483,18 +484,18 @@ const render = DEV ? () => {
       const id = ids[i],
             plyr = playerMap[id];
       game.debug.line(`${i + 1}) id=${id}, x=${Math.round(plyr.x)}, y=${Math.round(plyr.y)} score = ${plyr.score}`);
-            scores.push({
-              id: id,
-              username: plyr.username,
-              score: plyr.score,
-            });
+      scores.push({
+        id,
+        username: plyr.username,
+        score: plyr.score,
+      });
     }
     game.debug.line();
     game.debug.line('Score:');
-    scores.sort(function (a,b){
-        return b.score - a.score;
-    });
-    for (let i = 0; i < scores.length; i++){
+
+    scores.sort((a, b) => b.score - a.score);
+
+    for (let i = 0; i < scores.length; i++) {
       const plyr = scores[i];
       game.debug.line(`${i + 1}) ${plyr.username} ${plyr.score}`);
     }
@@ -570,7 +571,7 @@ const update = () => {
   });
 };
 
-export const setup = (gameOptions, focusX, focusY) => new Promise((resolve, reject) => {
+export const setup = (gameOptions, focusX, focusY) => new Promise((resolve) => {
 
   game = new Game({
     width: parent.clientWidth,

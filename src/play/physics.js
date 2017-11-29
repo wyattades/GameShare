@@ -37,7 +37,7 @@ export const enablePhysics = (obj, type) => {
       obj.body.setCircle(obj.width / 2);
       break;
 
-	case 'spike':
+    case 'spike':
       obj.body.static = true;
       break;
 
