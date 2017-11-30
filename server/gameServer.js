@@ -36,10 +36,10 @@ const createGameLoop = (fn, fps) => {
   };
 };
 
-const boxCollide = (b1, b2) => !(
-  b1.x > b2.x + b2.w || b1.x + b1.w < b2.x ||
-  b1.y > b2.y + b2.h || b1.y + b1.h < b2.y
-);
+// const boxCollide = (b1, b2) => !(
+//   b1.x > b2.x + b2.w || b1.x + b1.w < b2.x ||
+//   b1.y > b2.y + b2.h || b1.y + b1.h < b2.y
+// );
 
 class Game {
 
@@ -168,9 +168,6 @@ class Game {
     const onConnectData = { users: this.users, id: userId, gameData: this.gameData };
     socket.emit('onconnected', onConnectData);
   
-    // const address = socket.request.connection.remoteAddress; 
-    // const address = socket.handshake.address;
-  
     this.log(`User ${userId} connected`);
     socket.broadcast.emit('user_connect', userId, this.users[userId]);
   
@@ -202,21 +199,22 @@ class Game {
     socket.on('user_named', (id, data) => {
       const user = this.users[id];
 
-      if(!user) {
+      if (!user) {
         console.warn(`Invalid id: ${id}`);
         return;
       }
 
       Object.assign(user, data);
-      //console.log(user.username);
 
     });
+    
     socket.on('bullet_create', (id, data) => {
       this.io.emit('bullet_create', id, data);
     });
 
     socket.on('bullet_hit', (id, data) => {
       this.io.emit('bullet_hit', id, data);
+
       const user = this.users[id];
       const hit = this.users[data.player];
  
@@ -224,16 +222,11 @@ class Game {
         console.warn(`Invalid id: ${id}`);
         return;
       }
- 
 
+      // Handle bullet hitting a player
       if (hit) {
-        if (hit === user) {
-          Object.assign(user, { score: user.score - 1 });
-          // console.log(user.score);
-        } else {
-          Object.assign(user, { score: user.score + 1 });
-          // console.log(user.score);
-        }
+        // Subtract 1 point if player hit itself
+        user.score += (hit === user ? -1 : 1);
       }
       
       // If we get a valid wall_id, a wall has taken damage.

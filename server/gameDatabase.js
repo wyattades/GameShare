@@ -1,7 +1,12 @@
 const admin = require('firebase-admin');
+const fs = require('fs');
 
-const cert = require('./db-credentials.json');
+// Load private certificate from file or environment variable
+const cert = fs.existsSync('server/db-credentials.json') ?
+  require('./db-credentials.json') :
+  JSON.parse(process.env.cert || '{}');
 
+// Initialize firebase admin
 admin.initializeApp({
   credential: admin.credential.cert(cert),
   databaseURL: `https://${cert.project_id}.firebaseio.com`,
