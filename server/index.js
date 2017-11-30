@@ -6,7 +6,7 @@ const http = require('http');
 const gameServer = require('./gameServer');
 const gameDatabase = require('./gameDatabase');
 
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 const DEV = process.env.NODE_ENV === 'development';
 
 // ---------- Setup express to send files

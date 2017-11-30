@@ -1,6 +1,6 @@
 {
   "name": "gameshare",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "description": "Create and share games with your friends!",
   "main": "src/index.js",
   "engines": {
@@ -66,7 +66,7 @@
   },
   "repository": {
     "type": "git",
-    "url": ""
+    "url": "https://github.com/wyattades/GameShare"
   },
   "nodemonConfig": {
     "ignore": [
