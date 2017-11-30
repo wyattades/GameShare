@@ -4,8 +4,8 @@
   "description": "",
   "main": "src/index.js",
   "scripts": {
-    "lint": "eslint ./src ./server",
-    "test": "eslint ./src ./server",
+    "lint": "node node_modules/eslint/bin/eslint.js ./src ./server",
+    "test": "npm run lint",
     "dev": "cross-env NODE_ENV=development nodemon server",
     "build": "cross-env NODE_ENV=production webpack --progress --profile --colors",
     "start": "cross-env NODE_ENV=production node server"
