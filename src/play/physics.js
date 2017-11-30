@@ -1,5 +1,5 @@
 /* global Phaser */
-
+import * as genShape from '../utils/generateShape';
 let materials = {};
 let physics;
 
@@ -37,15 +37,19 @@ export const enablePhysics = (obj, type) => {
       obj.body.setCircle(obj.width / 2);
       break;
 
-	case 'spike':
+    case 'spike':
       obj.body.static = true;
       break;
 
     case 'wall':
       obj.body.static = true;
+      if (obj.shape === 'ellipse') {
+        obj.body.clearShapes();
+        obj.body.addPolygon({}, genShape.generatePolygonFromEllipse(obj.w, obj.h, 10));
+      }
       // obj.body.setRectangle(obj.width, obj.height); // might not be necessary
       break;
-
+ 
     case 'boundary':
       obj.name = 'wall';
       obj.body.static = true;

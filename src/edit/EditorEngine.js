@@ -2,14 +2,9 @@ import * as Pixi from 'pixi.js';
 
 import Colors from './Colors';
 import EE from './EventEmitter';
+import { constrain, deepClone } from '../utils/helpers';
 
 const events = new EE();
-
-const constrain = (val, min, max) => {
-  if (val < min) return min;
-  if (val > max) return max;
-  return val;
-};
 
 const update = (obj, silent) => events.broadcast('update-object', obj.group, obj.id, {
   x: obj.x, y: obj.y, w: obj.w, h: obj.h,
@@ -80,7 +75,8 @@ class Engine {
     this.grid = new Pixi.Sprite();
     this.container.addChild(this.grid);
 
-    this.options = options;
+    this.options = deepClone(options);
+
     this.resizeGrid();
     this.setBackgroundColor();
 
@@ -122,20 +118,16 @@ class Engine {
         const obj = this.groups[groupId].objects[objId];
         if (obj) {
           const { x, y, w, h, stroke, fill } = newData;
+          const groupData = this.groups[groupId];
 
-          if (x !== undefined) obj.x = x;
-          if (y !== undefined) obj.y = y;
+          if (x !== undefined || y !== undefined) obj.translate(x, y);
           if (w !== undefined || h !== undefined) obj.resize(w, h);
 
-          if (fill !== undefined) {
-            if (fill === null) {
-              obj.fill = null;
-              obj.tint = this.groups[groupId].fill;
-            } else {
-              obj.fill = fill;
-              obj.tint = fill;
-            }
+          if (newData.hasOwnProperty('fill')) {
+            obj.fill = fill;
+            obj.tint = typeof fill === 'number' ? fill : groupData.fill;
           }
+
           if (stroke !== undefined) ;
         }
       },
@@ -145,14 +137,14 @@ class Engine {
         if (group) {
           const { fill, stroke } = newData;
 
-          if (fill !== undefined) {
+          if (newData.hasOwnProperty('fill')) {
             group.fill = fill;
             for (let objId in group.objects) {
               const obj = group.objects[objId];
-              obj.fill = obj.fill || fill;
-              obj.tint = obj.fill;
+              obj.tint = typeof obj.fill === 'number' ? obj.fill : fill;
             }
           }
+
           if (stroke !== undefined) ;
         }
       },
@@ -272,14 +264,18 @@ class Engine {
     return obj;
   };
 
-  createShape = ({ w = 1, h = 1, fill, stroke, strokeWeight = 1, shape = 'rect', borderRadius = 0, ...rest }) => {
+  createShape = ({
+    w = 1, h = 1, fill, groupData, stroke, strokeWeight = 1, shape = 'rect', borderRadius = 0, ...rest
+  }) => {
 
     const obj = this.createObject({ w, h, ...rest });
 
     if (typeof stroke === 'number') obj.lineStyle(strokeWeight, stroke, 1);
-    if (typeof fill === 'number') {
+
+    obj.fill = fill;
+    if (typeof fill === 'number' || typeof groupData.fill === 'number') {
       obj.beginFill(0xFFFFFF);
-      obj.tint = fill;
+      obj.tint = typeof fill === 'number' ? fill : groupData.fill;
     }
 
     let getHitArea;
@@ -322,9 +318,8 @@ class Engine {
       this.resetControlPositions(obj);
     };
 
-    obj.translate = (xp, yp) => {
-      obj.position.x = xp;
-      obj.position.y = yp;
+    obj.translate = (xp = obj.x, yp = obj.y) => {
+      obj.position.set(xp, yp);
     };
 
     return obj;
@@ -339,13 +334,11 @@ class Engine {
       ...rest
     } = objData;
 
-    rest.stroke = rest.stroke || groupData.stroke;
-    rest.fill = rest.fill || groupData.fill;
-
     const obj = this.createShape({
       x, y, w, h,
       draggable: true,
       selectable: true,
+      groupData,
       ...rest,
     });
     obj.group = groupId;
@@ -363,12 +356,13 @@ class Engine {
   };
 
   // Add a new object group to the level.
-  addGroup = (groupId, groupData) => {
+  addGroup = (groupId, { fill }) => {
 
     // groupData = Object.assign(DEFAULT_GROUP_DATA, groupData);
 
     const newGroup = new Pixi.Container();
     newGroup.objects = {};
+    newGroup.fill = fill;
 
     this.container.addChild(newGroup);
     this.groups[groupId] = newGroup;

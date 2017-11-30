@@ -2,27 +2,8 @@ import io from 'socket.io-client';
 import * as engine from './engine';
 
 let socket,
-    userId;
-
-// const createLevel2 = (groups = [], objects = []) => Promise.all(groups.map(groupData => new Promise(resolve => {
-//   const group = engine.createGroup(groupData);
-
-//   if (groupData.objects && groupData.objects.length > 0) {
-//     let i = 0;
-//     const interval = setInterval(() => {
-//       const objData = objects[groupData.objects[i]];
-      
-//       group.add(Object.assign(groupData, objData));
-
-//       if (++i >= groupData.objects.length) {
-//         clearInterval(interval);
-//         resolve();
-//       }
-//     }, 2000 / groupData.objects.length); // Take 2 seconds to spawn all the objects
-//   } else {
-//     resolve();
-//   }
-// })));
+    userId,
+    name;
 
 const createLevel = (groups = {}, objects = {}) => {
 
@@ -58,7 +39,7 @@ const addPlayers = players => {
     engine.addPlayer(id, players[id]);
   }
 
-  return engine.initUser(userId);
+  return engine.initUser(userId, name);
 };
 
 // Apply level object changes that occured before this player joined.
@@ -97,8 +78,22 @@ const bindHandlers = () => {
 
   socket.on('bullet_hit', (id, data) => {
     engine.removeBullet(id, data);
-    engine.despawnPlayer(data);
+    if (data.despawn) {
+      engine.despawnPlayer(data);
+    }
+    if (!data.invul) {
+      engine.serverToggleInvul(data.player);
+    }
     engine.damageWall(data);
+  });
+  
+  socket.on('spike_hit', (id, data) => {
+    if (data.despawn) {
+      engine.despawnPlayer(data);
+    }
+    if (!data.invul) {
+      engine.serverToggleInvul(data.player);
+    }
   });
 
   return Promise.resolve();
@@ -117,6 +112,14 @@ export const sendHit = data => {
   socket.emit('bullet_hit', userId, data);
 };
 
+export const sendSpike = data => {
+  socket.emit('spike_hit', userId, data);
+};
+
+export const respawnPlayer = data => {
+  socket.emit('respawn', userId, data);
+};
+
 export const connect = id => new Promise((resolve, reject) => {
   socket = io(`/${id}`, {
     query: {
@@ -124,8 +127,15 @@ export const connect = id => new Promise((resolve, reject) => {
     },
   });
 
+  name = window.prompt('Choose a username:', 'GuestUserBestUser');
+  if (!name) {
+    window.location.reload();
+  }
+
   socket.on('onconnected', data => {
     userId = data.id;
+
+    socket.emit('user_named', userId, { username: name });
 
     const { x, y, w, h } = data.users[userId];
 

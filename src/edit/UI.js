@@ -3,13 +3,9 @@ import $ from 'jquery';
 import typeTemplate from '../templates/type.pug';
 import objectTemplate from '../templates/object.pug';
 import EE from './EventEmitter';
-import { hexToInt, intToHex } from '../utils/convert';
+import { hexToInt, intToHex } from '../utils/helpers';
 
 const events = new EE();
-
-// const $typeSettings = $('#type-settings').hide(),
-//       $objectSettings = $('#object-settings').hide(),
-//       $gridSettings = $('#grid-settings').show();
 
 const select = (groupId, objId, groupData, objData) => {
 
@@ -26,6 +22,16 @@ const select = (groupId, objId, groupData, objData) => {
   }
 
   $('#grid-settings').hide();
+
+  for (let key of ['damage', 'health']) {
+    $(`#type-${key}`)
+    .val(groupData[key])
+    .off().change(e => {
+      events.emit('update-group', groupId, {
+        [key]: parseFloat(e.target.value),
+      });
+    });
+  }
 
   $('#type-color')
   .val(intToHex(groupData.fill))
@@ -66,7 +72,7 @@ const select = (groupId, objId, groupData, objData) => {
     $group.addClass('secondary-selected');
     $obj.addClass('selected');
     
-    for (let key of ['x', 'y', 'w', 'h']) {
+    for (let key of ['x', 'y', 'w', 'h', 'damage', 'health']) {
       $(`#object-${key}`)
       .val(objData[key])
       .off().change(e => {
@@ -108,7 +114,6 @@ const select = (groupId, objId, groupData, objData) => {
 // TODO: do this without iteration (using jquery magic)
 const tabs = ['objects', 'level'];
 const onClickTab = tab => () => {
-  // events.emit('select');
   
   for (let _tab of tabs) {
     if (tab === _tab) {
@@ -186,9 +191,23 @@ const listeners = {
     }
   },
 
+  'update-option': (key, val, keyDeep) => {
+    const $el = $(`#opt-${key}${keyDeep ? `-${keyDeep}` : ''}`);
+    $el.val($el.attr('type') === 'color' && typeof val === 'number' ? intToHex(val) : val);
+  },
+
   // 'update-group': (groupId, newData) => {
 
   // },
+
+  'set-name': (name) => {
+    $('#game-name').val(name);
+  },
+
+  'history-limit': (limitUndo, limitRedo) => {
+    $('#undo').attr('disabled', limitUndo);
+    $('#redo').attr('disabled', limitRedo);
+  },
 
   select,
 
@@ -257,6 +276,14 @@ const init = (options) => {
       });
     }
   });
+
+  $('#undo')
+  .attr('disabled', true)
+  .click(() => events.emit('history', -1));
+
+  $('#redo')
+  .attr('disabled', true)
+  .click(() => events.emit('history', 1));
 
 };
 
