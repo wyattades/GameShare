@@ -1,6 +1,8 @@
 /* global Phaser */
 import * as physics from './physics';
 
+const randomInt = (min, max) => Math.round((Math.random() * (max - min)) + min);
+
 const _makeParticleBitmap = (game, size, fill, type) => {
   if (size < 1) size = 1;
   let w = size,
@@ -21,14 +23,14 @@ const _addEmitter = (game, x, y, dataOptions = null) => {
   
   // setup
   emitter.data.particles = [];
-  emitter.data.nParticles = 0; // Number of active particles.
+  emitter.data.nParticlesCurrent = 0; // Number of active particles.
   emitter.data.nParticlesTotal = 0; // Total number of particles made.
   emitter.data.sinceEmit = 0; // ms since last particle creation.
   emitter.data.collisionGroup = game.physics.p2.createCollisionGroup();
   emitter.data.lifetime = 0;
   
   // Emitter default options.
-  emitter.data.nParticlesMax = 10; // Maximum number of concurrent particles.
+  emitter.data.nParticlesCurrentMax = 10; // Maximum number of concurrent particles.
   emitter.data.nParticlesTotalMax = 500; // Maximum number of particles to make.
   emitter.data.particleFrequency = 0; // Number of ms between particles.
   emitter.data.selfCollision = false;
@@ -38,12 +40,12 @@ const _addEmitter = (game, x, y, dataOptions = null) => {
   // Particles are made with values returned from these functions.
   emitter.data.pType = 'circle';
   emitter.data.pLifetimeMax = () => 4000;
-  emitter.data.pPos = () => (Math.round((Math.random() * 20) - 10)); // Used for both x and y.
-  emitter.data.pSize = () => (Math.round(Math.random() * 10)); // Width and height, or radius.
+  emitter.data.pPos = () => randomInt(-10, 10); // Offset from emitter position, called for both x and y.
+  emitter.data.pSize = () => randomInt(1, 10); // Width and height, or radius.
   emitter.data.pFill = () => '#00FF00';
   // Physics
   emitter.data.pMass = () => 0.1;
-  emitter.data.pAngle = () => (Math.round(Math.random() * 360));
+  emitter.data.pAngle = () => randomInt(0, 360);
   emitter.data.pThrust = () => 1000;
   emitter.data.pDamping = () => 0.5;
   
@@ -54,7 +56,7 @@ const _addEmitter = (game, x, y, dataOptions = null) => {
   // Create a particle.
   emitter.emitParticle = () => {
     emitter.data.sinceEmit = 0;
-    emitter.data.nParticles++;
+    emitter.data.nParticlesCurrent++;
     emitter.data.nParticlesTotal++;
     
     const pbmd = _makeParticleBitmap(game,
@@ -91,7 +93,7 @@ const _addEmitter = (game, x, y, dataOptions = null) => {
 
   // Return true if not at particle limit and the timer is ready.
   emitter.shouldEmitParticle = () => (
-    (emitter.data.nParticles < emitter.data.nParticlesMax) &&
+    (emitter.data.nParticlesCurrent < emitter.data.nParticlesCurrentMax) &&
     (emitter.data.sinceEmit >= emitter.data.particleFrequency) &&
     (emitter.data.nParticlesTotal < emitter.data.nParticlesTotalMax));
   
@@ -99,7 +101,6 @@ const _addEmitter = (game, x, y, dataOptions = null) => {
   emitter.update = () => {
     emitter.data.lifetime += game.time.elapsedMS;
     emitter.data.sinceEmit += game.time.elapsedMS;
-    
 
     if (emitter.data.lifetime < emitter.data.lifetimeMax) {
       // Emitter is alive, so try to make new particles.
@@ -107,7 +108,7 @@ const _addEmitter = (game, x, y, dataOptions = null) => {
         emitter.data.sinceEmit -= emitter.data.particleFrequency;
         emitter.emitParticle();
       }
-    } else if (emitter.data.nParticles === 0) {
+    } else if (emitter.data.nParticlesCurrent === 0) {
       // Emitter is dead and remaining particles have self-destructed.
       emitter.destroy();
     }
@@ -127,17 +128,17 @@ const _addEmitter = (game, x, y, dataOptions = null) => {
   return emitter;
 };
 
-//asdf
-const intToHex = int => {
-  const hexString = `000000${((int) >>> 0).toString(16)}`.slice(-6);
-  return `#${hexString}`;
-};
+// const intToHex = int => {
+//   const hexString = `000000${((int) >>> 0).toString(16)}`.slice(-6);
+//   return `#${hexString}`;
+// };
+
 // Create a particle emitter. Contains emitter template definitions.
 export const addEmitter = (game, x, y, template = null, data = {}) => {
   let options = {};
   switch (template) {
     case 'burst':
-      options.nParticlesMax = 5;
+      options.nParticlesCurrentMax = 5;
       options.particleFrequency = 0;
       options.lifetimeMax = 1000;
       options.selfCollision = false;
@@ -145,30 +146,29 @@ export const addEmitter = (game, x, y, template = null, data = {}) => {
       options.pThrust = () => 1000;
       break;
       
-    case 'angled-burst':
-      options.nParticlesTotalMax = 3;
+    case 'shot-short':
+      // Creates a quick blast of orange particles in the direction of data.angle.
+      if (data.angle === undefined) {
+        throw new Error('addEmitter(): Cannot make an angled particle emitter without data.angle.');
+      }
+      options.nParticlesCurrentMax = 10;
+      options.nParticlesTotalMax = 10;
       options.particleFrequency = 0;
       options.selfCollision = false;
+      
+      options.pLifetimeMax = () => randomInt(50, 100);
+      options.pPos = () => 0;
+      options.pSize = () => randomInt(2, 10);
+      options.pFill = () => 'rgba(255, 128, 0, 1)';
+      
       options.pMass = () => 0.1;
-      options.pAngle = () => (data.angle + Math.round(Math.random() * 30));
-      options.pThrust = () => (Math.round(Math.random() * 1000) + 2000);
+      options.pAngle = () => data.angle + randomInt(-20, 20);
+      options.pThrust = () => randomInt(1000, 2000);
       options.pDamping = () => 0;
-      options.pLifetimeMax = () => 300;
-      options.pFill = () => {
-        //return { r: 255, g: 0, b: 0 };
-        // let c = intToHex(Phaser.Color.getRandomColor());
-        // console.log(c);
-        // return c;
-        let c = `rgba(${(Math.round(Math.random() * 255) + 0)}, ${Math.round((Math.random() * 255) + 0)}, 0, 1)`;
-        //let c = `rgba(255, 255, 0, 1)`;
-        //let c = Phaser.Color.getWebRGB(Phaser.Color.createColor(255, 0, 0, 1));
-        console.log(c);
-        return c;
-        //return 'rgba(255, 0, 0, 1)';//c;
-      }; 
       break;
       
-    default: break;
+    default:
+      break;
   }
   return _addEmitter(game, x, y, options);
 };

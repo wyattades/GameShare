@@ -398,7 +398,7 @@ export const addBullet = (id, data) => {
   bullet.body.rotation = angle;
   bullet.body.thrust(speed);
   
-  const emitter = particles.addEmitter(game, bullet.x, bullet.y, 'angled-burst', { angle: bullet.body.angle }); //TESTING
+  const emitter = particles.addEmitter(game, bullet.x, bullet.y, 'shot-short', { angle: bullet.body.angle }); //TESTING
 };
 
 // Returns the object with the given custom id.
