@@ -4,7 +4,7 @@ import 'expose-loader?p2!phaser-ce/build/custom/p2.js';
 import 'expose-loader?Phaser!phaser-ce/build/custom/phaser-split.js'; /* global Phaser */
 /* eslint-enable */
 
-import { sendUpdate, sendShoot, sendHit } from './client';
+import { sendUpdate, sendShoot, sendHit, sendSpike, respawnPlayer } from './client';
 import * as physics from './physics';
 
 const DEV = process.env.NODE_ENV === 'development';
@@ -21,8 +21,7 @@ let input,
     player,
     bullets,
     boundary,
-    players,
-    spikes;
+    players;
 
 // Game options
 let options;
@@ -34,6 +33,10 @@ let nextFire = 0,
 
 const GUN_LENGTH = 48;
 const GUN_BODY_RATIO = 0.25;
+const BULLET_DMG = 1;
+const INVUL_TIME = 1000;
+const INVUL_COLOR = 0xFF0000;
+let player_color = {};
 
 const parent = document.getElementById('root');
 // const grandParent = parent.parentElement;
@@ -63,7 +66,7 @@ const intToHex = int => {
 };
 
 // Creates and returns a new Sprite wall object.
-const createWall = ({ x, y, w = 1, h = 1, fill, stroke, objId }) => {
+const createWall = ({ x, y, w = 1, h = 1, fill, stroke, objId, shape = 'rect', damage = 0, health = 0 }) => {
   x += w / 2;
   y += h / 2;
   
@@ -71,35 +74,53 @@ const createWall = ({ x, y, w = 1, h = 1, fill, stroke, objId }) => {
   // Based on example at: https://phaser.io/examples/v2/sprites/sprite-from-bitmapdata
   const bmd = game.add.bitmapData(w, h);
   bmd.ctx.beginPath();
-  bmd.ctx.rect(0, 0, w, h);
+  if (shape === 'ellipse') {
+    bmd.ctx.ellipse(w / 2, h / 2, w / 2, h / 2, 0, 0, Math.PI * 2);
+  }
+  if (shape === 'rect') {
+    bmd.ctx.rect(0, 0, w, h);
+  }
   bmd.ctx.strokeStyle = intToHex(stroke);
   bmd.ctx.fillStyle = intToHex(fill);
   bmd.ctx.fill();
   
   const sprite = game.add.sprite(x, y, bmd);
   sprite.data.id = objId;
-  
+  sprite.shape = shape;
+  sprite.w = w;
+  sprite.h = h;
   // TODO: destructible variables should be defined by group, not the color red.
-  let color = intToHex(fill);
-  sprite.data.destructible = (color === '#ff0000');
+
+  sprite.data.destructible = (health > 0);
   if (sprite.data.destructible) {
-    sprite.maxHealth = 2;
-    sprite.setHealth(2);
+    sprite.maxHealth = health;
+    sprite.setHealth(health);
+  }
+  sprite.data.spike = (damage > 0);
+  if (sprite.data.spike) {
+    sprite.damage = damage;
   }
   
   return sprite;
 };
 
-const createCircle = ({ x, y, r = 1, fill, stroke }) => {
-  // Draw simple circle graphic
-  const graphic = game.add.graphics(x, y);
-  if (fill !== undefined) graphic.beginFill(fill);
-  if (stroke !== undefined) graphic.lineStyle(1, stroke, 1);
-  graphic.drawCircle(x, y, r);
-  if (fill !== undefined) graphic.endFill();
+function toggleInvul(id) {
+  const plyr = playerMap[id];
+  if (plyr) {
+    plyr.invul = !plyr.invul;
+    if (plyr.invul) {
+      player_color[id] = plyr.tint;
+      plyr.tint = INVUL_COLOR;
+    } else {
+      plyr.tint = player_color[id];
+    }
+  }
+}
 
-  return graphic;
-};
+export function serverToggleInvul(id) {
+  toggleInvul(id);
+  game.time.events.add(INVUL_TIME, toggleInvul, this, id).autoDestroy = true;
+}
 
 const generateTextures = () => {
 
@@ -135,7 +156,6 @@ const generateTextures = () => {
   ]);
   bulletGraphic.endFill();
   createTexture(bulletGraphic, 'bullet');
-
 };
 
 const create = (focusX, focusY) => {
@@ -208,7 +228,7 @@ const create = (focusX, focusY) => {
   bullets.createMultiple(options.maxPlayers * options.maxBulletsPerPlayer, textures.bullet, 0, false, (bullet) => {
     // Enable physics and check for collisions
     physics.enablePhysics(bullet, 'bullet');
-
+    bullet.data.damage = BULLET_DMG;
     physics.collideEnd(bullet, collider => {
       if (collider.name === 'wall' && bullet.health > 0) {
 
@@ -219,8 +239,6 @@ const create = (focusX, focusY) => {
       }
     });
   });
-
-  spikes = game.add.group();
 
   const { x, y, w, h } = options.bounds;
 
@@ -239,19 +257,18 @@ export const addPlayer = (id, data) => {
   if (playerMap.hasOwnProperty(id)) {
     console.log(`Invalid addPlayer: ${id}`);
   } else {
-
+	
     const { x, y, color } = data;
     const { width, height } = textures.player;
 
     const plyr = players.getFirstExists(false, false, x + (width / 2), y + (height / 2));
     plyr.tint = color;
     plyr.turret.tint = color;
-
+	
     // Store player id
     plyr.id = id;
-
     // Store player reference
-    playerMap[id] = plyr;
+    playerMap[id] = plyr; 
   }
 };
 
@@ -309,10 +326,20 @@ export const initUser = (id, name) => {
       } else {
         player.score++;
       }
-      sendHit({
-        index: i,
-        player: collider.id,
-      });
+      const plyr = playerMap[collider.id];
+      if (!plyr.invul) {
+        sendHit({
+          index: i,
+          player: collider.id,
+          invul: false,
+        });
+      } else {
+        sendHit({
+          index: i,
+          player: collider.id,
+          invul: true,
+        });
+      }
     } else if (collider.name === 'bullet') {
       // We don't immediately kill the bullet here because we want to make sure
       // the other client's bullet detects the collision as well
@@ -361,7 +388,7 @@ export const initUser = (id, name) => {
 };
 
 export const removeBullet = (id, data) => {
-
+  if (data.index === null) return;
   const { index } = data;
 
   if (!playerMap.hasOwnProperty(id) || typeof index !== 'number' || index >= options.maxBulletsPerPlayer) {
@@ -413,11 +440,13 @@ export const damageWall = data => {
   }
 };
 
-
-const respawn = (id) => {
+function respawn(id) {
   const plyr = playerMap[id];
-  plyr.reset(boundary.left + (Math.random() * boundary.width), boundary.top + (Math.random() * boundary.height));
-};
+  plyr.reset(boundary.left + Math.random() * boundary.width, boundary.top + Math.random() * boundary.height);
+  respawnPlayer({
+
+  });
+}
 
 export const despawnPlayer = ({ player: id }) => {
   const plyr = playerMap[id];
@@ -439,6 +468,27 @@ export const createGroup = () => {
     add: obj => {
       const wall = createWall(obj);
       physics.enablePhysics(wall, 'wall');
+      if (obj.damage > 0) {
+        physics.collideStart(wall, collider => {
+          if (collider.name === 'player') {
+            console.log(`Player hit: ${collider.id}`);
+            const plyr = playerMap[collider.id];
+            if (!plyr.invul) {
+              sendSpike({
+                player: collider.id,
+                invul: false,
+                dmg: obj.damage,
+              });
+            } else {
+              sendSpike({
+                player: collider.id,
+                invul: true,
+                dmg: obj.damage,
+              });
+            }
+          }
+        });
+      }
       group.add(wall);
     },
 
@@ -568,6 +618,7 @@ const update = () => {
     turret: player.turret.rotation,
     score: player.score,
     username: player.username,
+    invul: player.invul,
   });
 };
 
@@ -590,3 +641,4 @@ export const setup = (gameOptions, focusX, focusY) => new Promise((resolve) => {
 
   options = gameOptions;
 });
+
