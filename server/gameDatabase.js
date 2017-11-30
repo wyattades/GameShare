@@ -3,7 +3,7 @@ const fs = require('fs');
 
 // Load private certificate from file or environment variable
 const cert = fs.existsSync('server/db-credentials.json') ?
-  require('./db-credentials.json') :
+  require('./db-credentials.json') : // eslint-disable-line import/no-unresolved
   JSON.parse(process.env.cert || '{}');
 
 // Initialize firebase admin
