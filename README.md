@@ -1,4 +1,4 @@
-# GameShare
+# GameShare [![Build Status](https://travis-ci.org/wyattades/GameShare.svg?branch=master)](https://travis-ci.org/wyattades/GameShare)
 
 ### Get Started
 1. Install ```node``` v8.5.0
