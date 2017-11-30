@@ -319,6 +319,14 @@ export const initUser = id => {
   const allowBullet = () => {
     bulletsShot = Math.max(0, bulletsShot - 1);
   };
+  
+  // Make a burst animations when a bullet hits something.
+  const createBulletDeathEffect = (bullet) => {
+    particles.addEmitter(game, bullet.x, bullet.y, 'bullet-burst', { angle: bullet.body.angle });
+  };
+  const createBulletBounceEffect = (bullet) => {
+    particles.addEmitter(game, bullet.x, bullet.y, 'bullet-bounce', { angle: bullet.body.angle });
+  };
 
   const start = player.index * options.maxBulletsPerPlayer;
   for (let i = 0; i < options.maxBulletsPerPlayer; i++) {
@@ -345,6 +353,7 @@ export const initUser = id => {
         if (collider.data.destructible) bullet.health = 0; // No bouncing off destructible walls
         
         bullet.health--;
+        createBulletBounceEffect(bullet);
         if (bullet.health <= 0) {
           bullet.kill();
           sendHit({
@@ -363,6 +372,7 @@ export const initUser = id => {
 
 
     bullet.events.onKilled.add(allowBullet);
+    bullet.events.onKilled.add(createBulletDeathEffect);
   }
 
   // TODO: sometimes camera doesn't set the player as its target
@@ -398,7 +408,8 @@ export const addBullet = (id, data) => {
   bullet.body.rotation = angle;
   bullet.body.thrust(speed);
   
-  const emitter = particles.addEmitter(game, bullet.x, bullet.y, 'shot-short', { angle: bullet.body.angle }); //TESTING
+  // Create particle effect.
+  particles.addEmitter(game, bullet.x, bullet.y, 'shot-short', { angle: bullet.body.angle });
 };
 
 // Returns the object with the given custom id.
@@ -430,6 +441,7 @@ export const despawnPlayer = ({ index, player: id }) => {
   const plyr = playerMap[id];
   if (plyr) {
     plyr.kill();
+    particles.addEmitter(game, plyr.x, plyr.y, 'tank-burst', { color: plyr.tint });
     game.time.events.add(respawn_timer, respawn, this, id).autoDestroy = true;
   } else {
     console.log(`Invalid despawnPlayer: ${id}`);

@@ -33,7 +33,7 @@ const _addEmitter = (game, x, y, dataOptions = null) => {
   emitter.data.nParticlesCurrentMax = 10; // Maximum number of concurrent particles.
   emitter.data.nParticlesTotalMax = 500; // Maximum number of particles to make.
   emitter.data.particleFrequency = 0; // Number of ms between particles.
-  emitter.data.selfCollision = false;
+  emitter.data.collisions = false;
   emitter.data.lifetimeMax = 1000;
   
   // Particle default options.
@@ -70,9 +70,8 @@ const _addEmitter = (game, x, y, dataOptions = null) => {
     
     // Initialize physics on particle.
     physics.enablePhysics(particle, 'particle');
-    particle.body.setCollisionGroup(emitter.data.collisionGroup);
-    if (emitter.data.selfCollision) {
-      particle.body.collides(emitter.data.collisionGroup);
+    if (!emitter.data.collisions) {
+      particle.body.setCollisionGroup(emitter.data.collisionGroup);
     }
     particle.body.angle = emitter.data.pAngle();
     particle.body.thrust(emitter.data.pThrust());
@@ -128,22 +127,74 @@ const _addEmitter = (game, x, y, dataOptions = null) => {
   return emitter;
 };
 
-// const intToHex = int => {
-//   const hexString = `000000${((int) >>> 0).toString(16)}`.slice(-6);
-//   return `#${hexString}`;
-// };
+const intToHex = int => {
+  const hexString = `000000${((int) >>> 0).toString(16)}`.slice(-6);
+  return `#${hexString}`;
+};
 
 // Create a particle emitter. Contains emitter template definitions.
 export const addEmitter = (game, x, y, template = null, data = {}) => {
   let options = {};
   switch (template) {
-    case 'burst':
-      options.nParticlesCurrentMax = 5;
+    case 'bullet-burst':
+      // Create a burst of yellow particles in the opposite direction of data.angle.
+      if (data.angle === undefined) {
+        throw new Error('addEmitter(): Cannot make an angled particle emitter without data.angle.');
+      }
+      const reversedAngle = Phaser.Math.radToDeg(Phaser.Math.reverseAngle(Phaser.Math.degToRad(data.angle)));
+      options.nParticlesCurrentMax = 8;
+      options.nParticlesTotalMax = 8;
       options.particleFrequency = 0;
-      options.lifetimeMax = 1000;
-      options.selfCollision = false;
-      options.pAngle = () => (Math.round(Math.random() * 360));
-      options.pThrust = () => 1000;
+      
+      options.pLifetimeMax = () => 100;
+      options.pPos = () => 0;
+      options.pSize = () => randomInt(2, 4);
+      options.pFill = () => 'rgba(255, 255, 0, 1)';
+      
+      options.pMass = () => 0.1;
+      options.pAngle = () => reversedAngle + randomInt(-35, 35);
+      options.pThrust = () => randomInt(1500, 2500);
+      options.pDamping = () => 0.5;
+      break;
+      
+    case 'bullet-bounce':
+      // Create a burst of yellow particles in the opposite direction of data.angle.
+      if (data.angle === undefined) {
+        throw new Error('addEmitter(): Cannot make an angled particle emitter without data.angle.');
+      }
+      const reversedAngle_ = Phaser.Math.radToDeg(Phaser.Math.reverseAngle(Phaser.Math.degToRad(data.angle)));
+      options.nParticlesCurrentMax = 3;
+      options.nParticlesTotalMax = 3;
+      options.particleFrequency = 0;
+      
+      options.pLifetimeMax = () => 100;
+      options.pPos = () => 0;
+      options.pSize = () => 2;
+      options.pFill = () => 'rgba(255, 255, 0, 1)';
+      
+      options.pMass = () => 0.1;
+      options.pAngle = () => reversedAngle_ + randomInt(-35, 35);
+      options.pThrust = () => randomInt(1500, 2500);
+      options.pDamping = () => 0.5;
+      break;
+        
+    case 'tank-burst':
+      // Creates a large burst of particles with color equal to data.color.
+      if (data.color === undefined) {
+        throw new Error('addEmitter(): Cannot make a tank-burst without data.color.');
+      }
+      options.nParticlesCurrentMax = 30;
+      options.nParticlesTotalMax = 30;
+      options.particleFrequency = 0;
+      
+      options.pLifetimeMax = () => 1000;
+      options.pPos = () => 0;
+      options.pSize = () => randomInt(5, 10);
+      options.pFill = () => intToHex(data.color);
+      
+      options.pMass = () => 0.1;
+      options.pAngle = () => randomInt(0, 360);
+      options.pThrust = () => randomInt(1500, 2500);
       break;
       
     case 'shot-short':
@@ -154,7 +205,6 @@ export const addEmitter = (game, x, y, template = null, data = {}) => {
       options.nParticlesCurrentMax = 10;
       options.nParticlesTotalMax = 10;
       options.particleFrequency = 0;
-      options.selfCollision = false;
       
       options.pLifetimeMax = () => randomInt(50, 100);
       options.pPos = () => 0;
@@ -162,7 +212,7 @@ export const addEmitter = (game, x, y, template = null, data = {}) => {
       options.pFill = () => 'rgba(255, 128, 0, 1)';
       
       options.pMass = () => 0.1;
-      options.pAngle = () => data.angle + randomInt(-20, 20);
+      options.pAngle = () => data.angle + randomInt(-30, 30);
       options.pThrust = () => randomInt(1000, 2000);
       options.pDamping = () => 0;
       break;
