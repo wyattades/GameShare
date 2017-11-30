@@ -42,8 +42,6 @@ const createGameLoop = (fn, fps) => {
 //   b1.y > b2.y + b2.h || b1.y + b1.h < b2.y
 // );
 
-
-
 class Game {
 
   constructor(id, gameData) {

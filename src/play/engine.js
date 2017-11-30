@@ -257,18 +257,18 @@ export const addPlayer = (id, data) => {
   if (playerMap.hasOwnProperty(id)) {
     console.log(`Invalid addPlayer: ${id}`);
   } else {
-	
+
     const { x, y, color } = data;
     const { width, height } = textures.player;
 
     const plyr = players.getFirstExists(false, false, x + (width / 2), y + (height / 2));
     plyr.tint = color;
     plyr.turret.tint = color;
-	
+
     // Store player id
     plyr.id = id;
     // Store player reference
-    playerMap[id] = plyr; 
+    playerMap[id] = plyr;
   }
 };
 
@@ -442,7 +442,7 @@ export const damageWall = data => {
 
 function respawn(id) {
   const plyr = playerMap[id];
-  plyr.reset(boundary.left + Math.random() * boundary.width, boundary.top + Math.random() * boundary.height);
+  plyr.reset(boundary.left + (Math.random() * boundary.width), boundary.top + (Math.random() * boundary.height));
   respawnPlayer({
 
   });
