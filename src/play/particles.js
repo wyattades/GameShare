@@ -3,7 +3,7 @@ import * as physics from './physics';
 
 const randomInt = (min, max) => Math.round((Math.random() * (max - min)) + min);
 
-const _makeParticleBitmap = (game, size, fill, type) => {
+const makeParticleBitmap = (game, size, fill, type) => {
   if (size < 1) size = 1;
   let w = size,
       h = size;
@@ -22,7 +22,6 @@ const _addEmitter = (game, x, y, dataOptions = null) => {
   const emitter = game.add.sprite(x, y, null);
   
   // setup
-  emitter.data.particles = [];
   emitter.data.nParticlesCurrent = 0; // Number of active particles.
   emitter.data.nParticlesTotal = 0; // Total number of particles made.
   emitter.data.sinceEmit = 0; // ms since last particle creation.
@@ -59,7 +58,7 @@ const _addEmitter = (game, x, y, dataOptions = null) => {
     emitter.data.nParticlesCurrent++;
     emitter.data.nParticlesTotal++;
     
-    const pbmd = _makeParticleBitmap(game,
+    const pbmd = makeParticleBitmap(game,
       emitter.data.pSize(),
       emitter.data.pFill(),
       'circle');
@@ -216,7 +215,24 @@ export const addEmitter = (game, x, y, template = null, data = {}) => {
       options.pThrust = () => randomInt(1000, 2000);
       options.pDamping = () => 0;
       break;
+    
+    case 'smoke':
+      // Rising smoke from a point.
+      options.nParticlesCurrentMax = 200;
+      options.nParticlesTotalMax = 1000;
+      options.particleFrequency = 25;
+      options.lifetimeMax = 1000;
       
+      options.pLifetimeMax = () => randomInt(500, 1500);
+      options.pPos = () => randomInt(-5, 5);
+      options.pSize = () => randomInt(2, 15);
+      options.pFill = () => `rgba(128, 128, 128, ${Math.random()})`;
+      
+      options.pMass = () => 0.1;
+      options.pAngle = () => 0;
+      options.pThrust = () => randomInt(500, 1000);
+      break;
+    
     default:
       break;
   }

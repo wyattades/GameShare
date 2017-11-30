@@ -440,8 +440,9 @@ export const damageWall = data => {
 export const despawnPlayer = ({ index, player: id }) => {
   const plyr = playerMap[id];
   if (plyr) {
-    plyr.kill();
     particles.addEmitter(game, plyr.x, plyr.y, 'tank-burst', { color: plyr.tint });
+    particles.addEmitter(game, plyr.x, plyr.y, 'smoke');
+    plyr.kill();
     game.time.events.add(respawn_timer, respawn, this, id).autoDestroy = true;
   } else {
     console.log(`Invalid despawnPlayer: ${id}`);
