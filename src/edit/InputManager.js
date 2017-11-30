@@ -12,7 +12,7 @@ const keys = {
   39: [SPAN_SPEED, 0, 0], // right
   40: [0, SPAN_SPEED, 0], // down
   189: [0, 0, 1 - ZOOM_FACTOR], // minus
-  187: [0, 0, 1 + ZOOM_FACTOR], // plus  
+  187: [0, 0, 1 + ZOOM_FACTOR], // plus
 };
 
 const canvas = document.getElementById('root');
