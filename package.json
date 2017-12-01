@@ -7,13 +7,12 @@
     "node": "8.9.1"
   },
   "scripts": {
-    "casper": "casperjs test ./__tests__",
+    "casper": "cd __tests__ && node index.js",
     "lint": "eslint ./src ./server",
     "test": "npm run lint && npm run casper",
     "dev": "cross-env NODE_ENV=development nodemon server",
     "build": "cross-env NODE_ENV=production webpack --profile --colors",
-    "start": "cross-env NODE_ENV=production node server",
-    "heroku-postbuild": "npm run build"
+    "start": "cross-env NODE_ENV=production node server"
   },
   "dependencies": {
     "bulma": "^0.6.0",
