@@ -40,7 +40,7 @@ const _addEmitter = (game, x, y, dataOptions = null) => {
   // Particles are made with values returned from these functions.
   emitter.data.pType = 'circle';
   emitter.data.pLifetimeMax = () => 4000;
-  emitter.data.pPos = () => randomInt(-10, 10); // Offset from emitter position, called for both x and y.
+  emitter.data.pPos = () => 0; // Offset from emitter position, called for both x and y.
   emitter.data.pSize = () => randomInt(1, 10); // Width and height, or radius.
   emitter.data.pFill = () => '#00FF00';
   // Physics
@@ -146,11 +146,8 @@ export const addEmitter = (game, x, y, template = null, data = {}) => {
       options.particleFrequency = 0;
       
       options.pLifetimeMax = () => 100;
-      options.pPos = () => 0;
       options.pSize = () => randomInt(2, 4);
       options.pFill = () => 'rgba(255, 255, 0, 1)';
-      
-      options.pMass = () => 0.1;
       options.pAngle = () => reversedAngle + randomInt(-35, 35);
       options.pThrust = () => randomInt(1500, 2500);
       options.pDamping = () => 0.5;
@@ -166,11 +163,8 @@ export const addEmitter = (game, x, y, template = null, data = {}) => {
       options.particleFrequency = 0;
       
       options.pLifetimeMax = () => 1000;
-      options.pPos = () => 0;
       options.pSize = () => randomInt(5, 10);
       options.pFill = () => intToHex(data.color);
-      
-      options.pMass = () => 0.1;
       options.pAngle = () => randomInt(0, 360);
       options.pThrust = () => randomInt(1500, 2500);
       break;
@@ -185,11 +179,8 @@ export const addEmitter = (game, x, y, template = null, data = {}) => {
       options.particleFrequency = 0;
       
       options.pLifetimeMax = () => randomInt(50, 100);
-      options.pPos = () => 0;
       options.pSize = () => randomInt(2, 10);
       options.pFill = () => 'rgba(255, 128, 0, 1)';
-      
-      options.pMass = () => 0.1;
       options.pAngle = () => data.angle + randomInt(-30, 30);
       options.pThrust = () => randomInt(1000, 2000);
       options.pDamping = () => 0;
@@ -206,8 +197,6 @@ export const addEmitter = (game, x, y, template = null, data = {}) => {
       options.pPos = () => randomInt(-5, 5);
       options.pSize = () => randomInt(2, 15);
       options.pFill = () => `rgba(128, 128, 128, ${Math.random()})`;
-      
-      options.pMass = () => 0.1;
       options.pAngle = () => 0;
       options.pThrust = () => randomInt(500, 1000);
       break;
