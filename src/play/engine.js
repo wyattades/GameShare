@@ -5,7 +5,9 @@ import 'expose-loader?Phaser!phaser-ce/build/custom/phaser-split.js'; /* global 
 /* eslint-enable */
 
 import { sendUpdate, sendShoot, sendHit, sendSpike, respawnPlayer } from './client';
+import { intToHex } from '../utils/helpers';
 import * as physics from './physics';
+import * as particles from './particles';
 
 const DEV = process.env.NODE_ENV === 'development';
 let devToggle;
@@ -59,11 +61,6 @@ const createRect = ({ x, y, w = 1, h = 1, fill, stroke }) => {
   return graphic;
 };
 
-// TODO: this is copied from Editor.js, move to shared library?
-const intToHex = int => {
-  const hexString = `000000${((int) >>> 0).toString(16)}`.slice(-6);
-  return `#${hexString}`;
-};
 
 // Creates and returns a new Sprite wall object.
 const createWall = ({ x, y, w = 1, h = 1, fill, stroke, objId, shape = 'rect', damage = 0, health = 0 }) => {
@@ -100,6 +97,7 @@ const createWall = ({ x, y, w = 1, h = 1, fill, stroke, objId, shape = 'rect', d
   if (sprite.data.spike) {
     sprite.damage = damage;
   }
+  
   
   return sprite;
 };
@@ -315,6 +313,14 @@ export const initUser = (id, name) => {
   player = playerMap[id];
   player.score = 0;
   player.username = name;
+  
+  // Make a burst animations when a bullet hits something.
+  const createBulletDeathEffect = (bullet) => {
+    particles.addEmitter(game, bullet.x, bullet.y, 'bullet-hit', { angle: bullet.body.angle, strength: 10 });
+  };
+  const createBulletBounceEffect = (bullet) => {
+    particles.addEmitter(game, bullet.x, bullet.y, 'bullet-hit', { angle: bullet.body.angle, strength: 3 });
+  };
 
   const onCollideStart = (bullet, i) => (collider) => {
     // Kill on bullet or player collision
@@ -351,6 +357,7 @@ export const initUser = (id, name) => {
       if (collider.data.destructible) bullet.health = 0; // No bouncing off destructible walls
       
       bullet.health--;
+      createBulletBounceEffect(bullet);
       if (bullet.health <= 0) {
         bullet.kill();
         sendHit({
@@ -370,6 +377,7 @@ export const initUser = (id, name) => {
   const allowBullet = () => {
     bulletsShot = Math.max(0, bulletsShot - 1);
   };
+  
 
   const start = player.index * options.maxBulletsPerPlayer;
   for (let i = 0; i < options.maxBulletsPerPlayer; i++) {
@@ -379,6 +387,7 @@ export const initUser = (id, name) => {
     physics.collideStart(bullet, onCollideStart(bullet, i));
 
     bullet.events.onKilled.add(allowBullet);
+    bullet.events.onKilled.add(createBulletDeathEffect);
   }
 
   // TODO: sometimes camera doesn't set the player as its target
@@ -413,6 +422,9 @@ export const addBullet = (id, data) => {
 
   bullet.body.rotation = angle;
   bullet.body.thrust(speed);
+  
+  // Create particle effect.
+  particles.addEmitter(game, bullet.x, bullet.y, 'shot-short', { angle: bullet.body.angle });
 };
 
 // Returns the object with the given custom id.
@@ -451,6 +463,8 @@ function respawn(id) {
 export const despawnPlayer = ({ player: id }) => {
   const plyr = playerMap[id];
   if (plyr) {
+    particles.addEmitter(game, plyr.x, plyr.y, 'tank-burst', { color: plyr.tint });
+    particles.addEmitter(game, plyr.x, plyr.y, 'smoke');
     plyr.kill();
     game.time.events.add(respawn_timer, respawn, this, id).autoDestroy = true;
   } else {
