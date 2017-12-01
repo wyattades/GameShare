@@ -316,10 +316,10 @@ export const initUser = (id, name) => {
   
   // Make a burst animations when a bullet hits something.
   const createBulletDeathEffect = (bullet) => {
-    particles.addEmitter(game, bullet.x, bullet.y, 'bullet-burst', { angle: bullet.body.angle });
+    particles.addEmitter(game, bullet.x, bullet.y, 'bullet-hit', { angle: bullet.body.angle, strength: 10 });
   };
   const createBulletBounceEffect = (bullet) => {
-    particles.addEmitter(game, bullet.x, bullet.y, 'bullet-bounce', { angle: bullet.body.angle });
+    particles.addEmitter(game, bullet.x, bullet.y, 'bullet-hit', { angle: bullet.body.angle, strength: 3 });
   };
 
   const onCollideStart = (bullet, i) => (collider) => {

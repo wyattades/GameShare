@@ -132,14 +132,17 @@ const _addEmitter = (game, x, y, dataOptions = null) => {
 export const addEmitter = (game, x, y, template = null, data = {}) => {
   let options = {};
   switch (template) {
-    case 'bullet-burst':
+    case 'bullet-hit':
       // Create a burst of yellow particles in the opposite direction of data.angle.
       if (data.angle === undefined) {
         throw new Error('addEmitter(): Cannot make an angled particle emitter without data.angle.');
       }
+      if (data.strength === undefined) {
+        data.strength = 3;
+      }
       const reversedAngle = Phaser.Math.radToDeg(Phaser.Math.reverseAngle(Phaser.Math.degToRad(data.angle)));
-      options.nParticlesCurrentMax = 8;
-      options.nParticlesTotalMax = 8;
+      options.nParticlesCurrentMax = data.strength;
+      options.nParticlesTotalMax = data.strength;
       options.particleFrequency = 0;
       
       options.pLifetimeMax = () => 100;
@@ -149,27 +152,6 @@ export const addEmitter = (game, x, y, template = null, data = {}) => {
       
       options.pMass = () => 0.1;
       options.pAngle = () => reversedAngle + randomInt(-35, 35);
-      options.pThrust = () => randomInt(1500, 2500);
-      options.pDamping = () => 0.5;
-      break;
-      
-    case 'bullet-bounce':
-      // Create a burst of yellow particles in the opposite direction of data.angle.
-      if (data.angle === undefined) {
-        throw new Error('addEmitter(): Cannot make an angled particle emitter without data.angle.');
-      }
-      const reversedAngle_ = Phaser.Math.radToDeg(Phaser.Math.reverseAngle(Phaser.Math.degToRad(data.angle)));
-      options.nParticlesCurrentMax = 3;
-      options.nParticlesTotalMax = 3;
-      options.particleFrequency = 0;
-      
-      options.pLifetimeMax = () => 100;
-      options.pPos = () => 0;
-      options.pSize = () => 2;
-      options.pFill = () => 'rgba(255, 255, 0, 1)';
-      
-      options.pMass = () => 0.1;
-      options.pAngle = () => reversedAngle_ + randomInt(-35, 35);
       options.pThrust = () => randomInt(1500, 2500);
       options.pDamping = () => 0.5;
       break;
