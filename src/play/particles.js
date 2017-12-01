@@ -1,4 +1,5 @@
 /* global Phaser */
+import { intToHex } from '../utils/helpers';
 import * as physics from './physics';
 
 const randomInt = (min, max) => Math.round((Math.random() * (max - min)) + min);
@@ -126,10 +127,6 @@ const _addEmitter = (game, x, y, dataOptions = null) => {
   return emitter;
 };
 
-const intToHex = int => {
-  const hexString = `000000${((int) >>> 0).toString(16)}`.slice(-6);
-  return `#${hexString}`;
-};
 
 // Create a particle emitter. Contains emitter template definitions.
 export const addEmitter = (game, x, y, template = null, data = {}) => {

@@ -5,6 +5,7 @@ import 'expose-loader?Phaser!phaser-ce/build/custom/phaser-split.js'; /* global 
 /* eslint-enable */
 
 import { sendUpdate, sendShoot, sendHit, sendSpike, respawnPlayer } from './client';
+import { intToHex } from '../utils/helpers';
 import * as physics from './physics';
 import * as particles from './particles';
 
@@ -60,11 +61,6 @@ const createRect = ({ x, y, w = 1, h = 1, fill, stroke }) => {
   return graphic;
 };
 
-// TODO: this is copied from Editor.js, move to shared library?
-const intToHex = int => {
-  const hexString = `000000${((int) >>> 0).toString(16)}`.slice(-6);
-  return `#${hexString}`;
-};
 
 // Creates and returns a new Sprite wall object.
 const createWall = ({ x, y, w = 1, h = 1, fill, stroke, objId, shape = 'rect', damage = 0, health = 0 }) => {
