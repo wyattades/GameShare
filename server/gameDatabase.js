@@ -1,10 +1,8 @@
+require('dotenv').config();
 const admin = require('firebase-admin');
-const fs = require('fs');
 
-// Load private certificate from file or environment variable
-const cert = fs.existsSync('server/db-credentials.json') ?
-  require('./db-credentials.json') : // eslint-disable-line import/no-unresolved
-  JSON.parse(process.env.cert || '{}');
+// Load private certificate from environment variable
+const cert = JSON.parse(process.env.cert || '{}');
 
 // Initialize firebase admin
 admin.initializeApp({

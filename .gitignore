@@ -1,6 +1,6 @@
 # Custom
 dist/
-public/
+# public/
 package-lock.json
 .DS_Store
 db-credentials.json
