@@ -472,7 +472,7 @@ export const despawnPlayer = ({ player: id }) => {
   }
 };
 
-export const createGroup = () => {
+export const createGroup = (groupData) => {
 
   // TODO: do something with group data?
 
