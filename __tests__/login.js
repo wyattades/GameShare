@@ -40,12 +40,12 @@ describe('Login with Google Sign In', () => {
       await googleAuthPage.click('#passwordNext');
     }
 
-    await b.page.waitForNavigation({ timeout: 4004 });
+    await b.page.waitForNavigation({ timeout: 8004 });
     const title = await b.page.title();
     expect(title).toBe('Games');
 
     const storage = await b.page.evaluate(() => JSON.stringify(window.localStorage));
     await b.write('__tests__/__temp.txt', storage);
-  }, 8000);
+  }, 12000);
 
 });
