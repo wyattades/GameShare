@@ -47,6 +47,8 @@ export const assertLoggedIn = (redirect = true) => new Promise((resolve, reject)
   });
 });
 
+export const checkUser = () => auth.currentUser;
+
 // Fetch the user's data
 export const fetchUser = () => {
   const uid = auth.currentUser.uid;
@@ -56,7 +58,7 @@ export const fetchUser = () => {
   .then(snapshot => {
     const userData = snapshot.val();
 
-    if (!userData) { // If profile doesn't exist, create a new one    
+    if (!userData) { // If profile doesn't exist, create a new one
       const newData = {
         username: auth.currentUser.displayName,
         email: auth.currentUser.email,
@@ -99,7 +101,7 @@ export const createGame = (data) => {
       name: 'Untitled Game',
     };
 
-    return db.ref(`/users/${uid}/games/${id}`).set(true) // Register user as owner of game    
+    return db.ref(`/users/${uid}/games/${id}`).set(true) // Register user as owner of game
     .then(() => db.ref(`/games_info/${id}`).set(info)) // Create public game info
     .then(() => id); // Return new game's id
   });
