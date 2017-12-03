@@ -7,6 +7,7 @@ let io,
 const games = {};
 
 const MAX_CONNECTIONS = 5;
+const PLAYER_MAX_HEALTH = 3; // TODO get from editor rules
 
 const createGameLoop = (fn, fps) => {
   
@@ -36,10 +37,10 @@ const createGameLoop = (fn, fps) => {
   };
 };
 
-const boxCollide = (b1, b2) => !(
-  b1.x > b2.x + b2.w || b1.x + b1.w < b2.x ||
-  b1.y > b2.y + b2.h || b1.y + b1.h < b2.y
-);
+// const boxCollide = (b1, b2) => !(
+//   b1.x > b2.x + b2.w || b1.x + b1.w < b2.x ||
+//   b1.y > b2.y + b2.h || b1.y + b1.h < b2.y
+// );
 
 class Game {
 
@@ -107,7 +108,7 @@ class Game {
 
     this.io.emit('update', update);
   }
-
+  
   onConnection(socket) {
 
     if (this.connections >= this.maxConnections) {
@@ -135,6 +136,10 @@ class Game {
       turret: 0,
       color: Math.random() * 0xFFFFFF << 0,
       score: 0,
+      username: null,
+      maxhp: PLAYER_MAX_HEALTH,
+      curhp: PLAYER_MAX_HEALTH,
+      invul: false,
     };
 
     const bounds = this.gameData.options.bounds;
@@ -167,9 +172,6 @@ class Game {
     const onConnectData = { users: this.users, id: userId, gameData: this.gameData };
     socket.emit('onconnected', onConnectData);
   
-    // const address = socket.request.connection.remoteAddress; 
-    // const address = socket.handshake.address;
-  
     this.log(`User ${userId} connected`);
     socket.broadcast.emit('user_connect', userId, this.users[userId]);
   
@@ -201,7 +203,7 @@ class Game {
     socket.on('user_named', (id, data) => {
       const user = this.users[id];
 
-      if(!user) {
+      if (!user) {
         console.warn(`Invalid id: ${id}`);
         return;
       }
@@ -215,7 +217,6 @@ class Game {
     });
 
     socket.on('bullet_hit', (id, data) => {
-      this.io.emit('bullet_hit', id, data);
       const user = this.users[id];
       const hit = this.users[data.player];
  
@@ -223,18 +224,26 @@ class Game {
         console.warn(`Invalid id: ${id}`);
         return;
       }
- 
 
-      if (hit) {
-        if (hit === user) {
-          Object.assign(user, { score: user.score - 1 });
-          // console.log(user.score);
-        } else {
-          Object.assign(user, { score: user.score + 1 });
-          // console.log(user.score);
+      if (!data.invul) {
+        if (hit) {
+          if (hit === user) {
+            Object.assign(user, { score: user.score - 1 });
+            Object.assign(user, { curhp: user.curhp - 1 });
+            if (user.curhp < 1) {
+              data.despawn = true;
+            }
+          } else {
+            Object.assign(user, { score: user.score + 1 });
+            Object.assign(hit, { curhp: hit.curhp - 1 });
+            if (hit.curhp < 1) {
+              data.despawn = true;
+            }
+          }
         }
       }
-      
+
+      this.io.emit('bullet_hit', id, data);
       // If we get a valid wall_id, a wall has taken damage.
       if (Number.isInteger(data.wall_id)) {
         // Add the damage to the changes list.
@@ -242,6 +251,21 @@ class Game {
       }
     });
     
+    socket.on('spike_hit', (id, data) => {
+      const user = this.users[id];
+      if (!data.invul) {
+        Object.assign(user, { curhp: user.curhp - data.dmg });
+      }
+      if (user.curhp < 1) {
+        data.despawn = true;
+      }
+      this.io.emit('spike_hit', id, data);
+    });
+
+    socket.on('respawn', (id, data) => {
+      const user = this.users[id];
+      Object.assign(user, { curhp: user.maxhp });
+    });
   }
 
 }

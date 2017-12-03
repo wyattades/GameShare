@@ -23,6 +23,16 @@ const select = (groupId, objId, groupData, objData) => {
 
   $('#grid-settings').hide();
 
+  for (let key of ['damage', 'health']) {
+    $(`#type-${key}`)
+    .val(groupData[key])
+    .off().change(e => {
+      events.emit('update-group', groupId, {
+        [key]: parseFloat(e.target.value),
+      });
+    });
+  }
+
   $('#type-color')
   .val(intToHex(groupData.fill))
   .off().change(e => {
@@ -62,7 +72,7 @@ const select = (groupId, objId, groupData, objData) => {
     $group.addClass('secondary-selected');
     $obj.addClass('selected');
     
-    for (let key of ['x', 'y', 'w', 'h']) {
+    for (let key of ['x', 'y', 'w', 'h', 'damage', 'health']) {
       $(`#object-${key}`)
       .val(objData[key])
       .off().change(e => {

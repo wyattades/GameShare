@@ -15,12 +15,12 @@ const createLevel = (groups = {}, objects = {}) => {
 
       const groupData = groups[groupId];
       groupData.objects = groupData.objects || {};
-
       const group = engine.createGroup(groupData);
 
       for (let objId in groupData.objects) {
         if (groupData.objects.hasOwnProperty(objId)) {
           const objData = objects[objId];
+          if (objData) { objData.objId = objId; }
           group.add(Object.assign(groupData, objData));
         }
       }
@@ -80,8 +80,22 @@ const bindHandlers = () => {
 
   socket.on('bullet_hit', (id, data) => {
     engine.removeBullet(id, data);
-    engine.despawnPlayer(data);
+    if (data.despawn) {
+      engine.despawnPlayer(data);
+    }
+    if (!data.invul) {
+      engine.serverToggleInvul(data.player);
+    }
     engine.damageWall(data);
+  });
+  
+  socket.on('spike_hit', (id, data) => {
+    if (data.despawn) {
+      engine.despawnPlayer(data);
+    }
+    if (!data.invul) {
+      engine.serverToggleInvul(data.player);
+    }
   });
 
   return Promise.resolve();
@@ -104,6 +118,14 @@ export const sendName = data => {
   socket.emit('user_named', userId, data);
 };
 
+export const sendSpike = data => {
+  socket.emit('spike_hit', userId, data);
+};
+
+export const respawnPlayer = data => {
+  socket.emit('respawn', userId, data);
+};
+
 export const connect = id => new Promise((resolve, reject) => {
   socket = io(`/${id}`, {
     query: {
@@ -113,7 +135,7 @@ export const connect = id => new Promise((resolve, reject) => {
 
   socket.on('onconnected', data => {
     userId = data.id;
-
+    
     const { x, y, w, h } = data.users[userId];
 
     engine.setup(data.gameData.options, x + (w / 2), y + (h / 2))

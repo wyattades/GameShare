@@ -8,6 +8,11 @@ let data,
     saveState = 'saved',
     name = null;
 
+const validInput = val => (
+  (typeof val === 'number' && !isNaN(val)) ||
+  (typeof val === 'string' && val.length > 0)
+);
+
 const roundInt = (val, round) => Math.round(val / round) * round;
 
 const getNewId = (type) => {
@@ -124,7 +129,7 @@ const listeners = {
     if (!silent) {
       const obj = data.objects[objId];
       for (let key in newData) {
-        if (newData[key] === undefined) delete obj[key];
+        if (!validInput(newData[key])) delete obj[key];
         else obj[key] = newData[key];
       }
       
@@ -134,7 +139,7 @@ const listeners = {
   'update-group': (groupId, newData) => {
     const group = data.groups[groupId];
     for (let key in newData) {
-      if (newData[key] === undefined) delete group[key];
+      if (!validInput(newData[key])) delete group[key];
       else group[key] = newData[key];
     }
 
@@ -143,7 +148,7 @@ const listeners = {
 
   'update-option': (key, value, keyDeep) => {
     if (keyDeep) data.options[key][keyDeep] = value;
-    else if (value !== undefined) data.options[key] = value;
+    else if (validInput(value)) data.options[key] = value;
     else delete data.options[key];
 
     save();

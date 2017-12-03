@@ -264,7 +264,9 @@ class Engine {
     return obj;
   };
 
-  createShape = ({ w = 1, h = 1, fill, groupData, stroke, strokeWeight = 1, shape = 'rect', borderRadius = 0, ...rest }) => {
+  createShape = ({
+    w = 1, h = 1, fill, groupData, stroke, strokeWeight = 1, shape = 'rect', borderRadius = 0, ...rest
+  }) => {
 
     const obj = this.createObject({ w, h, ...rest });
 

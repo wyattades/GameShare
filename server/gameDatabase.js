@@ -1,7 +1,10 @@
+require('dotenv').config();
 const admin = require('firebase-admin');
 
-const cert = require('./db-credentials.json');
+// Load private certificate from environment variable
+const cert = JSON.parse(process.env.cert || '{}');
 
+// Initialize firebase admin
 admin.initializeApp({
   credential: admin.credential.cert(cert),
   databaseURL: `https://${cert.project_id}.firebaseio.com`,

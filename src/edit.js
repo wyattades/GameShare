@@ -53,7 +53,7 @@ assertLoggedIn()
   initialData.objects = initialData.objects || {};
   initialData.groups = initialData.groups || {};
   
-  new Engine(document.getElementById('root'), initialData.options);
+  let e = new Engine(document.getElementById('root'), initialData.options); // TODO use function
   UI(initialData.options);
   Input();
   Data(initialData, gameId);
