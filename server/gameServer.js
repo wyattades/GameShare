@@ -135,7 +135,6 @@ class Game {
       turret: 0,
       color: Math.random() * 0xFFFFFF << 0,
       score: 0,
-      username: null,
     };
 
     const bounds = this.gameData.options.bounds;
@@ -207,10 +206,10 @@ class Game {
         return;
       }
 
-      Object.assign(user, data);
-      //console.log(user.username);
+      Object.assign(user, {username: data});
 
     });
+    
     socket.on('bullet_create', (id, data) => {
       this.io.emit('bullet_create', id, data);
     });
