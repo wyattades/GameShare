@@ -2,8 +2,7 @@ import io from 'socket.io-client';
 import * as engine from './engine';
 
 let socket,
-    userId,
-    name;
+    userId;
 
 const createLevel = (groups = {}, objects = {}) => {
 
@@ -39,7 +38,7 @@ const addPlayers = players => {
     engine.addPlayer(id, players[id]);
   }
 
-  return engine.initUser(userId, name);
+  return engine.initUser(userId);
 };
 
 // Apply level object changes that occured before this player joined.
@@ -59,7 +58,10 @@ const bindHandlers = () => {
       const id = ids[i];
       if (id !== userId) {
         engine.updatePlayer(id, updatedPlayers[id]);
+      } else {
+        engine.updateSelf(id, updatedPlayers[id]);
       }
+      engine.updateScore(id);
     }
   });
 
@@ -112,6 +114,10 @@ export const sendHit = data => {
   socket.emit('bullet_hit', userId, data);
 };
 
+export const sendName = data => {
+  socket.emit('user_named', userId, data);
+};
+
 export const sendSpike = data => {
   socket.emit('spike_hit', userId, data);
 };
@@ -127,16 +133,9 @@ export const connect = id => new Promise((resolve, reject) => {
     },
   });
 
-  name = window.prompt('Choose a username:', 'GuestUserBestUser');
-  if (!name) {
-    window.location.reload();
-  }
-
   socket.on('onconnected', data => {
     userId = data.id;
-
-    socket.emit('user_named', userId, { username: name });
-
+    
     const { x, y, w, h } = data.users[userId];
 
     engine.setup(data.gameData.options, x + (w / 2), y + (h / 2))

@@ -23,7 +23,9 @@ let input,
     player,
     bullets,
     boundary,
-    players;
+    players,
+    scoreBoard,
+    scoreText;
 
 // Game options
 let options;
@@ -187,9 +189,17 @@ const create = (focusX, focusY) => {
     const toggleButton = createRect({ x: 10, y: 10, w: 100, h: 24, fill: 0xEEEEEE });
     toggleButton.inputEnabled = true;
     toggleButton.events.onInputDown.add(() => setDev(!devToggle));
-    toggleButton.addChild(game.add.text(-40, -12, 'Toggle Dev', { stroke: 0x000000, fontSize: 16 }));
+    toggleButton.addChild(game.add.text(-43, -10, 'Toggle Dev', { stroke: 0x000000, fontSize: 16 }));
     game.stage.addChild(toggleButton);
   }
+
+  // ScoreBoard object
+  scoreBoard = createRect({ x: (game.camera.width - 300), y: 10, w: 250, h: 200, fill: 0x279AF1 });
+  scoreBoard.addChild(game.add.text(-45, -90, 'Scoreboard', { fill: '#FFF', fontSize: 16, align: 'center' }));
+  scoreText = game.add.text(0, 0, '', { fill: '#FFF', fontSize: 14, align: 'left', tabs: 20 });
+  scoreText.anchor.set(0.5);
+  scoreBoard.addChild(scoreText);
+  game.stage.addChild(scoreBoard);
 
   // Handle WASD keyboard inputs
   input = game.input.keyboard.addKeys({
@@ -309,10 +319,47 @@ export const updatePlayer = (id, data) => {
   }
 };
 
-export const initUser = (id, name) => {
+export const updateSelf = (id, data) => {
+  const plyr = playerMap[id];
+
+  if (plyr) {
+    //  plyr.score = data.score;
+    plyr.username = data.username;
+  } else {
+    console.log(`Invalid updateSelf: ${id}`);
+  }
+};
+
+export const updateScore = id => {
+  scoreBoard.x = game.camera.width - 135;
+  let scores = [],
+      text = '';
+  for (let i = 0, ids = Object.keys(playerMap); i < ids.length; i++) {
+    const plyrId = ids[i],
+          plyr = playerMap[plyrId];
+    scores.push({
+      plyrId,
+      username: plyr.username,
+      score: plyr.score,
+    });
+  }
+  scores.sort((a, b) => b.score - a.score);
+
+  for (let i = 0; i < scores.length; i++) {
+    const plyr = scores[i];
+    if (i <= 5) {
+      text = text.concat(`${i + 1}.\t${plyr.score}\t${plyr.username}\n`);
+    } else if (plyr.plyrId === id) {
+      text = text.concat(`${i + 1}.\t${plyr.score}\t${plyr.username}\n`);
+    }
+  }
+  // console.log(text);
+  scoreText.setText(text);
+};
+
+export const initUser = id => {
   player = playerMap[id];
   player.score = 0;
-  player.username = name;
   
   // Make a burst animations when a bullet hits something.
   const createBulletDeathEffect = (bullet) => {
@@ -378,7 +425,6 @@ export const initUser = (id, name) => {
     bulletsShot = Math.max(0, bulletsShot - 1);
   };
   
-
   const start = player.index * options.maxBulletsPerPlayer;
   for (let i = 0; i < options.maxBulletsPerPlayer; i++) {
 

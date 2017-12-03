@@ -48,6 +48,8 @@ export const assertLoggedIn = (redirect = true) => new Promise((resolve, reject)
   });
 });
 
+export const checkUser = () => auth.currentUser;
+
 // Fetch the user's data
 export const fetchUser = () => {
   const uid = auth.currentUser.uid;
