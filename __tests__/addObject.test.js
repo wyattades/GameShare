@@ -1,6 +1,6 @@
 const b = require('./browser');
 
-const TEST_GAME_ID = '-L-R-LiT0xTiyrnUzGvd';
+const TEST_GAME_ID = '-L-P6w2HkoDyQeGUOg2n';
 
 describe('Add object to game', () => {
   test('Go to specific edit page', async () => {

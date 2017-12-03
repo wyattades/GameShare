@@ -207,7 +207,7 @@ class Game {
         return;
       }
 
-      Object.assign(user, {username: data});
+      Object.assign(user, { username: data });
 
     });
     

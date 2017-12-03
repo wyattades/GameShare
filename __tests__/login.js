@@ -31,7 +31,7 @@ describe('Login with Google Sign In', () => {
       await googleAuthPage.type('#Passwd', process.env.TEST_PASS);
       await googleAuthPage.click('#signIn');
     } else {
-      await googleAuthPage.waitForSelector('#identifierId', { timeout: 3002 });
+      await googleAuthPage.waitForSelector('#identifierId', { timeout: 5002 });
       await googleAuthPage.type('#identifierId', process.env.TEST_EMAIL);
       await googleAuthPage.click('#identifierNext');
       await b.page.waitFor(2000);
@@ -46,6 +46,6 @@ describe('Login with Google Sign In', () => {
 
     const storage = await b.page.evaluate(() => JSON.stringify(window.localStorage));
     await b.write('__tests__/__temp.txt', storage);
-  }, 12000);
+  }, 15000);
 
 });
