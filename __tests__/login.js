@@ -21,7 +21,7 @@ describe('Login with Google Sign In', () => {
   }, 4000);
 
   test('Enter credentials', async () => {
-    await b.page.waitFor(1000);
+    await googleAuthPage.waitFor(2000);
     
     const legacy = await googleAuthPage.$('#Email');
     if (legacy) {
@@ -34,7 +34,7 @@ describe('Login with Google Sign In', () => {
       await googleAuthPage.waitForSelector('#identifierId', { timeout: 5002 });
       await googleAuthPage.type('#identifierId', process.env.TEST_EMAIL);
       await googleAuthPage.click('#identifierNext');
-      await b.page.waitFor(2000);
+      await googleAuthPage.waitFor(2000);
       await googleAuthPage.waitForSelector('#password input[type="password"]', { timeout: 2003 });
       await googleAuthPage.type('#password input[type="password"]', process.env.TEST_PASS);
       await googleAuthPage.click('#passwordNext');
