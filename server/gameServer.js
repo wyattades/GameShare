@@ -136,7 +136,6 @@ class Game {
       turret: 0,
       color: Math.random() * 0xFFFFFF << 0,
       score: 0,
-      username: null,
       maxhp: PLAYER_MAX_HEALTH,
       curhp: PLAYER_MAX_HEALTH,
       invul: false,
