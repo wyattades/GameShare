@@ -1,14 +1,11 @@
-// require('dotenv').config();
-
 const webpack = require('webpack');
 const path = require('path');
 const fs = require('fs');
-// const HtmlWebpackPlugin = require('html-webpack-plugin');
 const UglifyJsPlugin = require('uglifyjs-webpack-plugin');
 const ExtractTextPlugin = require('extract-text-webpack-plugin');
 const OptimizeCssAssetsPlugin = require('optimize-css-assets-webpack-plugin');
 const CleanWebpackPlugin = require('clean-webpack-plugin');
-
+const autoprefixer = require('autoprefixer');
 
 const PATHS = {};
 PATHS.dist = path.resolve(__dirname, 'public');
@@ -49,7 +46,26 @@ const baseConfig = {
         include: PATHS.src,
       }, {
         test: /\.s?css$/,
-        loaders: ExtractTextPlugin.extract({ fallback: 'style-loader', use: ['css-loader', 'sass-loader'] }),
+        loaders: ExtractTextPlugin.extract({
+          fallback: 'style-loader',
+          use: [
+            {
+              loader: 'css-loader',
+              options: {
+                autoprefixer: false,
+                // importLoaders: 1,
+              },
+            },
+            {
+              loader: 'postcss-loader',
+              options: {
+                ident: 'postcss',
+                plugins: () => [ autoprefixer() ],
+              },
+            },
+            'sass-loader',
+          ],
+        }),
         include: PATHS.css,
       }, {
         test: /\.(gif|jpe?g|png|svg)(\?\w+=[\d.]+)?$/,

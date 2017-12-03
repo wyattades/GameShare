@@ -4,6 +4,7 @@ dist/
 package-lock.json
 .DS_Store
 db-credentials.json
+__temp.txt
 
 # Logs
 logs

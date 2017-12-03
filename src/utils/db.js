@@ -36,7 +36,8 @@ export const assertLoggedIn = (redirect = true) => new Promise((resolve, reject)
       if (redirect) {
         window.location.replace('/');
       } else {
-        document.querySelectorAll('.logged-in, .logged-out').forEach(el => {
+        const $els = document.querySelectorAll('.logged-in, .logged-out');
+        Array.prototype.map.call($els, (el) => {
           el.classList.toggle('logged-in');
           el.classList.toggle('logged-out');
         });

@@ -4,7 +4,8 @@
   "plugins": ["react", "jsx-a11y", "import"],
   "env": {
     "browser": true,
-    "node": true
+    "node": true,
+    "jest": true
   },
   "rules": {
     "object-property-newline": 0,

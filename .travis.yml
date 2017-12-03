@@ -6,6 +6,7 @@ cache:
     - "node_modules"
 notifications:
   slack: gamesharegroup:52VErVS4AE5O3A8MyVqDPbRH
-before_script:
-  - npm start
-  - sleep 3
+dist: trusty
+sudo: false  # no need for virtualization.
+addons:
+  chrome: stable

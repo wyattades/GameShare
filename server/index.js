@@ -9,7 +9,8 @@ const gameDatabase = require('./gameDatabase');
 const PORT = process.env.PORT || 3000;
 const DEV = process.env.NODE_ENV === 'development';
 
-console.log(`PID=${process.pid}`);
+// process.noDeprecation = true;
+// console.log(`PID=${process.pid}`);
 
 // ---------- Setup express to send files
 

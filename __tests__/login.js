@@ -1,88 +1,51 @@
-var HOME_PAGE = 'http://localhost:3000';
+const b = require('./browser');
+// NOTE: b.page and b.browser will be undefined unless accessing them in a 'describe' function
 
-var envVars = require('system').env;
-var email = envVars.TEST_EMAIL;
-var password = envVars.TEST_PASS;
+describe('Login with Google Sign In', () => {
 
-casper.on('page.created', function(page) {
-  // this.echo('page created');
-  page.viewportSize = {
-    width: 1600,
-    height: 900,
-  };
-});
+  test('Connect to home page', async () => {
+    await b.page.goto(`${b.ROOT}`); // Pretty much every puppeteer function must be preceeded by 'await'
+    await b.page.waitForSelector('#google-sign-in');
+    
+    const title = await b.page.title();
+    expect(title).toBe('Home');
 
-casper.on('resource.error', function(resource) {
-  casper.test.fail(JSON.stringify(resource,null,4));
-});
+  }, 2000); // 2000 = Test's timeout in milliseconds
 
-casper.on('remote.message', function (msg) {
-  this.echo('remote message caught: ' + msg);
-});
+  let googleAuthPage;
 
-casper.on("page.error", function (msg, trace) {
-  casper.test.fail("Page Error: " + msg);
-});
+  test('Open Google Popup', async () => {
+    await b.page.click('#google-sign-in');
+    const popup = await b.once(b.browser, 'targetcreated');
+    googleAuthPage = await popup.page();
+  }, 4000);
 
-casper.on('popup.created', function (page) {
-  // this.echo("url popup created : " + page.url, "INFO");
-  page.viewportSize = {
-    width: 1600,
-    height: 900,
-  };
-});
+  test('Enter credentials', async () => {
+    await b.page.waitFor(1000);
+    
+    const legacy = await googleAuthPage.$('#Email');
+    if (legacy) {
+      await googleAuthPage.type('#Email', process.env.TEST_EMAIL);
+      await googleAuthPage.click('#next');
+      await googleAuthPage.waitForSelector('#Passwd', { timeout: 3001 });
+      await googleAuthPage.type('#Passwd', process.env.TEST_PASS);
+      await googleAuthPage.click('#signIn');
+    } else {
+      await googleAuthPage.waitForSelector('#identifierId', { timeout: 3002 });
+      await googleAuthPage.type('#identifierId', process.env.TEST_EMAIL);
+      await googleAuthPage.click('#identifierNext');
+      await b.page.waitFor(2000);
+      await googleAuthPage.waitForSelector('#password input[type="password"]', { timeout: 2003 });
+      await googleAuthPage.type('#password input[type="password"]', process.env.TEST_PASS);
+      await googleAuthPage.click('#passwordNext');
+    }
 
-casper.on('error', function (msg) {
-  casper.test.fail('Error: ' + msg);
-}); // You have missed this callback!
+    await b.page.waitForNavigation({ timeout: 4004 });
+    const title = await b.page.title();
+    expect(title).toBe('Games');
 
-// casper.on('popup.loaded', function (page) {
-//   this.echo("url popup loaded : " + page.url, "INFO");    
-// });
+    const storage = await b.page.evaluate(() => JSON.stringify(window.localStorage));
+    await b.write('__tests__/__temp.txt', storage);
+  }, 8000);
 
-casper.test.begin('Login with Google Sign In', function (test) {
-
-  casper.start(HOME_PAGE, function () {
-    this
-      .wait(0, function () { // 'then(function' won't work as expected in any callback function.
-        test.assertExists('#google-sign-in');
-        this.click('#google-sign-in');
-      })
-      .waitForPopup(/accounts\.google/)
-      .withPopup(/accounts\.google/, function (popup) {
-        
-          test.assertExists('form#gaia_loginform');
-          test.assertExists('#Email');
-
-          this
-          .fillSelectors('form#gaia_loginform', {
-            '#Email': email
-          }, false)
-          .thenClick('input#next')
-          .wait(700, function () {
-            this.waitForSelector('#Passwd', function () {
-                
-              test.assertExists('form#gaia_loginform');
-              test.assertExists('input[name=Passwd]');
-              test.assertExists('input#signIn');
-
-              this
-              .fillSelectors('form#gaia_loginform', {
-                'input[name=Passwd]': password
-              }, false)
-              .thenClick('input#signIn')
-              .wait(300);
-            })
-            // .wait(1000, function() {
-            //   console.log('html:', popup.content);
-            //   // this.clickLabel('Allow', 'button');
-          });
-      });
-  })
-  .then(function () { // here outside of the popup!!
-    this.waitForUrl(/games/);
-  })
-  .run(function () {
-    test.done();
-  });
 });

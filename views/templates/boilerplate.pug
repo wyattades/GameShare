@@ -70,24 +70,23 @@ html(lang=self.lang)
         script&attributes(item)
 
     script.
+      // TODO: get rid of this
       // Toggle navbar menu
-      document.addEventListener('DOMContentLoaded', () => {
-
+      document.addEventListener('DOMContentLoaded', function() {
+        
         const $burger = document.getElementById('navbar-burger'),
               $menu = document.getElementById('navbar-menu'),
               $buttons = document.getElementsByClassName('button is-outlined');
-
+      
         $burger.addEventListener('click', function () {
-
+      
           // Toggle the class on both the "navbar-burger" and the "navbar-menu"
           $burger.classList.toggle('is-active');
           $menu.classList.toggle('is-active');
-          Array.prototype.forEach.call($buttons, $el => {
+          Array.prototype.forEach.call($buttons, function($el) {
             $el.classList.toggle('is-inverted')
           });
-
         });
-
       });
 
   body
