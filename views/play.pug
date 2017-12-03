@@ -6,6 +6,15 @@ block page_content
 
   .layers
     .layer(id=self.rootId)
+    .layer.scoreboard-layer
+      .card
+        header.card-header
+          p.card-header-title Scoreboard
+        .card-content
+          .content
+            #scoreboard
+              //- <span class="scoreboard-item"><span>1. test</span><span>test</span></span>
+
     .layer#loading
       section.hero.is-black.is-fullheight
         .hero-body
