@@ -30,6 +30,8 @@ describe('Login with Google Sign In', () => {
       await googleAuthPage.waitForSelector('#Passwd', { timeout: 3001 });
       await googleAuthPage.type('#Passwd', process.env.TEST_PASS);
       await googleAuthPage.click('#signIn');
+      await googleAuthPage.waitFor(2000);
+      console.log(await googleAuthPage.$eval('body', e => e.outerHTML));
     } else {
       await googleAuthPage.waitForSelector('#identifierId', { timeout: 5002 });
       await googleAuthPage.type('#identifierId', process.env.TEST_EMAIL);
