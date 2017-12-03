@@ -17,7 +17,7 @@ const exit = (code) => {
   if (fs.existsSync('__tests__/__temp.txt')) fs.unlinkSync('__tests__/__temp.txt');
 
   server.kill();
-  if (!jest.killed) jest.kill();
+  if (jest && !jest.killed) jest.kill();
 
   process.exit(code);
 };
