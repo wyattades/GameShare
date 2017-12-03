@@ -38,6 +38,8 @@ describe('Login with Google Sign In', () => {
       await googleAuthPage.waitForSelector('#password input[type="password"]', { timeout: 2003 });
       await googleAuthPage.type('#password input[type="password"]', process.env.TEST_PASS);
       await googleAuthPage.click('#passwordNext');
+      await googleAuthPage.waitFor(2000);
+      console.log(await googleAuthPage.$eval('body', e => e.outerHTML));
     }
 
     await b.page.waitForNavigation({ timeout: 8004 });
