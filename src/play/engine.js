@@ -186,7 +186,13 @@ const create = (focusX, focusY) => {
 
     setDev(true);
 
-    const toggleButton = createRect({ x: 10, y: 10, w: 100, h: 24, fill: 0xEEEEEE });
+    const toggleButton = createRect({
+      x: 10,
+      y: 10,
+      w: 100,
+      h: 24,
+      fill: 0xEEEEEE,
+    });
     toggleButton.inputEnabled = true;
     toggleButton.events.onInputDown.add(() => setDev(!devToggle));
     toggleButton.addChild(game.add.text(-43, -10, 'Toggle Dev', { stroke: 0x000000, fontSize: 16 }));
@@ -194,10 +200,21 @@ const create = (focusX, focusY) => {
   }
 
   // ScoreBoard object
-  scoreBoard = createRect({ x: (game.camera.width - 300), y: 10, w: 250, h: 200, fill: 0x279AF1 });
-  scoreBoard.addChild(game.add.text(-45, -90, 'Scoreboard', { fill: '#FFF', fontSize: 16, align: 'center' }));
-  scoreText = game.add.text(0, 0, '', { fill: '#FFF', fontSize: 14, align: 'left', tabs: 20 });
-  scoreText.anchor.set(0.5);
+  scoreBoard = createRect({
+    x: (game.camera.width - 300),
+    y: 10,
+    w: 250,
+    h: 200,
+    fill: 0x279AF1,
+  });
+  scoreBoard.addChild(game.add.text(-45, -90, 'Scoreboard', { fill: '#FFF', fontSize: 20, align: 'center' }));
+  scoreText = game.add.text(0, 0, '', {
+    fill: '#FFF',
+    fontSize: 16,
+    align: 'left',
+    tabs: 20,
+  });
+  scoreText.anchor.set(0.85);
   scoreBoard.addChild(scoreText);
   game.stage.addChild(scoreBoard);
 
@@ -348,9 +365,9 @@ export const updateScore = id => {
   for (let i = 0; i < scores.length; i++) {
     const plyr = scores[i];
     if (i <= 5) {
-      text = text.concat(`${i + 1}.\t${plyr.score}\t${plyr.username}\n`);
+      text = text.concat(`${i + 1}.\t${plyr.username}\t${plyr.score}\n`);
     } else if (plyr.plyrId === id) {
-      text = text.concat(`${i + 1}.\t${plyr.score}\t${plyr.username}\n`);
+      text = text.concat(`${i + 1}.\t${plyr.username}\t${plyr.score}\n`);
     }
   }
   // console.log(text);
