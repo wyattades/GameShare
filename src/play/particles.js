@@ -3,7 +3,7 @@ import { intToHex } from '../utils/helpers';
 import * as physics from './physics';
 
 export const randomInt = (min, max) => {
-  if (min > max) throw new Error('randomInt(): low end of range must be less than or equal to high end.')
+  if (min > max) throw new Error('randomInt(): low end of range must be less than or equal to high end.');
   return Math.round((Math.random() * (max - min)) + min);
 };
 
