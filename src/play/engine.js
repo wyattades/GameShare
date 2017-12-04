@@ -4,6 +4,7 @@ import 'expose-loader?p2!phaser-ce/build/custom/p2.js';
 import 'expose-loader?Phaser!phaser-ce/build/custom/phaser-split.js'; /* global Phaser */
 /* eslint-enable */
 
+// import $ from 'jquery';
 import { sendUpdate, sendShoot, sendHit, sendSpike, respawnPlayer } from './client';
 import { intToHex } from '../utils/helpers';
 import * as physics from './physics';
@@ -25,9 +26,7 @@ let input,
     player,
     bullets,
     boundary,
-    players,
-    scoreBoard,
-    scoreText;
+    players;
 
 // Game options
 let options;
@@ -188,20 +187,18 @@ const create = (focusX, focusY) => {
 
     setDev(true);
 
-    const toggleButton = createRect({ x: 10, y: 10, w: 100, h: 24, fill: 0xEEEEEE });
+    const toggleButton = createRect({
+      x: 10,
+      y: 10,
+      w: 100,
+      h: 24,
+      fill: 0xEEEEEE,
+    });
     toggleButton.inputEnabled = true;
     toggleButton.events.onInputDown.add(() => setDev(!devToggle));
     toggleButton.addChild(game.add.text(-43, -10, 'Toggle Dev', { stroke: 0x000000, fontSize: 16 }));
     game.stage.addChild(toggleButton);
   }
-
-  // ScoreBoard object
-  scoreBoard = createRect({ x: (game.camera.width - 300), y: 10, w: 250, h: 200, fill: 0x279AF1 });
-  scoreBoard.addChild(game.add.text(-45, -90, 'Scoreboard', { fill: '#FFF', fontSize: 16, align: 'center' }));
-  scoreText = game.add.text(0, 0, '', { fill: '#FFF', fontSize: 14, align: 'left', tabs: 20 });
-  scoreText.anchor.set(0.5);
-  scoreBoard.addChild(scoreText);
-  game.stage.addChild(scoreBoard);
 
   // Handle WASD keyboard inputs
   input = game.input.keyboard.addKeys({
@@ -333,7 +330,6 @@ export const updateSelf = (id, data) => {
 };
 
 export const updateScore = id => {
-  scoreBoard.x = game.camera.width - 135;
   let scores = [],
       text = '';
   for (let i = 0, ids = Object.keys(playerMap); i < ids.length; i++) {
@@ -349,14 +345,10 @@ export const updateScore = id => {
 
   for (let i = 0; i < scores.length; i++) {
     const plyr = scores[i];
-    if (i <= 5) {
-      text = text.concat(`${i + 1}.\t${plyr.score}\t${plyr.username}\n`);
-    } else if (plyr.plyrId === id) {
-      text = text.concat(`${i + 1}.\t${plyr.score}\t${plyr.username}\n`);
-    }
+    text = text.concat(`<div class="scoreboard-item"><span>${i + 1}. ${plyr.username}</span>\
+      <span>${plyr.score}</span></div>`);
   }
-  // console.log(text);
-  scoreText.setText(text);
+  document.getElementById('scoreboard').innerHTML = text;
 };
 
 export const initUser = id => {

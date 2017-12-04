@@ -14,6 +14,12 @@ describe('Add object to game', () => {
     await b.page.click('.object-block.group .new-rect-button');
   });
 
-  // TODO: verify new object was added
+  test('Click circle button', async () => {
+    await b.page.click('.object-block.group .new-ellip-button');
+  });
 
+  test('Object is in the sidebar', async () => {
+    await b.page.waitForSelector('.object-button');
+    await b.page.click('.object-button');
+  });
 });
