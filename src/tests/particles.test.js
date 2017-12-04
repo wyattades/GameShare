@@ -1,6 +1,8 @@
 // Unit tests for particles system.
 import * as particles from '../play/particles';
 
+// TODO: move into __tests___, use Jest
+
 // Throw an error if value is not === true.
 const assertTrue = (v, problem = '') => {
   if (v !== true) {

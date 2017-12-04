@@ -27,6 +27,7 @@ beforeAll(async () => {
 
   common.page = await common.browser.newPage();
 
+  // TODO: do we need this?
   // await common.page.setUserAgent(
   //   'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko)' +
   //   'HeadlessChrome/64.0.3264.0 Safari/537.36',
