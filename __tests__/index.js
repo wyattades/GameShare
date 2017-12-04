@@ -58,7 +58,8 @@ const runJest = (pattern) => new Promise((resolve, reject) => {
 
 setTimeout(() => {
 
-  runJest('__tests__/login.js')
+  runJest('__tests__/userName.js')
+  .then(() => runJest('__tests__/login.js'))
   .then(() => runJest('__tests__/.*\\.test\\.js$'))
   .then(exit)
   .catch(exit);
