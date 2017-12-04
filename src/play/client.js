@@ -50,6 +50,11 @@ const applyChanges = changes => {
   }
 };
 
+// Run game-dependent tests now that game object is properly defined.
+const runTests = () => {
+  engine.runTests();
+};
+
 const bindHandlers = () => {
   
   socket.on('update', updatedPlayers => {
@@ -143,6 +148,7 @@ export const connect = id => new Promise((resolve, reject) => {
     .then(() => addPlayers(data.users))
     .then(() => applyChanges(data.gameData.objChanges))
     .then(() => bindHandlers())
+    .then(() => runTests())
     .then(() => engine.resume())
     .then(resolve)
     .catch(reject);

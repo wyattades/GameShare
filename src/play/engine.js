@@ -9,6 +9,8 @@ import { sendUpdate, sendShoot, sendHit, sendSpike, respawnPlayer } from './clie
 import { intToHex } from '../utils/helpers';
 import * as physics from './physics';
 import * as particles from './particles';
+import * as particle_tests from '../tests/particles.test';
+
 
 const DEV = process.env.NODE_ENV === 'development';
 let devToggle;
@@ -694,3 +696,8 @@ export const setup = (gameOptions, focusX, focusY) => new Promise((resolve) => {
   options = gameOptions;
 });
 
+// Run game-dependent tests. Called from client.js during engine setup.
+export const runTests = () => {
+  if (!DEV) return;
+  particle_tests.runTests(game);
+};
