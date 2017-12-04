@@ -343,7 +343,8 @@ export const updateScore = id => {
 
   for (let i = 0; i < scores.length; i++) {
     const plyr = scores[i];
-    text = text.concat(`<div class="scoreboard-item"><span>${i + 1}. ${plyr.username}</span><span>${plyr.score}</span></div>`);
+    text = text.concat(`<div class="scoreboard-item"><span>${i + 1}. ${plyr.username}</span>\
+      <span>${plyr.score}</span></div>`);
   }
   document.getElementById('scoreboard').innerHTML = text;
 };
