@@ -1,11 +1,9 @@
 const b = require('./browser');
 
-const TEST_GAME_ID = '-L-P6w2HkoDyQeGUOg2n';
-
 describe('Add object to game', () => {
   test('Go to specific edit page', async () => {
 
-    await b.page.goto(`${b.ROOT}/edit/${TEST_GAME_ID}`);
+    await b.page.goto(`${b.ROOT}/edit/${b.TEST_GAME_ID}`);
     await b.page.waitForSelector('.object-block.group');
 
   }, 12000);
