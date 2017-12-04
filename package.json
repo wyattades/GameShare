@@ -8,7 +8,7 @@
   },
   "scripts": {
     "jest": "node __tests__",
-    "lint": "eslint ./src ./server",
+    "lint": "eslint .",
     "test": "npm run lint && npm run jest",
     "dev": "cross-env NODE_ENV=development nodemon server",
     "build": "cross-env NODE_ENV=production webpack --profile --colors",
