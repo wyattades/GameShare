@@ -8,36 +8,42 @@ require('dotenv').config();
 const childProcess = require('child_process');
 const fs = require('fs');
 
+const WIN = process.platform === 'win32';
+
 let jest;
 const server = childProcess.spawn('node', ['server']);
 
-const exit = (code) => {
-  console.log('exit:', code);
+const exit = (err) => {
+  console.log('exit:', err || 'success');
 
   if (fs.existsSync('__tests__/__temp.txt')) fs.unlinkSync('__tests__/__temp.txt');
 
   server.kill();
   if (jest && !jest.killed) jest.kill();
 
-  process.exit(code);
+  process.exit(err ? 1 : 0);
 };
 
-process.on('uncaughtException', () => exit(1));
-process.on('SIGTERM', () => exit(1));
+server.on('error', err => exit(`Server error: ${err}`));
+process.on('uncaughtException', err => exit(err));
+process.on('SIGTERM', err => exit(err));
 
 // server.stdout.on('data', (data) => {
 //   console.log(data.toString());
 // });
 
 server.stderr.on('data', (data) => {
-  console.error('Server error:', data.toString());
-  exit(1);
+  exit(`Server error: ${data.toString()}`);
 });
 
 const runJest = (pattern) => new Promise((resolve, reject) => {
-  jest = childProcess.spawn('jest', [pattern, '--colors', '--verbose'], {
-    env: process.env,
-  });
+  jest = childProcess.spawn(
+    WIN ? 'jest.cmd' : 'jest',
+    [WIN ? pattern.replace('/', '\\\\') : pattern, '--colors', '--verbose'],
+    { env: process.env },
+  );
+
+  jest.on('error', err => exit(`Jest error: ${err}`));
   
   jest.stdout.on('data', (data) => {
     console.log(data.toString());
@@ -47,14 +53,14 @@ const runJest = (pattern) => new Promise((resolve, reject) => {
     console.error(data.toString());
   });
   
-  jest.on('exit', code => code > 0 ? reject(code) : resolve());
+  jest.on('exit', code => code > 0 ? reject('Jest exit error') : resolve());
 });
 
 setTimeout(() => {
 
   runJest('__tests__/login.js')
   .then(() => runJest('__tests__/.*\\.test\\.js$'))
-  .then(() => exit(0))
-  .catch(code => exit(code));
+  .then(exit)
+  .catch(exit);
 
 }, 3000);

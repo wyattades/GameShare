@@ -7,7 +7,7 @@ describe('Create a new game', () => {
     const u1 = await b.page.url();
     expect(u1.endsWith('/edit')).toBe(true);
 
-    await b.page.waitForNavigation({ timeout: 3000 });
+    await b.page.waitForNavigation({ timeout: 6000 });
     const u2 = await b.page.url();
     expect(u2.endsWith('/edit')).toBe(false);
 
