@@ -213,3 +213,27 @@ html, body, .edit-body {
     top: 0;
   }
 }
+
+// --- Play page
+
+.scoreboard-layer {
+  .card {
+    width: 200px;
+    height: auto;
+    min-height: 200px;
+    max-height: 60%;
+    background-color: rgba(255, 255, 255, 0.85);
+    color: rgba(74, 74, 74, 0.85);
+
+    .card-content {
+      padding: 0.75rem;
+
+      #scoreboard {
+        .scoreboard-item {
+          display: flex;
+          justify-content: space-between;
+        }
+      }
+    }
+  }
+}
