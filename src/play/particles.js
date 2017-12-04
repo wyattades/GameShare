@@ -2,9 +2,12 @@
 import { intToHex } from '../utils/helpers';
 import * as physics from './physics';
 
-const randomInt = (min, max) => Math.round((Math.random() * (max - min)) + min);
+export const randomInt = (min, max) => {
+  if (min > max) throw new Error('randomInt(): low end of range must be less than or equal to high end.');
+  return Math.round((Math.random() * (max - min)) + min);
+};
 
-const makeParticleBitmap = (game, size, fill, type) => {
+export const makeParticleBitmap = (game, size, fill, type) => {
   if (size < 1) size = 1;
   let w = size,
       h = size;
@@ -19,7 +22,7 @@ const makeParticleBitmap = (game, size, fill, type) => {
 
 // Create and add an emitter to the game. An emitter is an extended sprite used for particle effects.
 // dataOptions is an object holding modifications to the emitter's data object.
-const _addEmitter = (game, x, y, dataOptions = null) => {
+export const _addEmitter = (game, x, y, dataOptions = null) => {
   const emitter = game.add.sprite(x, y, null);
   
   // setup

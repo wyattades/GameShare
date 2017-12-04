@@ -37,6 +37,7 @@ const createGameLoop = (fn, fps) => {
   };
 };
 
+// TODO: use collision detection to spawn player in open space
 // const boxCollide = (b1, b2) => !(
 //   b1.x > b2.x + b2.w || b1.x + b1.w < b2.x ||
 //   b1.y > b2.y + b2.h || b1.y + b1.h < b2.y
@@ -89,9 +90,6 @@ class Game {
     
     for (let i = 0; i < ids.length; i++) {
       const user = this.users[ids[i]];
-
-      // if (user.vx) user.x += user.vx * delta;
-      // if (user.vy) user.y += user.vy * delta;
 
       update[ids[i]] = {
         x: user.x,
@@ -147,6 +145,7 @@ class Game {
     newUser.x = bounds.x + (Math.random() * (bounds.w - newUser.w));
     newUser.y = bounds.y + (Math.random() * (bounds.h - newUser.h));
 
+    // TODO: use collision detection to spawn player in open space
     // const displace = Math.random() > 0.5 ? 10 : -10;
 
     // // Move player left or right until it doesn't collide with anything
