@@ -217,6 +217,8 @@ html, body, .edit-body {
 // --- Play page
 
 .scoreboard-layer {
+  pointer-events: none;
+
   .card {
     width: 200px;
     height: auto;
