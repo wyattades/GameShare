@@ -27,13 +27,13 @@ beforeAll(async () => {
 
   common.page = await common.browser.newPage();
 
-  await common.page.setUserAgent(
-    'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko)' +
-    'HeadlessChrome/64.0.3264.0 Safari/537.36',
-  );
-  await common.page.setExtraHTTPHeaders({
-    'accept-language': 'en-US,en;q=0.8',
-  });
+  // await common.page.setUserAgent(
+  //   'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko)' +
+  //   'HeadlessChrome/64.0.3264.0 Safari/537.36',
+  // );
+  // await common.page.setExtraHTTPHeaders({
+  //   'accept-language': 'en-US,en;q=0.8',
+  // });
   await common.page.setViewport({ width, height });
 
   await common.page.goto(`${common.ROOT}`);

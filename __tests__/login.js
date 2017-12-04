@@ -21,7 +21,7 @@ describe('Login with Google Sign In', () => {
   }, 4000);
 
   test('Enter credentials', async () => {
-    await b.page.waitFor(1000);
+    await googleAuthPage.waitFor(2000);
     
     const legacy = await googleAuthPage.$('#Email');
     if (legacy) {
@@ -30,14 +30,18 @@ describe('Login with Google Sign In', () => {
       await googleAuthPage.waitForSelector('#Passwd', { timeout: 3001 });
       await googleAuthPage.type('#Passwd', process.env.TEST_PASS);
       await googleAuthPage.click('#signIn');
+      await googleAuthPage.waitFor(2000);
+      console.log(await googleAuthPage.$eval('body', e => e.outerHTML));
     } else {
-      await googleAuthPage.waitForSelector('#identifierId', { timeout: 3002 });
+      await googleAuthPage.waitForSelector('#identifierId', { timeout: 5002 });
       await googleAuthPage.type('#identifierId', process.env.TEST_EMAIL);
       await googleAuthPage.click('#identifierNext');
-      await b.page.waitFor(2000);
+      await googleAuthPage.waitFor(2000);
       await googleAuthPage.waitForSelector('#password input[type="password"]', { timeout: 2003 });
       await googleAuthPage.type('#password input[type="password"]', process.env.TEST_PASS);
       await googleAuthPage.click('#passwordNext');
+      await googleAuthPage.waitFor(2000);
+      console.log(await googleAuthPage.$eval('body', e => e.outerHTML));
     }
 
     await b.page.waitForNavigation({ timeout: 8004 });
@@ -46,6 +50,6 @@ describe('Login with Google Sign In', () => {
 
     const storage = await b.page.evaluate(() => JSON.stringify(window.localStorage));
     await b.write('__tests__/__temp.txt', storage);
-  }, 12000);
+  }, 15000);
 
 });
