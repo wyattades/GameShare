@@ -29,28 +29,26 @@ describe('Delete a game', () => {
     await b.page.waitForSelector('#games_content:not(.loading)', { timeout: 6000 });
   }, 10000);
 
-  test('New game shows up on My Games page', async () => {
+  test('New game shows up on My Games page and can be deleted', async () => {
 
-    // const before = await b.page.$$('.game-edit');
-    // const countBefore = before.length;
-    // expect(countBefore).toBeGreaterThanOrEqual(1);
+    const before = await b.page.$$('.game-edit');
+    const countBefore = before.length;
+    expect(countBefore).toBeGreaterThanOrEqual(1);
 
     const query = `.game-edit[href="${editPath}"] + .game-delete`;
     await b.page.waitForSelector(query, { timeout: 2001 });
-    await b.page.click(query);
 
-    b.page.once('dialog', async dialog => {
-      const popUp = await dialog.type();
-      expect(popUp).toBe('confirm');
+    b.page.once('dialog', async (dialog) => {
+      expect(dialog.type).toBe('confirm');
       await dialog.accept();
     });
 
     await b.page.click(query);
     await b.page.waitForSelector(query, { hidden: true, timeout: 2002 });
 
-    // const after = await b.page.$$('.game-edit');
-    // const countAfter = after.length;
-    // expect(countAfter).toBe(countBefore - 1);
+    const after = await b.page.$$('.game-edit');
+    const countAfter = after.length;
+    expect(countAfter).toBe(countBefore - 1);
 
   }, 10000);
 });

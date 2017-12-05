@@ -10,8 +10,17 @@ const common = {
   browser: null,
   ROOT: 'http://localhost:3000',
   TEST_GAME_ID: '-L-P6w2HkoDyQeGUOg2n',
-  // Helper functions
-  once: (listener, event) => new Promise(resolve => listener.once(event, resolve)), // allow async on listener.once
+
+  // Helper functions:
+
+  once: (listener, event) => new Promise((resolve, reject) => {
+    // allow async on listener.once, with timeout
+    listener.once(event, resolve);
+
+    setTimeout(() => {
+      reject('Browser.once timed out');
+    }, 3000);
+  }),
   read: promisify(readFile),
   write: promisify(writeFile),
   exists: promisify(exists),
@@ -22,7 +31,7 @@ beforeAll(async () => {
     // Uncommenting these lines can help debug:
     // headless: false,
     // slowMo: 80,
-    args: [`--window-size=${width},${height}`, '--disable-popup-blocking'],
+    args: [`--window-size=${width},${height}`, '--disable-popup-blocking', '--disable-web-security'],
   });
 
   common.page = await common.browser.newPage();
