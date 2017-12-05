@@ -12,7 +12,7 @@ const gameId = urlMatch && urlMatch.length > 1 && urlMatch[1];
 const TEMPLATE_DATA = {
   options: {
     snap: 8,
-    backgroundColor: 0xFFFFFF,
+    backgroundColor: 0x000000,
     maxBulletsPerPlayer: 4,
     maxPlayers: 20,
     bounds: { x: 256, y: 256, w: 1024, h: 768 },
@@ -21,6 +21,7 @@ const TEMPLATE_DATA = {
     playerSpeed: 500,
     bulletHealth: 2,
     name: 'Untitled Game',
+    bulletDamage: 1,
   },
   groupGen: '_0',
   objGen: '_0',

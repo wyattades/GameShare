@@ -31,7 +31,10 @@ beforeAll(async () => {
     // Uncommenting these lines can help debug:
     // headless: false,
     // slowMo: 80,
-    args: [`--window-size=${width},${height}`, '--disable-popup-blocking', '--disable-web-security'],
+    args: [
+      `--window-size=${width},${height}`, '--disable-popup-blocking',
+      '--disable-web-security', '--reduce-security-for-testing',
+    ],
   });
 
   common.page = await common.browser.newPage();

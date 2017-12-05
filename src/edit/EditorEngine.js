@@ -169,9 +169,9 @@ class Engine {
       zoom: (x, y, scaleFactor) => {
 
         const oldScale = this.container.scale.x;
-        const newScale = constrain(oldScale * scaleFactor, 0.3, 2.0);
+        const newScale = oldScale * scaleFactor;
         
-        if (oldScale !== newScale) {
+        if (oldScale !== newScale && newScale >= 0.3 && newScale <= 2.0) {
           this.container.scale.set(newScale, newScale);
           this.container.x = (scaleFactor * (this.container.x - x)) + x;
           this.container.y = (scaleFactor * (this.container.y - y)) + y;
@@ -217,7 +217,27 @@ class Engine {
   }
 
   setBackgroundColor = () => {
-    this.grid.tint = this.options.backgroundColor || 0xFFFFFF;
+
+    let rgb = this.options.backgroundColor;
+
+    if (rgb === 0) {
+      this.grid.tint = 0xffffff;
+      return;
+    }
+
+    let r = (rgb >> 16) & 0xff;
+    let g = (rgb >> 8) & 0xff;
+    let b = (rgb) & 0xff;
+    const lighten = 70;
+    r = Math.min(255, r + lighten);
+    g = Math.min(255, g + lighten);
+    b = Math.min(255, b + lighten);
+    r = (r << 16) & 0x00FF0000;
+    g = (g << 8) & 0x0000FF00;
+    b &= 0x000000FF;
+    rgb = r | g | b;
+
+    this.grid.tint = rgb;
   }
 
   start = () => {

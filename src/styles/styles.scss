@@ -201,9 +201,6 @@ html, body, .edit-body {
   position: relative;
   overflow: hidden;
   height: calc(100% - #{$navbar-height});  
-  height: -o-calc(100% - #{$navbar-height}); /* opera */
-  height: -webkit-calc(100% - #{$navbar-height}); /* google, safari */
-  height: -moz-calc(100% - #{$navbar-height}); /* firefox */
 
   .layer {
     position: absolute;
@@ -220,6 +217,9 @@ html, body, .edit-body {
   pointer-events: none;
 
   .card {
+    position: absolute;
+    right: 1rem;
+    top: 1rem;
     width: 200px;
     height: auto;
     min-height: 200px;

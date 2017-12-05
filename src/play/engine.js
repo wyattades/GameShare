@@ -4,7 +4,6 @@ import 'expose-loader?p2!phaser-ce/build/custom/p2.js';
 import 'expose-loader?Phaser!phaser-ce/build/custom/phaser-split.js'; /* global Phaser */
 /* eslint-enable */
 
-// import $ from 'jquery';
 import { sendUpdate, sendShoot, sendHit, sendSpike, respawnPlayer } from './client';
 import { intToHex } from '../utils/helpers';
 import * as physics from './physics';
@@ -36,7 +35,6 @@ let nextFire = 0,
 
 const GUN_LENGTH = 48;
 const GUN_BODY_RATIO = 0.25;
-const BULLET_DMG = 1;
 const INVUL_TIME = 1000;
 const INVUL_COLOR = 0xFF0000;
 let player_color = {};
@@ -64,7 +62,10 @@ const createRect = ({ x, y, w = 1, h = 1, fill, stroke }) => {
 
 
 // Creates and returns a new Sprite wall object.
-const createWall = ({ x, y, w = 1, h = 1, fill, stroke, objId, shape = 'rect', damage = 0, health = 0 }) => {
+const createWall = ({
+  x, y, w = 1, h = 1, fill, stroke, objId, shape = 'rect',
+  damage = 0, health = 0, curhp = 0,
+}) => {
   x += w / 2;
   y += h / 2;
   
@@ -89,12 +90,13 @@ const createWall = ({ x, y, w = 1, h = 1, fill, stroke, objId, shape = 'rect', d
   sprite.h = h;
   // TODO: destructible variables should be defined by group, not the color red.
 
-  sprite.data.destructible = (health > 0);
+  sprite.data.destructible = health > 0;
   if (sprite.data.destructible) {
     sprite.maxHealth = health;
-    sprite.setHealth(health);
+    sprite.setHealth(curhp);
+    if (sprite.health <= 0) sprite.kill();
   }
-  sprite.data.spike = (damage > 0);
+  sprite.data.spike = damage > 0;
   if (sprite.data.spike) {
     sprite.damage = damage;
   }
@@ -166,6 +168,7 @@ const create = (focusX, focusY) => {
   // Setup game properties
   game.paused = true;
   game.stage.disableVisibilityChange = true;
+  game.stage.backgroundColor = intToHex(options.backgroundColor);
   physics.init(game);
 
   if (DEV) {
@@ -233,7 +236,7 @@ const create = (focusX, focusY) => {
   bullets.createMultiple(options.maxPlayers * options.maxBulletsPerPlayer, textures.bullet, 0, false, (bullet) => {
     // Enable physics and check for collisions
     physics.enablePhysics(bullet, 'bullet');
-    bullet.data.damage = BULLET_DMG;
+    bullet.data.damage = options.bulletDamage;
     physics.collideEnd(bullet, collider => {
       if (collider.name === 'wall' && bullet.health > 0) {
 
@@ -372,19 +375,12 @@ export const initUser = id => {
         player.score++;
       }
       const plyr = playerMap[collider.id];
-      if (!plyr.invul) {
-        sendHit({
-          index: i,
-          player: collider.id,
-          invul: false,
-        });
-      } else {
-        sendHit({
-          index: i,
-          player: collider.id,
-          invul: true,
-        });
-      }
+      sendHit({
+        index: i,
+        player: collider.id,
+        invul: plyr.invul,
+        damage: bullet.data.damage || 1,
+      });
     } else if (collider.name === 'bullet') {
       // We don't immediately kill the bullet here because we want to make sure
       // the other client's bullet detects the collision as well
@@ -510,7 +506,7 @@ export const despawnPlayer = ({ player: id }) => {
   }
 };
 
-export const createGroup = (groupData) => {
+export const createGroup = () => {
 
   // TODO: do something with group data?
 
@@ -559,7 +555,7 @@ export const resume = () => {
 };
 
 export const destroy = () => {
-  game.destroy();
+  if (game && game.isBooted) game.destroy();
 };
 
 // Get the index of the first available bullet
@@ -572,7 +568,8 @@ const availableBullet = () => {
     }
   }
 
-  throw new Error('No cached bullets are available');
+  console.error('No cached bullets are available!');
+  return -1;
 };
 
 const render = DEV ? () => {
@@ -640,11 +637,13 @@ const update = () => {
   let angle = game.physics.arcade.angleToPointer(player);
   player.turret.rotation = angle - player.rotation;
 
-  if (game.input.activePointer.isDown && // mouse pressed
+  if (player.alive && // Player alive
+    game.input.activePointer.isDown && // mouse pressed
     bulletsShot < options.maxBulletsPerPlayer && // there's an available bullet
     game.time.now > nextFire) { // fire rate has serpassed
 
     nextFire = game.time.now + options.fireRate;
+    bulletsShot++;
 
     const data = {
       x: player.x + (GUN_LENGTH * Math.cos(angle)),
@@ -656,7 +655,6 @@ const update = () => {
 
     sendShoot(data);
 
-    bulletsShot++;
   }
 
   // TODO: update slower???
