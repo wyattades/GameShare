@@ -33,7 +33,7 @@ beforeAll(async () => {
     // slowMo: 80,
     args: [
       `--window-size=${width},${height}`, '--disable-popup-blocking',
-      '--disable-web-security', '--reduce-security-for-testing',
+      '--disable-web-security',
     ],
   });
 
@@ -50,9 +50,6 @@ beforeAll(async () => {
   await common.page.setViewport({ width, height });
 
   await common.page.goto(`${common.ROOT}`);
-  
-  // Pipe page console log
-  // common.page.on('console', msg => console.log('PAGE LOG:', ...msg.args));
 
   // Load local storage from temp file
   const isStorage = await common.exists('__tests__/__temp.txt');
