@@ -43,18 +43,38 @@ const createGameLoop = (fn, fps) => {
 //   b1.y > b2.y + b2.h || b1.y + b1.h < b2.y
 // );
 
+// Pass down properties from groups to their objects
+const propagateProps = ({ groups, objects }) => {
+  for (let groupId in groups) {
+    const group = groups[groupId];
+
+    for (let objId in group.objects) {
+      const obj = objects[objId];
+
+      for (let key of ['damage', 'health', 'fill', 'stroke']) {
+        const g = group[key],
+              o = obj[key];
+        if ((typeof o !== 'number' || isNaN(o)) &&
+          !(typeof g !== 'number' || isNaN(g))) {
+          obj[key] = g;
+        }
+      }
+
+      obj.curhp = obj.health;
+    }
+  }
+};
+
 class Game {
 
   constructor(id, gameData) {
     this.id = id;
     this.gameData = gameData;
+    propagateProps(this.gameData);
     this.users = {};
     this.connections = 0;
     this.maxConnections = gameData.options.maxPlayers || MAX_CONNECTIONS;
-    
-    // Stores changes since server start, to synchronize level objects.
-    // TODO: build out actual gameData.objects to add properties based on group (like health) and remove change system
-    this.gameData.objChanges = [];
+
     this.io = io.of(`/${id}`);
   }
 
@@ -71,7 +91,6 @@ class Game {
   stop() {
     this.gameLoop.stop();
 
-    // this.io.close();
     const connectedSockets = this.io.connected;
     Object.keys(connectedSockets).forEach(socketId => {
       connectedSockets[socketId].disconnect(); // Disconnect each socket
@@ -198,7 +217,7 @@ class Game {
       Object.assign(user, data);
     });
 
-    socket.on('user_named', (id, data) => {
+    socket.on('user_named', (id, username) => {
       const user = this.users[id];
 
       if (!user) {
@@ -206,7 +225,7 @@ class Game {
         return;
       }
 
-      Object.assign(user, { username: data });
+      user.username = username;
 
     });
     
@@ -223,29 +242,28 @@ class Game {
         return;
       }
 
-      if (!data.invul) {
-        if (hit) {
-          if (hit === user) {
-            Object.assign(user, { score: user.score - 1 });
-            Object.assign(user, { curhp: user.curhp - 1 });
-            if (user.curhp < 1) {
-              data.despawn = true;
-            }
-          } else {
-            Object.assign(user, { score: user.score + 1 });
-            Object.assign(hit, { curhp: hit.curhp - 1 });
-            if (hit.curhp < 1) {
-              data.despawn = true;
-            }
+      if (!data.invul && hit) {
+        if (hit === user) {
+          user.score--;
+          user.curhp -= data.damage;
+          if (user.curhp <= 0) {
+            data.despawn = true;
+          }
+        } else {
+          user.score++;
+          hit.curhp -= data.damage;
+          if (hit.curhp <= 0) {
+            data.despawn = true;
           }
         }
       }
 
       this.io.emit('bullet_hit', id, data);
       // If we get a valid wall_id, a wall has taken damage.
-      if (Number.isInteger(data.wall_id)) {
+      if (data.wall_id) {
         // Add the damage to the changes list.
-        this.gameData.objChanges.push({ damageWall: true, wall_id: data.wall_id, damage: data.damage });
+        const wall = this.gameData.objects[data.wall_id];
+        wall.curhp = Math.max(0, wall.curhp - data.damage);
       }
     });
     
@@ -260,9 +278,9 @@ class Game {
       this.io.emit('spike_hit', id, data);
     });
 
-    socket.on('respawn', (id, data) => {
+    socket.on('respawn', (id) => {
       const user = this.users[id];
-      Object.assign(user, { curhp: user.maxhp });
+      user.curhp = user.maxhp;
     });
   }
 

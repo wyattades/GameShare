@@ -1,27 +1,21 @@
 const b = require('./browser');
 
-const TEST_GAME_ID = '-L-FT2qhK2horrpT_Kva'; // Actual game on server(Riley's Game)
+let firstDialog;
 
 describe('Create a Guest Username', () => {
 
   test('Go to specific game page', async () => { // Goto game in browser
-    await b.page.goto(`${b.ROOT}/play/${TEST_GAME_ID}`);
+    await b.page.goto(`${b.ROOT}/play/${b.TEST_GAME_ID}`);
   }, 4000);
 
-  test('Enter Invalid Username', async () => {
-    await b.page.on('dialog', async dialog => {
-      await dialog.accept('NameThatIsLongerThanTwentyCharacters'); // Upon entering an invalid name
-      let popUp = await dialog.type(); // The dialog should prompt again
-      expect(popUp).toBe('prompt');
-    });
-  });
+  test('Enter username if not logged in', async () => {
+    try {
+      firstDialog = await b.once(b.page, 'dialog');
+    } catch (e) { /**/ }
 
-  let name = 'Valid Name';
-
-  test('Enter Valid Username', async () => {
-    await b.page.on('dialog', async dialog => {
-      await dialog.accept(name); // Upon entering a valid name
-      await dialog.dismiss(); // the dialog should be dismissed
-    });
-  });
-}, 12000);
+    if (firstDialog) {
+      expect(firstDialog.type).toBe('prompt');
+      await firstDialog.accept('Some name'); // Upon entering an invalid name
+    }
+  }, 6000);
+});

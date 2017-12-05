@@ -2,7 +2,8 @@ import io from 'socket.io-client';
 import * as engine from './engine';
 
 let socket,
-    userId;
+    userId,
+    alive = false;
 
 const createLevel = (groups = {}, objects = {}) => {
 
@@ -39,20 +40,6 @@ const addPlayers = players => {
   }
 
   return engine.initUser(userId);
-};
-
-// Apply level object changes that occured before this player joined.
-const applyChanges = changes => {
-  for (let i = 0; i < changes.length; i++) {
-    if (changes[i].damageWall) {
-      engine.damageWall(changes[i]);
-    }
-  }
-};
-
-// Run game-dependent tests now that game object is properly defined.
-const runTests = () => {
-  engine.runTests();
 };
 
 const bindHandlers = () => {
@@ -131,7 +118,17 @@ export const respawnPlayer = data => {
   socket.emit('respawn', userId, data);
 };
 
-export const connect = id => new Promise((resolve, reject) => {
+export const destroy = () => {
+  if (socket) socket.close();
+  if (engine) engine.destroy();
+  alive = false;
+};
+
+export const isAlive = () => alive;
+
+export const connect = (id, pass, error) => {
+  alive = true;
+  
   socket = io(`/${id}`, {
     query: {
       game_id: id,
@@ -146,44 +143,27 @@ export const connect = id => new Promise((resolve, reject) => {
     engine.setup(data.gameData.options, x + (w / 2), y + (h / 2))
     .then(() => createLevel(data.gameData.groups, data.gameData.objects))
     .then(() => addPlayers(data.users))
-    .then(() => applyChanges(data.gameData.objChanges))
     .then(() => bindHandlers())
-    .then(() => runTests())
     .then(() => engine.resume())
-    .then(resolve)
-    .catch(reject);
+    .then(pass)
+    .catch(error);
   });
 
   socket.on('invalid_gameid', () => {
-    socket.close();
-
-    reject('Invalid game id');
+    error('Invalid game id');
   });
 
   socket.on('lobby_full', () => {
-    socket.close();
-  
-    reject('Sorry, lobby is full');
+    error('Sorry, lobby is full');
   });
 
   socket.on('connect_error', err => {
-    reject(`Connection error: ${err}`);
+    error(`Connection error: ${err}`);
   });
 
   socket.on('disconnect', () => {
-    reject('The game your are trying to connect to is unavailable');
+    error('The game your are trying to connect to is unavailable');
   });
 
   // TODO: handle network timeouts?
-});
-
-export const disconnect = () => {
-  if (socket) {
-    socket.close();
-  }
-};
-
-export const destroy = () => {
-  disconnect();
-  engine.destroy();
 };

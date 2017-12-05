@@ -5,7 +5,7 @@ import History from './History';
 const events = new EE();
 let data,
     gameId,
-    saveState = 'saved',
+    // saveState = 'saved',
     name = null;
 
 const validInput = val => (
@@ -76,7 +76,7 @@ addMiddlewear((event, ...args) => {
 let timerId = null;
 const save = () => {
   events.emit('save-state', 'saving');
-  saveState = 'saving';
+  // saveState = 'saving';
   
   if (timerId !== null) {
     window.clearTimeout(timerId);
@@ -84,14 +84,16 @@ const save = () => {
 
   timerId = window.setTimeout(() => {
     events.emit('save-state', 'saved');
-    saveState = 'saved';
+    // saveState = 'saved';
     timerId = null;
 
-    updateGame(gameId, data, name ? {
-      name,
-    } : {});
+    const info = {};
+    if (name) {
+      info.name = name;
+      name = null;
+    }
 
-    if (name) name = null;
+    updateGame(gameId, data, info);
   }, 2000);
 };
 // const save = () => updateGame(gameId, data)
@@ -161,7 +163,10 @@ const listeners = {
   },
 
   publish: () => {
-    updateGame(gameId, data, { status: 'running' })
+    const info = { status: 'running' };
+    if (name) info.name = name;
+
+    updateGame(gameId, data, info)
     .then(() => {
       window.location.assign(`/play/${gameId}`);
     })
