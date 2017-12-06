@@ -77,9 +77,16 @@ export const fetchUser = () => {
 // Sign out of firebase
 export const logout = () => auth.signOut();
 
-// Login to firebaes
-export const login = provider => auth.signInWithPopup(providers[provider])
-.then(fetchUser);
+// Login to firebase
+export const login = (provider, token) => {
+
+  if (provider === 'token') {
+    return auth.signInWithCustomToken(token);
+  }
+
+  return auth.signInWithPopup(providers[provider])
+  .then(fetchUser);
+};
 
 // Create a new game with the given data and info
 export const createGame = (data) => {

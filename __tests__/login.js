@@ -1,5 +1,16 @@
+require('dotenv').config();
+const admin = require('firebase-admin');
 const b = require('./browser');
 // NOTE: b.page and b.browser will be undefined unless accessing them in a 'describe' function
+
+// Load private certificate from environment variable
+const cert = JSON.parse(process.env.cert || '{}');
+
+// Initialize firebase admin
+admin.initializeApp({
+  credential: admin.credential.cert(cert),
+  databaseURL: `https://${cert.project_id}.firebaseio.com`,
+});
 
 describe('Login with Google Sign In', () => {
 
@@ -10,44 +21,22 @@ describe('Login with Google Sign In', () => {
     const title = await b.page.title();
     expect(title).toBe('Home');
 
-  }, 2000); // 2000 = Test's timeout in milliseconds
+  }, 3000); // 3000 = Test's timeout in milliseconds
 
-  let googleAuthPage;
-
-  test('Open Google Popup', async () => {
-    await b.page.click('#google-sign-in');
-    const popup = await b.once(b.browser, 'targetcreated');
-    googleAuthPage = await popup.page();
-  }, 4000);
-
-  test('Enter credentials', async () => {
-    await googleAuthPage.waitFor(2000);
+  test('Enter private token', async () => {
     
-    const legacy = await googleAuthPage.$('#Email');
-    if (legacy) {
-      await googleAuthPage.type('#Email', process.env.TEST_EMAIL);
-      await googleAuthPage.click('#next');
-      await googleAuthPage.waitForSelector('#Passwd', { timeout: 3001 });
-      await googleAuthPage.type('#Passwd', process.env.TEST_PASS);
-      await googleAuthPage.click('#signIn');
-      await googleAuthPage.waitFor(2000);
-    } else {
-      await googleAuthPage.waitForSelector('#identifierId', { timeout: 5002 });
-      await googleAuthPage.type('#identifierId', process.env.TEST_EMAIL);
-      await googleAuthPage.click('#identifierNext');
-      await googleAuthPage.waitFor(2000);
-      await googleAuthPage.waitForSelector('#password input[type="password"]', { timeout: 2003 });
-      await googleAuthPage.type('#password input[type="password"]', process.env.TEST_PASS);
-      await googleAuthPage.click('#passwordNext');
-      await googleAuthPage.waitFor(2000);
-    }
+    const token = await admin.auth().createCustomToken('testuser-uid');
+    await b.page.$eval('#token', (input, _token) => {
+      input.value = _token;
+      input.dispatchEvent(new Event('change'));
+    }, token);
 
-    await b.page.waitForNavigation({ timeout: 8004 });
+    await b.page.waitForNavigation({ timeout: 5004 });
     const title = await b.page.title();
     expect(title).toBe('Games');
 
     const storage = await b.page.evaluate(() => JSON.stringify(window.localStorage));
     await b.write('__tests__/__temp.txt', storage);
-  }, 15000);
+  }, 10000);
 
 });

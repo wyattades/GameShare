@@ -4,6 +4,8 @@ block page_content
 
   include ./templates/indexHeader
 
+  input#token(type="hidden")
+
   section.section.hero.is-fullheight.is-primary.home-body
     .hero-body
       .container
@@ -26,7 +28,7 @@ block page_content
                   span.icon
                     i.fa.fa-facebook
                   span Sign In with Facebook
-                  
+
             .field.logged-in
               .control.has-text-centered
                 a(href="/games")

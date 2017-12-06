@@ -13,13 +13,13 @@ const common = {
 
   // Helper functions:
 
-  once: (listener, event) => new Promise((resolve, reject) => {
+  once: (listener, event, options = {}) => new Promise((resolve, reject) => {
     // allow async on listener.once, with timeout
     listener.once(event, resolve);
 
     setTimeout(() => {
       reject('Browser.once timed out');
-    }, 3000);
+    }, options.timeout || 3000);
   }),
   read: promisify(readFile),
   write: promisify(writeFile),
@@ -47,6 +47,8 @@ beforeAll(async () => {
   // await common.page.setExtraHTTPHeaders({
   //   'accept-language': 'en-US,en;q=0.8',
   // });
+  // common.page.on('console', msg => console.log(msg.text));
+
   await common.page.setViewport({ width, height });
 
   await common.page.goto(`${common.ROOT}`);
