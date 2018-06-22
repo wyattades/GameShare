@@ -6,8 +6,6 @@ cache:
     - "node_modules"
 before_script:
   - npm run build
-notifications:
-  slack: gamesharegroup:52VErVS4AE5O3A8MyVqDPbRH
 dist: trusty
 sudo: false  # no need for virtualization.
 addons:
