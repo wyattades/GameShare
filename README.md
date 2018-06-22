@@ -1,5 +1,9 @@
 # GameShare [![Build Status](https://travis-ci.org/wyattades/GameShare.svg?branch=master)](https://travis-ci.org/wyattades/GameShare)
 
+GameShare streamlines the way people play online multiplayer games by letting the players create their own experience. Edit, play, and share games instantly with your friends!
+
+![](https://i.imgur.com/SV7nMhu.gif)
+
 ### Get Started
 1. Install ```node``` v8.5.0
 2. ```$ git clone https://github.com/wyattades/GameShare.git```
@@ -14,6 +18,7 @@ Start developing by running ```$ npm run dev``` and opening ```localhost:3000```
 
 ### File Structure
 .  
+|-- \__tests__/ - system and unit tests  
 |-- src/ - source of page assets (js, css, templates)  
 |-- +-- assets/ - static images, fonts, etc.  
 |-- +-- templates/ - small Pug templates inserted by jQuery  
