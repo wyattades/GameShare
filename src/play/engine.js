@@ -8,6 +8,7 @@ import { sendUpdate, sendShoot, sendHit, sendSpike, respawnPlayer } from './clie
 import { intToHex } from '../utils/helpers';
 import * as physics from './physics';
 import * as particles from './particles';
+import '../assets/gamepad.png';
 import './gamepad';
 
 const DEV = process.env.NODE_ENV === 'development';
@@ -128,7 +129,7 @@ export function serverToggleInvul(id) {
 const generateTextures = () => {
 
   if (Phaser.Plugin.VirtualGamepad) {
-    game.load.spritesheet('gamepad', '/public/assets/gamepad_spritesheet.png', 100, 100);
+    game.load.spritesheet('gamepad', '/public/assets/gamepad.png', 100, 100);
   }
 
   // Create textures from temporary graphics objects
@@ -702,6 +703,7 @@ const update = () => {
     sendShoot(data);
   }
 
+  // TODO: user Phaser timer instead?
   // Send update to server 10 times per second
   if (!game.lastServerUpdate || game.time.time - game.lastServerUpdate >= 100) {
     game.lastServerUpdate = game.time.time;
