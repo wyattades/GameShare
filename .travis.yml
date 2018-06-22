@@ -1,20 +1,20 @@
 language: node_js
 node_js:
-  - "8.9.1"
+- 8.9.1
 cache:
   directories:
-    - "node_modules"
+  - node_modules
 before_script:
-  - npm run build
+- npm run build
 dist: trusty
-sudo: false  # no need for virtualization.
+sudo: false
 addons:
   chrome: stable
 before_deploy:
-  - rm -rf {__tests__,scrum_docs,src}
+- rm -rf {__tests__,scrum_docs,src}
 deploy:
   provider: heroku
   skip_cleanup: true
   app: gameshare-app
   api_key:
-    secure: MSWcJC2IfDuSeEepnCAIqwJV+vad4xpMfT6W8PG+lvFuCLVVwXbMjMyfO4d5Hlfo77R8cBoZer3kt4a4/jjvzuRvc/9sr2uZoV8oIwXqXc+PJ6EtHuner7C2yMk1zgkDtK1oW2A3DhWcb28NmuuN1xJE4McCSCttSvkAorbOQ2aSAB4MqtUpLit3a+ZXc/ImZJTDpMpaQmkAWbrBQUR8LH+KPRrMRxEVKd7g5gCzPNqU8+uEVmAQGsMuEXKcLwcc0ZDjG2kkDdlfKLy6TvJYIrcJh5KsE9JXglclCKWvmGdwsiXhBr3liZCvw97EgLmVcwTUZ0N+q2HKrxvSDh8dVBuWiMeOeTo0Cp+z/hw8lLHKf6WNHn9erXRcYtSqbgkM7gPJr2PhQLGtzpP+pTmkkOyaZXAg5ZlxaUG/tTAViPR+gRxjJF3Dg7Kfc0aA0drJqtykYE8Yy3OLVerksEwqfA2yhFSmFiGtUKEDv8H9ORky5sGHI2xrTZjRgjwswJHQgcufMpIkx58Fb006oz8U3owUGDN3U7QsJUXnW4HknsCnSi6P72IVXe3o4x/PGyElFoEIVx+/CD9euEzpCnGCH9bQUKBPHkUGsEGbF3RvxrugmSjPLYq6fzouif2L3h8dFunxEkoTHO8UFpxlMvrsrAo3rgWS8IljHqvtahYRJrk=
+    secure: mKchs9auBYb18pgRm/bB37iH3OcM8vhicZ20IHqDJf34i61EENScrh0ThFCM/F6jzGFgnW+/7G6KA5QDO13GlHuyWkkW6Y6KQuSdQKhAVcPVpp4rLRfUIBJucR7pmqYA9RnEP4gMVXunEjMI86SZ38ZBhgjzFd43sYf0tm1DfBeyrRUXFRkF5HczxrvFZqemRIkOQ2pZ9bsKN78xReDPPPtbvmh8Iceqldb5PqFvfrgUHh+sP5Gp4eCwz50XIylpbXQNhnl8ZSkHFl9r+zSJ+FyNzIqEs3ze+vT5YgionF2YVS9sqC4G24L1cyZ6i9kpfBo33CvgApT1zGr5VQIPJARape+tmGQev+xcQRqpK8XUgfayv9NXDKRGBfPpiHIp/T2MR6jtCMG5yIqK/QVYLQePWGp+L/3w8NUYzWILSrpk8vJ4O5f3JkbMOjl9lUKInQyR+KZLrGjSbzpfB8k0trArMEcVFRN9JScASDgFn3SZHybZNefLxqxT9bfsc0N/H2ZLUYnMYtqzXpkSxtHTyq5muUtCZTk+xa1aX9E0eW5KYrVqlpjzfHr1Jx1eR6n0Q5BpwRky7IBdOuuAACujoYiTowedsl4e5SsBGjmVYVy7IwszhDiTAUJgQ5shqLr9b7h4uNohvMi/WxYKNHCF96y4Ev15DdIQ0j+CskIeS7A=
