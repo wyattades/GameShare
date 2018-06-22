@@ -32,8 +32,11 @@ beforeAll(async () => {
     // headless: false,
     // slowMo: 80,
     args: [
-      `--window-size=${width},${height}`, '--disable-popup-blocking',
+      `--window-size=${width},${height}`,
+      '--disable-popup-blocking',
       '--disable-web-security',
+      '--no-sandbox',
+      '--disable-setuid-sandbox',
     ],
   });
 
