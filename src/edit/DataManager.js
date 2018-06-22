@@ -5,7 +5,7 @@ import History from './History';
 const events = new EE();
 let data,
     gameId,
-    // saveState = 'saved',
+    saveState = 'saved',
     name = null;
 
 const validInput = val => (
@@ -76,7 +76,7 @@ addMiddlewear((event, ...args) => {
 let timerId = null;
 const save = () => {
   events.emit('save-state', 'saving');
-  // saveState = 'saving';
+  saveState = 'saving';
   
   if (timerId !== null) {
     window.clearTimeout(timerId);
@@ -84,7 +84,7 @@ const save = () => {
 
   timerId = window.setTimeout(() => {
     events.emit('save-state', 'saved');
-    // saveState = 'saved';
+    saveState = 'saved';
     timerId = null;
 
     const info = {};
@@ -196,6 +196,17 @@ const init = () => {
 
   // Select nothing
   events.emit('select');
+
+  // If saving, show 'unsaved data' message on page exit
+  window.addEventListener('beforeunload', (e) => {
+    
+    if (saveState === 'saving') {
+      e.returnValue = 'You have unsaved data.';
+      return e.returnValue;
+    }
+
+    return null;
+  });
 };
 
 export default (_data, _gameId) => {

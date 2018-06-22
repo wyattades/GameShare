@@ -8,6 +8,7 @@ import { sendUpdate, sendShoot, sendHit, sendSpike, respawnPlayer } from './clie
 import { intToHex } from '../utils/helpers';
 import * as physics from './physics';
 import * as particles from './particles';
+import './gamepad';
 
 const DEV = process.env.NODE_ENV === 'development';
 let devToggle;
@@ -23,7 +24,8 @@ let input,
     player,
     bullets,
     boundary,
-    players;
+    players,
+    gamepad;
 
 // Game options
 let options;
@@ -125,6 +127,10 @@ export function serverToggleInvul(id) {
 
 const generateTextures = () => {
 
+  if (Phaser.Plugin.VirtualGamepad) {
+    game.load.spritesheet('gamepad', '/public/assets/gamepad_spritesheet.png', 100, 100);
+  }
+
   // Create textures from temporary graphics objects
   const createTexture = (graphic, name) => {
     textures[name] = graphic.generateTexture();
@@ -201,14 +207,6 @@ const create = (focusX, focusY) => {
     game.stage.addChild(toggleButton);
   }
 
-  // Handle WASD keyboard inputs
-  input = game.input.keyboard.addKeys({
-    up: KeyCode.W,
-    left: KeyCode.A,
-    down: KeyCode.S,
-    right: KeyCode.D,
-  });
-
   // Reset player map
   playerMap = {};
 
@@ -258,6 +256,22 @@ const create = (focusX, focusY) => {
 
   game.camera.focusOnXY(focusX, focusY);
 
+  if (Phaser.Plugin.VirtualGamepad) {
+    // Handle joystick inputs on mobile
+    gamepad = game.plugins.add(Phaser.Plugin.VirtualGamepad);
+    input = gamepad.addJoystick(120, game.height - 120, 1.2, 'gamepad').properties;
+    gamepad.addJoystick(game.width - 120, game.height - 120, 1.2, 'gamepad');
+    // let mouse = gamepad.addJoystick(300, 420, 1.2, 'gamepad').properties;
+  } else {
+    // Handle WASD keyboard inputs
+    input = game.input.keyboard.addKeys({
+      up: KeyCode.W,
+      left: KeyCode.A,
+      down: KeyCode.S,
+      right: KeyCode.D,
+    });
+  }
+
   return Promise.resolve();
 };
 
@@ -277,6 +291,12 @@ export const addPlayer = (id, data) => {
     plyr.id = id;
     // Store player reference
     playerMap[id] = plyr;
+
+    // Bring joystick to top
+    if (gamepad) {
+      game.world.bringToTop(gamepad.group);
+    }
+
   }
 };
 
@@ -489,9 +509,7 @@ export const damageWall = data => {
 function respawn(id) {
   const plyr = playerMap[id];
   plyr.reset(boundary.left + (Math.random() * boundary.width), boundary.top + (Math.random() * boundary.height));
-  respawnPlayer({
-
-  });
+  respawnPlayer({});
 }
 
 export const despawnPlayer = ({ player: id }) => {
@@ -612,33 +630,61 @@ const update = () => {
     return;
   }
 
-  // TEMP
-  // game.camera.focusOn(player);
+  let turretAngle = null;
 
-  // Rotate left and right
-  if (input.left.isDown && input.right.isDown) {
-    player.body.setZeroRotation();
-  } else if (input.left.isDown) {
-    player.body.rotateLeft(50);
-  } else if (input.right.isDown) {
-    player.body.rotateRight(50);
+  const turretJoystick = gamepad && gamepad.joysticks[1].joystick.properties;
+
+  if (gamepad) {
+    if (input.inUse) {
+
+      let deltaAngle = player.body.rotation - Math.PI * 0.5 - input.rotation;
+      if (deltaAngle > Math.PI) deltaAngle -= 2 * Math.PI;
+      if (deltaAngle < -Math.PI) deltaAngle += 2 * Math.PI;
+
+      if (Math.abs(deltaAngle) > 0.1) {
+        deltaAngle > 0 ? player.body.rotateLeft(50) : player.body.rotateRight(50);
+      } else {
+        player.body.setZeroRotation();
+        player.body.thrust(options.playerSpeed * Math.min(100, input.distance) * 0.01);
+      }
+    } else {
+      player.body.setZeroRotation();
+    }
+
+    if (turretJoystick.inUse) {
+      turretAngle = turretJoystick.rotation;
+    }
+
   } else {
-    player.body.setZeroRotation();
+
+    // Rotate left and right
+    if (input.left.isDown && input.right.isDown) {
+      player.body.setZeroRotation();
+    } else if (input.left.isDown) {
+      player.body.rotateLeft(50);
+    } else if (input.right.isDown) {
+      player.body.rotateRight(50);
+    } else {
+      player.body.setZeroRotation();
+    }
+
+    // Move forward and backward
+    if (input.up.isDown) {
+      player.body.thrust(options.playerSpeed);
+    } else if (input.down.isDown) {
+      player.body.reverse(options.playerSpeed);
+    }
+  
+    // Point turret at mouse pointer
+    turretAngle = game.physics.arcade.angleToPointer(player);
   }
 
-  // Move forward and backward
-  if (input.up.isDown) {
-    player.body.thrust(options.playerSpeed);
-  } else if (input.down.isDown) {
-    player.body.reverse(options.playerSpeed);
+  if (turretAngle !== null) {
+    player.turret.rotation = turretAngle - player.rotation;
   }
-
-  // Point turret at mouse pointer
-  let angle = game.physics.arcade.angleToPointer(player);
-  player.turret.rotation = angle - player.rotation;
-
+  
   if (player.alive && // Player alive
-    game.input.activePointer.isDown && // mouse pressed
+    (turretJoystick ? turretJoystick.distance > 20 : game.input.activePointer.isDown) && // mouse pressed
     bulletsShot < options.maxBulletsPerPlayer && // there's an available bullet
     game.time.now > nextFire) { // fire rate has serpassed
 
@@ -646,16 +692,16 @@ const update = () => {
     bulletsShot++;
 
     const data = {
-      x: player.x + (GUN_LENGTH * Math.cos(angle)),
-      y: player.y + (GUN_LENGTH * Math.sin(angle)),
-      angle: angle + (Math.PI * 0.5),
+      x: player.x + (GUN_LENGTH * Math.cos(turretAngle)),
+      y: player.y + (GUN_LENGTH * Math.sin(turretAngle)),
+      angle: turretAngle + (Math.PI * 0.5),
       speed: options.bulletSpeed,
       index: availableBullet(),
     };
 
     sendShoot(data);
-
   }
+
 
   // TODO: update slower???
   sendUpdate({

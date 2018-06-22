@@ -47,6 +47,7 @@ const renderPage = (page, title, options = {}) => {
   const compiled = Object.assign({
     page,
     title,
+    mobile: true,
     css: DEV ? [] : ['/public/style.css'], // Only need to import css in production
     scripts: [{ src: `/public/${script}.js`, inject: 'body' }],
   }, options);

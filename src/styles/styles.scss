@@ -168,6 +168,28 @@ $facebook-color: #3B5998;
   }
 }
 
+@media (max-width: $tablet) {
+  .edit-body {
+    background-color: black;
+    align-items: center;
+
+    &::after {
+      display: block;
+      width: 100%;
+      height: 100%;
+      padding: 64px 32px;
+      text-align: center;
+      color: white;
+      font-size: 32px;
+      content: 'Editing games is only supported on larger screens!';
+    }
+  
+    > * {
+      display: none !important;
+    }
+  }
+}
+
 #objects-settings {
   display: flex;
   flex-direction: column;
@@ -200,7 +222,7 @@ html, body, .edit-body {
 .layers {
   position: relative;
   overflow: hidden;
-  height: calc(100% - #{$navbar-height});  
+  height: calc(100% - #{$navbar-height}); 
 
   .layer {
     position: absolute;
