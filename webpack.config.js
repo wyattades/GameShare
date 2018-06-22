@@ -68,7 +68,14 @@ const baseConfig = {
         }),
         include: PATHS.css,
       }, {
-        test: /\.(gif|jpe?g|png|svg)(\?\w+=[\d.]+)?$/,
+        test: /\.(gif|jpe?g|png)(\?\w+=[\d.]+)?$/,
+        loader: 'file-loader',
+        options: {
+          name: PATHS.assetName,
+        },
+        // include: PATHS.assets,
+      }, {
+        test: /\.(svg)(\?\w+=[\d.]+)?$/,
         loader: 'url-loader',
         options: {
           name: PATHS.assetName,
