@@ -702,20 +702,23 @@ const update = () => {
     sendShoot(data);
   }
 
+  // Send update to server 10 times per second
+  if (!game.lastServerUpdate || game.time.time - game.lastServerUpdate >= 100) {
+    game.lastServerUpdate = game.time.time;
 
-  // TODO: update slower???
-  sendUpdate({
-    x: player.x,
-    y: player.y,
-    vx: player.body.velocity.x,
-    vy: player.body.velocity.y,
-    angle: player.rotation,
-    vangle: player.body.angularVelocity,
-    turret: player.turret.rotation,
-    score: player.score,
-    username: player.username,
-    invul: player.invul,
-  });
+    sendUpdate({
+      x: player.x,
+      y: player.y,
+      vx: player.body.velocity.x,
+      vy: player.body.velocity.y,
+      angle: player.rotation,
+      vangle: player.body.angularVelocity,
+      turret: player.turret.rotation,
+      score: player.score,
+      username: player.username,
+      invul: player.invul,
+    });
+  }
 };
 
 export const setup = (gameOptions, focusX, focusY) => new Promise((resolve) => {
@@ -726,6 +729,7 @@ export const setup = (gameOptions, focusX, focusY) => new Promise((resolve) => {
     parent,
     // transparent: true,
   });
+  if (DEV) window.GAME = game;
 
   game.state.add('Play', {
     preload: generateTextures,
